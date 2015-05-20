@@ -125,7 +125,7 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 
 								audio_services[sid_prog] = service;
 
-								fprintf(stderr, "FICDecoder: found new audio service: SID 0x%04X, subchannel %d, %s\n", sid_prog, subchid, dab_plus ? "DAB+" : "DAB");
+								fprintf(stderr, "FICDecoder: found new audio service: SID 0x%04X, subchannel %2d, %s\n", sid_prog, subchid, dab_plus ? "DAB+" : "DAB");
 
 								CheckService(sid_prog);
 							}
