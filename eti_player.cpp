@@ -183,6 +183,15 @@ void ETIPlayer::DecodeFrame() {
 	int mid = (eti_frame[6] & 0x18) >> 3;
 //	int fl = (eti_frame[6] & 0x07) << 8 | eti_frame[7];
 
+	// check header CRC
+	size_t header_crc_data_len = 4 + nst * 4 + 2;
+	uint16_t header_crc_stored = eti_frame[4 + header_crc_data_len] << 8 | eti_frame[4 + header_crc_data_len + 1];
+	uint16_t header_crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(eti_frame + 4, header_crc_data_len);
+	if(header_crc_stored != header_crc_calced) {
+		fprintf(stderr, "ETIPlayer: ignored ETI frame due to wrong header CRC\n");
+		return;
+	}
+
 	int ficl = ficf ? (mid == 3 ? 32 : 24) : 0;
 
 	int subch_bytes = 0;
@@ -213,7 +222,7 @@ void ETIPlayer::DecodeFrame() {
 		return;
 	}
 
-	// TODO: check both CRCs
+	// TODO: check body CRC?
 
 
 	dec->Feed(eti_frame + subch_offset, subch_bytes);

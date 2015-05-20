@@ -20,8 +20,8 @@
 
 
 // --- CalcCRC -----------------------------------------------------------------
-CalcCRC CalcCRC::CalcCRC_CRC16_CCITT(0xFFFF, 0x1021, true);
-CalcCRC CalcCRC::CalcCRC_FIRE_CODE(0x0000, 0x782F, false);
+CalcCRC CalcCRC::CalcCRC_CRC16_CCITT(0xFFFF, 0x1021, true);	// 0001 0000 0010 0001 (16, 12, 5, 0)
+CalcCRC CalcCRC::CalcCRC_FIRE_CODE(0x0000, 0x782F, false);	// 0111 1000 0010 1111 (16, 14, 13, 12, 11, 5, 3, 2, 1, 0)
 
 uint16_t CalcCRC::Calc(const uint8_t *data, size_t len) {
 	uint16_t crc = initial_crc;
