@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 
 
 	int myargc = 1;
-	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(myargc, argv, "org.gtkmm.examples.base");
+	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(myargc, argv);
 
 	dablin = new DABlinGTK(filename, sid);
 	int result = app->run(*dablin);
