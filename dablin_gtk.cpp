@@ -101,6 +101,7 @@ DABlinGTK::DABlinGTK(std::string filename, int initial_sid) {
 
 	set_title("DABlin");
 	set_default_size(400, 50);
+	set_default_icon_name("media-playback-start");
 
 	// init widgets
 	frame_label_ensemble.set_label("Ensemble");
