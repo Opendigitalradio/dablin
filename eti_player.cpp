@@ -318,7 +318,7 @@ void ETIPlayer::ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, const uint
 	// undo reversed byte order + trim long MP2 frames
 	size_t used_xpad_len = std::min(xpad_len, sizeof(xpad));
 	for(size_t i = 0; i < used_xpad_len; i++)
-		xpad[i] = xpad_data[xpad_len - i];
+		xpad[i] = xpad_data[xpad_len - 1 - i];
 
 	uint16_t fpad_value = fpad_data[0] << 8 | fpad_data[1];
 
