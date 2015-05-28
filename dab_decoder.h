@@ -22,7 +22,6 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
-#include <algorithm>
 #include <stdexcept>
 #include <sstream>
 
@@ -37,7 +36,6 @@ private:
 	mpg123_handle *handle;
 
 	int crc_len;
-	uint8_t pad[256];	// limit never reached by F-PAD + longest possible X-PAD
 
 	void ProcessFormat();
 	size_t GetFrame(uint8_t **data);

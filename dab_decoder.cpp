@@ -138,12 +138,8 @@ size_t MP2Decoder::GetFrame(uint8_t **data) {
 
 	// TODO: check CRC!?
 
-	// remove CRC gap between X-PAD and F-PAD
-	int used_body_bytes = std::min(body_bytes, sizeof(pad) - FPAD_LEN);
-	memcpy(pad, body_data + body_bytes - FPAD_LEN - crc_len - used_body_bytes, used_body_bytes);
-	memcpy(pad + used_body_bytes, body_data + body_bytes - FPAD_LEN, FPAD_LEN);
-
-	observer->ProcessPAD(pad, used_body_bytes + FPAD_LEN);
+	// forwarding the whole frame (except CRC + F-PAD) as X-PAD, as we don't know the X-PAD len here
+	observer->ProcessPAD(body_data, body_bytes - FPAD_LEN - crc_len, body_data + body_bytes - FPAD_LEN);
 
 	size_t frame_len;
 	mpg_result = mpg123_framebyframe_decode(handle, NULL, data, &frame_len);

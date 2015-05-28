@@ -19,6 +19,7 @@
 #ifndef ETI_PLAYER_H_
 #define ETI_PLAYER_H_
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdint>
 #include <mutex>
@@ -42,7 +43,7 @@ public:
 
 	virtual void ETIChangeFormat() {};
 	virtual void ETIProcessFIC(const uint8_t *data, size_t len) {};
-	virtual void ETIProcessPAD(const uint8_t *data, size_t len) {};
+	virtual void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad) {};
 	virtual void ETIResetPAD() {};
 };
 
@@ -65,6 +66,7 @@ private:
 	std::string format;
 
 	uint8_t eti_frame[6144];
+	uint8_t xpad[256];	// limit never reached by longest possible X-PAD
 	SubchannelSink *dec;
 	AudioOutput *out;
 
@@ -79,7 +81,7 @@ private:
 	void StartAudio(int samplerate, int channels, bool float32);
 	void PutAudio(const uint8_t *data, size_t len);
 	void ProcessFIC(const uint8_t *data, size_t len);
-	void ProcessPAD(const uint8_t *data, size_t len);
+	void ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, const uint8_t *fpad_data);
 
 	size_t GetAudio(uint8_t *data, size_t len, uint8_t silence);
 public:

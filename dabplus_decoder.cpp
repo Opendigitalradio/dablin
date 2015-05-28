@@ -142,15 +142,15 @@ void SuperframeFilter::CheckForPAD(const uint8_t *data, size_t len) {
 		}
 
 		if(pad_len >= 2 && len >= pad_start + pad_len) {
-			observer->ProcessPAD(data + pad_start, pad_len);
+			observer->ProcessPAD(data + pad_start, pad_len - FPAD_LEN, data + pad_start + pad_len - FPAD_LEN);
 			present = true;
 		}
 	}
 
 	if(!present) {
 		// required to reset internal state of PAD parser (in case of omitted CI list)
-		uint8_t zero_fpad[FPAD_LEN] = {0x00, 0x00};
-		observer->ProcessPAD(zero_fpad, sizeof(zero_fpad));
+		uint8_t zero_fpad[FPAD_LEN] = {0x00};
+		observer->ProcessPAD(NULL, 0, zero_fpad);
 	}
 }
 
