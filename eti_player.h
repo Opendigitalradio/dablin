@@ -43,6 +43,7 @@ public:
 	virtual void ETIChangeFormat() {};
 	virtual void ETIProcessFIC(const uint8_t *data, size_t len) {};
 	virtual void ETIProcessPAD(const uint8_t *data, size_t len) {};
+	virtual void ETIResetPAD() {};
 };
 
 

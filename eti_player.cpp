@@ -121,6 +121,8 @@ int ETIPlayer::Main() {
 				subchannel_now = subchannel_next;
 				dab_plus_now = dab_plus_next;
 
+				observer->ETIResetPAD();
+
 				// append
 				if(subchannel_now != -1) {
 					if(dab_plus_now)
