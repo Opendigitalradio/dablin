@@ -6,6 +6,7 @@ transmission or from a stored ensemble recording (frame-aligned ETI-NI).
 Both DAB (MP2) and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are
 supported.
 
+![Screenshot of the GTK version](http://www.basicmaster.de/dab/DABlin.png)
 
 Requirements
 ------------
