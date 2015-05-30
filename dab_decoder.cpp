@@ -70,6 +70,14 @@ MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer) : SubchannelSink(observ
 		throw std::runtime_error(ss.str());
 	}
 
+	// disable resync limit
+	mpg_result = mpg123_param(handle, MPG123_RESYNC_LIMIT, -1, 0);
+	if(mpg_result != MPG123_OK) {
+		std::stringstream ss;
+		ss << "MP2Decoder: error while mpg123_param: " << mpg123_plain_strerror(mpg_result);
+		throw std::runtime_error(ss.str());
+	}
+
 	mpg_result = mpg123_open_feed(handle);
 	if(mpg_result != MPG123_OK) {
 		std::stringstream ss;
