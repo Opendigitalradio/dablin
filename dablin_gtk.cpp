@@ -93,20 +93,23 @@ DABlinGTK::DABlinGTK(std::string filename, int initial_sid) {
 	format_change.connect(sigc::mem_fun(*this, &DABlinGTK::ETIChangeFormatEmitted));
 	fic_data_change_ensemble.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeEnsembleEmitted));
 	fic_data_change_services.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServicesEmitted));
+	pad_data_change_dynamic_label.connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 
 	eti_player = new ETIPlayer(filename, this);
 	eti_player_thread = std::thread(&ETIPlayer::Main, eti_player);
 
 	fic_decoder = new FICDecoder(this);
+	pad_decoder = new PADDecoder(this);
 
 	set_title("DABlin");
-	set_default_size(400, 50);
 	set_default_icon_name("media-playback-start");
 
 	// init widgets
 	frame_label_ensemble.set_label("Ensemble");
 	frame_label_ensemble.set_size_request(150, -1);
 	frame_label_ensemble.add(label_ensemble);
+	label_ensemble.set_halign(Gtk::ALIGN_START);
+	label_ensemble.set_padding(WIDGET_SPACE, WIDGET_SPACE);
 
 
 	combo_services.signal_changed().connect(sigc::mem_fun(*this, &DABlinGTK::on_combo_services));
@@ -125,23 +128,34 @@ DABlinGTK::DABlinGTK(std::string filename, int initial_sid) {
 	frame_label_format.set_label("Format");
 	frame_label_format.set_size_request(250, -1);
 	frame_label_format.add(label_format);
+	label_format.set_halign(Gtk::ALIGN_START);
+	label_format.set_padding(WIDGET_SPACE, WIDGET_SPACE);
 
-	chkbtn_mute.set_label("mute");
-	chkbtn_mute.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_chkbtn_mute));
+	tglbtn_mute.set_label("Mute");
+	tglbtn_mute.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_mute));
+
+	frame_label_dl.set_label("Dynamic Label");
+	frame_label_dl.set_size_request(750, 50);
+	frame_label_dl.set_sensitive(false);
+	frame_label_dl.add(label_dl);
+	label_dl.set_halign(Gtk::ALIGN_START);
+	label_dl.set_padding(WIDGET_SPACE, WIDGET_SPACE);
 
 
-	top_box.set_spacing(10);
+	top_grid.set_column_spacing(WIDGET_SPACE);
+	top_grid.set_row_spacing(WIDGET_SPACE);
 
 
 	// add widgets
-	add(top_box);
+	add(top_grid);
 
-	top_box.pack_start(frame_label_ensemble);
-	top_box.pack_start(frame_combo_services);
-	top_box.pack_start(frame_label_format);
-	top_box.pack_start(chkbtn_mute);
+	top_grid.attach(frame_label_ensemble, 0, 0, 1, 1);
+	top_grid.attach_next_to(frame_combo_services, frame_label_ensemble, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach_next_to(frame_label_format, frame_combo_services, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach_next_to(tglbtn_mute, frame_label_format, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach(frame_label_dl, 0, 1, 4, 1);
 
-	set_border_width(10);
+	set_border_width(2 * WIDGET_SPACE);
 	show_all_children();
 }
 
@@ -153,11 +167,15 @@ DABlinGTK::~DABlinGTK() {
 
 	delete eti_player;
 
+	delete pad_decoder;
 	delete fic_decoder;
 }
 
 void DABlinGTK::SetService(SERVICE service) {
 	label_format.set_label("");
+
+	frame_label_dl.set_sensitive(false);
+	label_dl.set_label("");
 
 	Glib::ustring label = FICDecoder::ConvertTextToUTF8(service.label.label, 16, service.label.charset, false);
 	set_title(label + " - DABlin");
@@ -166,8 +184,8 @@ void DABlinGTK::SetService(SERVICE service) {
 }
 
 
-void DABlinGTK::on_chkbtn_mute() {
-	eti_player->SetAudioMute(chkbtn_mute.get_active());
+void DABlinGTK::on_tglbtn_mute() {
+	eti_player->SetAudioMute(tglbtn_mute.get_active());
 }
 
 
@@ -214,4 +232,16 @@ void DABlinGTK::on_combo_services() {
 	SERVICE service = row[combo_services_cols.col_service];
 
 	SetService(service);
+}
+
+void DABlinGTK::PADChangeDynamicLabelEmitted() {
+//	fprintf(stderr, "### PADChangeDynamicLabelEmitted\n");
+
+	uint8_t dl_raw[DL_MAX_LEN];
+	int dl_charset;
+	size_t dl_len = pad_decoder->GetDynamicLabel(dl_raw, &dl_charset);
+
+	Glib::ustring label = FICDecoder::ConvertTextToUTF8(dl_raw, dl_len, dl_charset, true);
+	frame_label_dl.set_sensitive(true);
+	label_dl.set_label(label);
 }

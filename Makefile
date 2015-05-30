@@ -25,19 +25,21 @@ BIN_CLI = dablin
 BIN_GTK = dablin_gtk
 
 OBJ = eti_player.o dab_decoder.o dabplus_decoder.o fic_decoder.o sdl_output.o tools.o
-OBJ_CLI = $(BIN_CLI).o
-OBJ_GTK = $(BIN_GTK).o
+OBJ_CLI =
+OBJ_GTK = pad_decoder.o
+OBJ_BIN_CLI = $(BIN_CLI).o
+OBJ_BIN_GTK = $(BIN_GTK).o
 
 
 all: $(BIN_CLI) $(BIN_GTK)
 
-$(BIN_CLI): $(OBJ_CLI) $(OBJ)
-	$(CC) -o $@ $(OBJ_CLI) $(OBJ) $(LDFLAGS)
+$(BIN_CLI): $(OBJ) $(OBJ_CLI) $(OBJ_BIN_CLI)
+	$(CC) -o $@ $(OBJ) $(OBJ_CLI) $(OBJ_BIN_CLI) $(LDFLAGS)
 
-$(BIN_GTK): $(OBJ_GTK) $(OBJ)
-	$(CC) -o $@ $(OBJ_GTK) $(OBJ) $(LDFLAGS_GTK) $(LDFLAGS)
+$(BIN_GTK): $(OBJ) $(OBJ_GTK) $(OBJ_BIN_GTK)
+	$(CC) -o $@ $(OBJ) $(OBJ_GTK) $(OBJ_BIN_GTK) $(LDFLAGS_GTK) $(LDFLAGS)
 
-$(OBJ_GTK): $(BIN_GTK).cpp
+$(OBJ_BIN_GTK): $(BIN_GTK).cpp
 	$(CC) $(CFLAGS_GTK) $(CFLAGS) -c $<
 
 %.o: %.cpp
@@ -45,4 +47,4 @@ $(OBJ_GTK): $(BIN_GTK).cpp
 
 .PHONY: clean
 clean:
-	rm -rf $(BIN_CLI) $(BIN_GTK) $(OBJ_CLI) $(OBJ_GTK) $(OBJ)
+	rm -rf $(BIN_CLI) $(BIN_GTK) $(OBJ) $(OBJ_CLI) $(OBJ_GTK) $(OBJ_BIN_CLI) $(OBJ_BIN_GTK)
