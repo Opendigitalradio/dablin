@@ -291,9 +291,11 @@ std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int c
 		break;
 	}
 
-	// remove trailing spaces
+	// remove leading/trailing spaces
+	while(result.size() > 0 && result[0] == ' ')
+		result.erase(0, 1);
 	while(result.size() > 0 && result[result.size() - 1] == ' ')
-		result.resize(result.size() - 1);
+		result.erase(result.size() - 1, 1);
 
 	return result;
 }
