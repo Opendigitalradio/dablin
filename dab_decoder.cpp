@@ -215,7 +215,7 @@ void MP2Decoder::ProcessFormat() {
 		break;
 	}
 
-	fprintf(stderr, "MP2Decoder: format: MPEG %s Layer %s, %ld kHz %s @ %d kbit/s\n", version, layer, info.rate / 1000, mode, info.bitrate);
+	fprintf(stderr, "MP2Decoder: format: MPEG %s Layer %s, %ld kHz %s @ %d kBit/s\n", version, layer, info.rate / 1000, mode, info.bitrate);
 
 	std::stringstream ss;
 	ss << "MPEG " << version << " Layer " << layer << ", ";

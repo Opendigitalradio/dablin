@@ -226,7 +226,7 @@ void SuperframeFilter::ProcessFormat() {
 	ss << (sf_format.sbr_flag ? (sf_format.ps_flag ? "HE-AAC v2" : "HE-AAC") : "AAC-LC") << ", ";
 	ss << (sf_format.dac_rate ? 48 : 32) << " kHz ";
 	ss << mode << " ";
-	ss << "@ " << bitrate << " kbit/s";
+	ss << "@ " << bitrate << " kBit/s";
 	observer->FormatChange(ss.str());
 
 	if(aac_dec)
