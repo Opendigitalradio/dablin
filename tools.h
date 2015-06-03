@@ -27,11 +27,11 @@
 // --- CalcCRC -----------------------------------------------------------------
 class CalcCRC {
 private:
-	uint16_t initial_crc;
-	uint16_t gen_polynom;
+	bool initial_invert;
 	bool final_invert;
+	uint16_t crc_lut[256];
 public:
-	CalcCRC(uint16_t initial_crc, uint16_t gen_polynom, bool final_invert) : initial_crc(initial_crc), gen_polynom(gen_polynom), final_invert(final_invert) {}
+	CalcCRC(bool initial_invert, bool final_invert, uint16_t gen_polynom);
 	virtual ~CalcCRC() {}
 	uint16_t Calc(const uint8_t *data, size_t len);
 

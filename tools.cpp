@@ -20,27 +20,35 @@
 
 
 // --- CalcCRC -----------------------------------------------------------------
-CalcCRC CalcCRC::CalcCRC_CRC16_CCITT(0xFFFF, 0x1021, true);	// 0001 0000 0010 0001 (16, 12, 5, 0)
-CalcCRC CalcCRC::CalcCRC_FIRE_CODE(0x0000, 0x782F, false);	// 0111 1000 0010 1111 (16, 14, 13, 12, 11, 5, 3, 2, 1, 0)
+CalcCRC CalcCRC::CalcCRC_CRC16_CCITT(true, true, 0x1021);	// 0001 0000 0010 0001 (16, 12, 5, 0)
+CalcCRC CalcCRC::CalcCRC_FIRE_CODE(false, false, 0x782F);	// 0111 1000 0010 1111 (16, 14, 13, 12, 11, 5, 3, 2, 1, 0)
 
-uint16_t CalcCRC::Calc(const uint8_t *data, size_t len) {
-	uint16_t crc = initial_crc;
+CalcCRC::CalcCRC(bool initial_invert, bool final_invert, uint16_t gen_polynom) {
+	this->initial_invert = initial_invert;
+	this->final_invert = final_invert;
 
-	for(size_t offset = 0; offset < len; offset++) {
-		for(uint8_t mask = 1 << 7; mask; mask >>= 1) {
+	// fill LUT
+	for(int value = 0; value < 256; value++) {
+		uint16_t crc = value << 8;
+
+		for(int i = 0; i < 8; i++) {
 			if(crc & 0x8000)
 				crc = (crc << 1) ^ gen_polynom;
 			else
 				crc = crc << 1;
-			if(data[offset] & mask)
-				crc ^= gen_polynom;
 		}
+
+		crc_lut[value] = crc;
 	}
+}
 
-	if(final_invert)
-		crc ^= 0xFFFF;
+uint16_t CalcCRC::Calc(const uint8_t *data, size_t len) {
+	uint16_t crc = initial_invert ? 0xFFFF : 0x0000;
 
-	return crc;
+	for(size_t offset = 0; offset < len; offset++)
+		crc = (crc << 8) ^ crc_lut[(crc >> 8) ^ data[offset]];
+
+	return final_invert ? (crc ^ 0xFFFF) : crc;
 }
 
 
