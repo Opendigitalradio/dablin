@@ -147,6 +147,10 @@ int ETIPlayer::Main() {
 
 		if(bytes > 0)
 			filled += bytes;
+		if(bytes == 0) {
+			fprintf(stderr, "ETIPlayer: EOF reached!\n");
+			break;
+		}
 		if(bytes == -1) {
 			perror("ETIPlayer: error while read");
 			return 1;
