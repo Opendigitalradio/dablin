@@ -93,7 +93,7 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 
 			if(pd) {
 //				sid_data = data[offset] << 24 | data[offset + 1] << 16 | data[offset + 2] << 8 | data[offset + 3];
-//				offset += 4;
+				offset += 4;
 			} else {
 				sid_prog = data[offset] << 8 | data[offset + 1];
 				offset += 2;
