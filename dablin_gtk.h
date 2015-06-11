@@ -44,10 +44,19 @@ public:
 };
 
 
+// --- DABlinGTKOptions -----------------------------------------------------------------
+struct DABlinGTKOptions {
+	std::string filename;
+	int initial_sid;
+
+	DABlinGTKOptions() : initial_sid(-1) {}
+};
+
+
 // --- DABlinGTK -----------------------------------------------------------------
 class DABlinGTK : public Gtk::Window, ETIPlayerObserver, FICDecoderObserver, PADDecoderObserver {
 private:
-	int initial_sid;
+	DABlinGTKOptions options;
 
 	ETIPlayer *eti_player;
 	std::thread eti_player_thread;
@@ -102,7 +111,7 @@ private:
 	void PADChangeDynamicLabel() {pad_data_change_dynamic_label.emit();}
 	void PADChangeDynamicLabelEmitted();
 public:
-	DABlinGTK(std::string filename, int initial_sid);
+	DABlinGTK(DABlinGTKOptions options);
 	~DABlinGTK();
 };
 

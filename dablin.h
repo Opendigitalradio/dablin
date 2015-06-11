@@ -23,10 +23,19 @@
 #include "fic_decoder.h"
 
 
+// --- DABlinTextOptions -----------------------------------------------------------------
+struct DABlinTextOptions {
+	std::string filename;
+	int initial_sid;
+
+	DABlinTextOptions() : initial_sid(-1) {}
+};
+
+
 // --- DABlinText -----------------------------------------------------------------
 class DABlinText : ETIPlayerObserver, FICDecoderObserver {
 private:
-	int initial_sid;
+	DABlinTextOptions options;
 
 	ETIPlayer *eti_player;
 	FICDecoder *fic_decoder;
@@ -34,7 +43,7 @@ private:
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
 	void FICChangeServices();
 public:
-	DABlinText(std::string filename, int initial_sid);
+	DABlinText(DABlinTextOptions options);
 	~DABlinText();
 	void DoExit() {eti_player->DoExit();}
 	int Main() {return eti_player->Main();}

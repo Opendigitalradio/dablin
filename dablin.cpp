@@ -43,15 +43,14 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	std::string filename;
-	int sid = -1;
+	DABlinTextOptions options;
 
 	// option args
 	int c;
 	while((c = getopt(argc, argv, "s:")) != -1) {
 		switch(c) {
 		case 's':
-			sid = strtol(optarg, NULL, 0);
+			options.initial_sid = strtol(optarg, NULL, 0);
 			break;
 		case '?':
 		default:
@@ -64,7 +63,7 @@ int main(int argc, char **argv) {
 	case 0:
 		break;
 	case 1:
-		filename = argv[optind];
+		options.filename = argv[optind];
 		break;
 	default:
 		usage(argv[0]);
@@ -72,14 +71,14 @@ int main(int argc, char **argv) {
 
 
 	// SID needed!
-	if(sid == -1)
+	if(options.initial_sid == -1)
 		usage(argv[0]);
 
 
 	fprintf(stderr, "DABlin - capital DAB experience\n");
 
 
-	dablin = new DABlinText(filename, sid);
+	dablin = new DABlinText(options);
 	int result = dablin->Main();
 	delete dablin;
 
@@ -89,10 +88,10 @@ int main(int argc, char **argv) {
 
 
 // --- DABlinText -----------------------------------------------------------------
-DABlinText::DABlinText(std::string filename, int initial_sid) {
-	this->initial_sid = initial_sid;
+DABlinText::DABlinText(DABlinTextOptions options) {
+	this->options = options;
 
-	eti_player = new ETIPlayer(filename, this);
+	eti_player = new ETIPlayer(options.filename, this);
 	fic_decoder = new FICDecoder(this);
 }
 
@@ -108,6 +107,6 @@ void DABlinText::FICChangeServices() {
 	services_t new_services = fic_decoder->GetNewServices();
 
 	for(services_t::iterator it = new_services.begin(); it != new_services.end(); it++)
-		if(it->sid == initial_sid)
+		if(it->sid == options.initial_sid)
 			eti_player->SetAudioSubchannel(it->service.subchid, it->service.dab_plus);
 }

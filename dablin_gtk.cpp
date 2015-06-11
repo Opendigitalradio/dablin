@@ -43,15 +43,14 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	std::string filename;
-	int sid = -1;
+	DABlinGTKOptions options;
 
 	// option args
 	int c;
 	while((c = getopt(argc, argv, "s:")) != -1) {
 		switch(c) {
 		case 's':
-			sid = strtol(optarg, NULL, 0);
+			options.initial_sid = strtol(optarg, NULL, 0);
 			break;
 		case '?':
 		default:
@@ -64,7 +63,7 @@ int main(int argc, char **argv) {
 	case 0:
 		break;
 	case 1:
-		filename = argv[optind];
+		options.filename = argv[optind];
 		break;
 	default:
 		usage(argv[0]);
@@ -77,7 +76,7 @@ int main(int argc, char **argv) {
 	int myargc = 1;
 	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(myargc, argv);
 
-	dablin = new DABlinGTK(filename, sid);
+	dablin = new DABlinGTK(options);
 	int result = app->run(*dablin);
 	delete dablin;
 
@@ -87,15 +86,15 @@ int main(int argc, char **argv) {
 
 
 // --- DABlinGTK -----------------------------------------------------------------
-DABlinGTK::DABlinGTK(std::string filename, int initial_sid) {
-	this->initial_sid = initial_sid;
+DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
+	this->options = options;
 
 	format_change.connect(sigc::mem_fun(*this, &DABlinGTK::ETIChangeFormatEmitted));
 	fic_data_change_ensemble.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeEnsembleEmitted));
 	fic_data_change_services.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServicesEmitted));
 	pad_data_change_dynamic_label.connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 
-	eti_player = new ETIPlayer(filename, this);
+	eti_player = new ETIPlayer(options.filename, this);
 	eti_player_thread = std::thread(&ETIPlayer::Main, eti_player);
 
 	fic_decoder = new FICDecoder(this);
@@ -222,7 +221,7 @@ void DABlinGTK::FICChangeServicesEmitted() {
 		row[combo_services_cols.col_string] = label;
 		row[combo_services_cols.col_service] = *it;
 
-		if(it->sid == initial_sid)
+		if(it->sid == options.initial_sid)
 			combo_services.set_active(row_it);
 	}
 }
