@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 	case 0:
 		break;
 	case 1:
-		filename = std::string(argv[optind]);
+		filename = argv[optind];
 		break;
 	default:
 		usage(argv[0]);
