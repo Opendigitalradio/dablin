@@ -24,7 +24,7 @@ LDFLAGS_GTK = `pkg-config gtkmm-3.0 --libs`
 BIN_CLI = dablin
 BIN_GTK = dablin_gtk
 
-OBJ = eti_player.o dab_decoder.o dabplus_decoder.o fic_decoder.o sdl_output.o tools.o
+OBJ = eti_source.o eti_player.o dab_decoder.o dabplus_decoder.o fic_decoder.o sdl_output.o tools.o
 OBJ_CLI =
 OBJ_GTK = pad_decoder.o
 OBJ_BIN_CLI = $(BIN_CLI).o

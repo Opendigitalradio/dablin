@@ -19,6 +19,9 @@
 #ifndef DABLIN_H_
 #define DABLIN_H_
 
+#include <signal.h>
+
+#include "eti_source.h"
 #include "eti_player.h"
 #include "fic_decoder.h"
 
@@ -33,20 +36,22 @@ struct DABlinTextOptions {
 
 
 // --- DABlinText -----------------------------------------------------------------
-class DABlinText : ETIPlayerObserver, FICDecoderObserver {
+class DABlinText : ETISourceObserver, ETIPlayerObserver, FICDecoderObserver {
 private:
 	DABlinTextOptions options;
 
+	ETISource *eti_source;
 	ETIPlayer *eti_player;
 	FICDecoder *fic_decoder;
 
+	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);};
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
 	void FICChangeServices();
 public:
 	DABlinText(DABlinTextOptions options);
 	~DABlinText();
-	void DoExit() {eti_player->DoExit();}
-	int Main() {return eti_player->Main();}
+	void DoExit() {eti_source->DoExit();}
+	int Main() {return eti_source->Main();}
 };
 
 

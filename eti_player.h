@@ -19,14 +19,10 @@
 #ifndef ETI_PLAYER_H_
 #define ETI_PLAYER_H_
 
-#include <algorithm>
 #include <cstdio>
 #include <cstdint>
 #include <mutex>
-#include <unistd.h>
-#include <signal.h>
 #include <string>
-#include <fcntl.h>
 #include <thread>
 
 #include "subchannel_sink.h"
@@ -51,21 +47,17 @@ public:
 // --- ETIPlayer -----------------------------------------------------------------
 class ETIPlayer : SubchannelSinkObserver, AudioSource {
 private:
-	std::string filename;
 	ETIPlayerObserver *observer;
 
-	FILE *input_file;
 	std::chrono::steady_clock::time_point next_frame_time;
 
 	std::mutex status_mutex;
-	bool do_exit;
 	int subchannel_now;
 	bool dab_plus_now;
 	int subchannel_next;
 	bool dab_plus_next;
 	std::string format;
 
-	uint8_t eti_frame[6144];
 	uint8_t xpad[256];	// limit never reached by longest possible X-PAD
 	SubchannelSink *dec;
 	AudioOutput *out;
@@ -75,7 +67,7 @@ private:
 	size_t audio_start_buffer_size;
 	bool audio_mute;
 
-	void DecodeFrame();
+	void DecodeFrame(const uint8_t *eti_frame);
 
 	void FormatChange(std::string format);
 	void StartAudio(int samplerate, int channels, bool float32);
@@ -85,14 +77,14 @@ private:
 
 	size_t GetAudio(uint8_t *data, size_t len, uint8_t silence);
 public:
-	ETIPlayer(std::string filename, ETIPlayerObserver *observer);
+	ETIPlayer(ETIPlayerObserver *observer);
 	~ETIPlayer();
 
-	int Main();
+	void ProcessFrame(const uint8_t *data);
+
 	void SetAudioSubchannel(int subchannel, bool dab_plus);
 	void SetAudioMute(bool audio_mute);
 	std::string GetFormat();
-	void DoExit();
 };
 
 

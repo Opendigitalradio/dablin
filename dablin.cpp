@@ -91,12 +91,14 @@ int main(int argc, char **argv) {
 DABlinText::DABlinText(DABlinTextOptions options) {
 	this->options = options;
 
-	eti_player = new ETIPlayer(options.filename, this);
+	eti_player = new ETIPlayer(this);
+	eti_source = new ETISource(options.filename, this);
 	fic_decoder = new FICDecoder(this);
 }
 
 DABlinText::~DABlinText() {
 	DoExit();
+	delete eti_source;
 	delete eti_player;
 	delete fic_decoder;
 }

@@ -20,20 +20,16 @@
 
 
 // --- ETIPlayer -----------------------------------------------------------------
-ETIPlayer::ETIPlayer(std::string filename, ETIPlayerObserver *observer) {
-	this->filename = filename;
+ETIPlayer::ETIPlayer(ETIPlayerObserver *observer) {
 	this->observer = observer;
 
-	input_file = NULL;
 	next_frame_time = std::chrono::steady_clock::now();
-
-	do_exit = false;
 
 	subchannel_now = subchannel_next = -1;
 	dab_plus_now = dab_plus_next = false;
 
 	dec = NULL;
-	out = NULL;
+	out = new SDLOutput(this);
 
 	audio_buffer = NULL;
 	audio_start_buffer_size = 0;
@@ -47,15 +43,6 @@ ETIPlayer::~ETIPlayer() {
 	delete dec;
 	delete out;
 	delete audio_buffer;
-
-	if(input_file)
-		fclose(input_file);
-}
-
-void ETIPlayer::DoExit() {
-	std::lock_guard<std::mutex> lock(status_mutex);
-
-	do_exit = true;
 }
 
 void ETIPlayer::SetAudioSubchannel(int subchannel, bool dab_plus) {
@@ -67,111 +54,42 @@ void ETIPlayer::SetAudioSubchannel(int subchannel, bool dab_plus) {
 	dab_plus_next = dab_plus;
 }
 
+void ETIPlayer::ProcessFrame(const uint8_t *data) {
+	// handle subchannel change
+	{
+		std::lock_guard<std::mutex> lock(status_mutex);
 
-int ETIPlayer::Main() {
-	int file_no;
-
-	if(filename.empty()) {
-		file_no = STDIN_FILENO;
-		filename = "stdin";
-	} else {
-		input_file = fopen(filename.c_str(), "rb");
-		if(!input_file) {
-			perror("ETIPlayer: error opening input file");
-			return 1;
-		}
-		file_no = fileno(input_file);
-	}
-
-	fprintf(stderr, "ETIPlayer: reading from '%s'\n", filename.c_str());
-
-
-	out = new SDLOutput(this);
-
-	// set non-blocking mode
-	int old_flags = fcntl(file_no, F_GETFL);
-	if(old_flags == -1) {
-		perror("ETIPlayer: error getting socket flags");
-		return 1;
-	}
-	if(fcntl(file_no, F_SETFL, (old_flags == -1 ? 0 : old_flags) | O_NONBLOCK)) {
-		perror("ETIPlayer: error setting socket flags");
-		return 1;
-	}
-
-	fd_set fds;
-	timeval select_timeval;
-	size_t filled = 0;
-
-	for(;;) {
-		{
-			std::lock_guard<std::mutex> lock(status_mutex);
-
-			if(do_exit)
-				break;
-
-			if(subchannel_now != subchannel_next || dab_plus_now != dab_plus_next) {
-				// cleanup
-				if(dec) {
+		if(subchannel_now != subchannel_next || dab_plus_now != dab_plus_next) {
+			// cleanup
+			if(dec) {
 //					out->StopAudio();
-					delete dec;
-					dec = NULL;
-				}
+				delete dec;
+				dec = NULL;
+			}
 
-				subchannel_now = subchannel_next;
-				dab_plus_now = dab_plus_next;
+			subchannel_now = subchannel_next;
+			dab_plus_now = dab_plus_next;
 
-				observer->ETIResetPAD();
+			observer->ETIResetPAD();
 
-				// append
-				if(subchannel_now != -1) {
-					if(dab_plus_now)
-						dec = new SuperframeFilter(this);
-					else
-						dec = new MP2Decoder(this);
-				}
+			// append
+			if(subchannel_now != -1) {
+				if(dab_plus_now)
+					dec = new SuperframeFilter(this);
+				else
+					dec = new MP2Decoder(this);
 			}
 		}
-
-		FD_ZERO(&fds);
-		FD_SET(file_no, &fds);
-
-		select_timeval.tv_sec = 0;
-		select_timeval.tv_usec = 100 * 1000;
-
-		int ready_fds = select(file_no + 1, &fds, NULL, NULL, &select_timeval);
-		if(!(ready_fds && FD_ISSET(file_no, &fds)))
-			continue;
-
-		ssize_t bytes = read(file_no, eti_frame + filled, sizeof(eti_frame) - filled);
-
-		if(bytes > 0)
-			filled += bytes;
-		if(bytes == 0) {
-			fprintf(stderr, "ETIPlayer: EOF reached!\n");
-			break;
-		}
-		if(bytes == -1) {
-			perror("ETIPlayer: error while read");
-			return 1;
-		}
-
-		if(filled < sizeof(eti_frame))
-			continue;
-
-		// flow control
-		std::this_thread::sleep_until(next_frame_time);
-		next_frame_time += std::chrono::milliseconds(24);
-
-		DecodeFrame();
-		filled = 0;
 	}
 
-	return 0;
+	// flow control
+	std::this_thread::sleep_until(next_frame_time);
+	next_frame_time += std::chrono::milliseconds(24);
+
+	DecodeFrame(data);
 }
 
-
-void ETIPlayer::DecodeFrame() {
+void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 	// ERR
 	if(eti_frame[0] != 0xFF) {
 		fprintf(stderr, "ETIPlayer: ignored ETI frame with ERR = 0x%02X\n", eti_frame[0]);

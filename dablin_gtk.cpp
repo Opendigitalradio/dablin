@@ -94,8 +94,10 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	fic_data_change_services.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServicesEmitted));
 	pad_data_change_dynamic_label.connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 
-	eti_player = new ETIPlayer(options.filename, this);
-	eti_player_thread = std::thread(&ETIPlayer::Main, eti_player);
+	eti_player = new ETIPlayer(this);
+
+	eti_source = new ETISource(options.filename, this);
+	eti_source_thread = std::thread(&ETISource::Main, eti_source);
 
 	fic_decoder = new FICDecoder(this);
 	pad_decoder = new PADDecoder(this);
@@ -159,10 +161,10 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 }
 
 DABlinGTK::~DABlinGTK() {
-	eti_player->DoExit();
-
-	if(eti_player_thread.joinable())
-		eti_player_thread.join();
+	eti_source->DoExit();
+	if(eti_source_thread.joinable())
+		eti_source_thread.join();
+	delete eti_source;
 
 	delete eti_player;
 

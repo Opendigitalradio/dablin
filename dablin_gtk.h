@@ -19,10 +19,12 @@
 #ifndef DABLIN_GTK_H_
 #define DABLIN_GTK_H_
 
+#include <signal.h>
 #include <thread>
 
 #include <gtkmm.h>
 
+#include "eti_source.h"
 #include "eti_player.h"
 #include "fic_decoder.h"
 #include "pad_decoder.h"
@@ -54,15 +56,19 @@ struct DABlinGTKOptions {
 
 
 // --- DABlinGTK -----------------------------------------------------------------
-class DABlinGTK : public Gtk::Window, ETIPlayerObserver, FICDecoderObserver, PADDecoderObserver {
+class DABlinGTK : public Gtk::Window, ETISourceObserver, ETIPlayerObserver, FICDecoderObserver, PADDecoderObserver {
 private:
 	DABlinGTKOptions options;
 
+	ETISource *eti_source;
+	std::thread eti_source_thread;
+
 	ETIPlayer *eti_player;
-	std::thread eti_player_thread;
 
 	FICDecoder *fic_decoder;
 	PADDecoder *pad_decoder;
+
+	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);};
 
 	Glib::Dispatcher format_change;
 	void ETIChangeFormat() {format_change.emit();}
