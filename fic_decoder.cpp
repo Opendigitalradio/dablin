@@ -24,8 +24,25 @@ const SERVICE SERVICE::no_service(-1);
 // --- FICDecoder -----------------------------------------------------------------
 FICDecoder::FICDecoder(FICDecoderObserver *observer) {
 	this->observer = observer;
-	ensemble_id = 0;
 	ensemble_label = NULL;
+	Reset();
+}
+
+void FICDecoder::Reset() {
+	audio_services.clear();
+	labels.clear();
+	known_services.clear();
+
+	{
+		std::lock_guard<std::mutex> lock(data_mutex);
+
+		ensemble_id = 0;
+		if(ensemble_label) {
+			delete ensemble_label;
+			ensemble_label = NULL;
+		}
+		new_services.clear();
+	}
 }
 
 void FICDecoder::Process(const uint8_t *data, size_t len) {

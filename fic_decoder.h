@@ -52,7 +52,7 @@ struct SERVICE {
 	AUDIO_SERVICE service;
 	FIC_LABEL label;
 
-	const static SERVICE no_service;
+	static const SERVICE no_service;
 
 	SERVICE() : sid(0) {}
 	SERVICE(int sid) : sid(sid) {}
@@ -102,6 +102,7 @@ public:
 	FICDecoder(FICDecoderObserver *observer);
 
 	void Process(const uint8_t *data, size_t len);
+	void Reset();
 
 	void GetEnsembleData(uint16_t *id, FIC_LABEL *label);
 	services_t GetNewServices();
