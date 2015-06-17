@@ -25,7 +25,7 @@ ETIPlayer::ETIPlayer(ETIPlayerObserver *observer) {
 
 	next_frame_time = std::chrono::steady_clock::now();
 
-	subchannel_now = subchannel_next = -1;
+	subchannel_now = subchannel_next = ETI_PLAYER_NO_SUBCHANNEL;
 	dab_plus_now = dab_plus_next = false;
 
 	dec = NULL;
@@ -48,7 +48,10 @@ ETIPlayer::~ETIPlayer() {
 void ETIPlayer::SetAudioSubchannel(int subchannel, bool dab_plus) {
 	std::lock_guard<std::mutex> lock(status_mutex);
 
-	fprintf(stderr, "ETIPlayer: playing subchannel %d (%s)\n", subchannel, dab_plus ? "DAB+" : "DAB");
+	if(subchannel == ETI_PLAYER_NO_SUBCHANNEL)
+		fprintf(stderr, "ETIPlayer: playing no subchannel\n");
+	else
+		fprintf(stderr, "ETIPlayer: playing subchannel %d (%s)\n", subchannel, dab_plus ? "DAB+" : "DAB");
 
 	subchannel_next = subchannel;
 	dab_plus_next = dab_plus;
@@ -73,7 +76,7 @@ void ETIPlayer::ProcessFrame(const uint8_t *data) {
 			observer->ETIResetPAD();
 
 			// append
-			if(subchannel_now != -1) {
+			if(subchannel_now != ETI_PLAYER_NO_SUBCHANNEL) {
 				if(dab_plus_now)
 					dec = new SuperframeFilter(this);
 				else
@@ -127,7 +130,7 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 	}
 
 	// abort here, if ATM no subchannel selected
-	if(subchannel_now == -1)
+	if(subchannel_now == ETI_PLAYER_NO_SUBCHANNEL)
 		return;
 
 	for(int i = 0; i < nst; i++) {

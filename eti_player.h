@@ -32,6 +32,8 @@
 #include "tools.h"
 
 
+#define ETI_PLAYER_NO_SUBCHANNEL -1
+
 // --- ETIPlayerObserver -----------------------------------------------------------------
 class ETIPlayerObserver {
 public:
