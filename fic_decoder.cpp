@@ -19,6 +19,8 @@
 #include "fic_decoder.h"
 
 
+const SERVICE SERVICE::no_service(-1);
+
 // --- FICDecoder -----------------------------------------------------------------
 FICDecoder::FICDecoder(FICDecoderObserver *observer) {
 	this->observer = observer;

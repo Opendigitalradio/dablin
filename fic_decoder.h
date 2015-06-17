@@ -48,9 +48,14 @@ struct FIC_LABEL {
 };
 
 struct SERVICE {
-	uint16_t sid;
+	int sid;
 	AUDIO_SERVICE service;
 	FIC_LABEL label;
+
+	const static SERVICE no_service;
+
+	SERVICE() : sid(0) {}
+	SERVICE(int sid) : sid(sid) {}
 
 	bool operator<(const SERVICE & complete_service) const {
 		return sid < complete_service.sid;
