@@ -41,22 +41,28 @@ void ETISource::DoExit() {
 	do_exit = true;
 }
 
+void ETISource::PrintSource() {
+	fprintf(stderr, "ETISource: reading from '%s'\n", filename.c_str());
+}
+
 int ETISource::Main() {
 	int file_no;
 
-	if(filename.empty()) {
-		input_file = stdin;
-		filename = "stdin";
-	} else {
-		input_file = fopen(filename.c_str(), "rb");
-		if(!input_file) {
-			perror("ETISource: error opening input file");
-			return 1;
+	if(!input_file) {
+		if(filename.empty()) {
+			input_file = stdin;
+			filename = "stdin";
+		} else {
+			input_file = fopen(filename.c_str(), "rb");
+			if(!input_file) {
+				perror("ETISource: error opening input file");
+				return 1;
+			}
 		}
 	}
 
 	file_no = fileno(input_file);
-	fprintf(stderr, "ETISource: reading from '%s'\n", filename.c_str());
+	PrintSource();
 
 
 	// set non-blocking mode
@@ -113,4 +119,33 @@ int ETISource::Main() {
 	}
 
 	return 0;
+}
+
+
+// --- DAB2ETISource -----------------------------------------------------------------
+DAB2ETISource::DAB2ETISource(std::string binary, uint32_t freq, ETISourceObserver *observer) : ETISource("", observer) {
+	this->freq = freq;
+
+	// it doesn't matter whether there is a prefixed path or not
+	binary_name = binary.substr(binary.find_last_of('/') + 1);
+
+	std::stringstream ss;
+	ss << binary << " " << freq;
+
+	input_file = popen(ss.str().c_str(), "r");
+	if(!input_file)
+		perror("ETISource: error starting dab2eti");
+}
+
+void DAB2ETISource::PrintSource() {
+	fprintf(stderr, "ETISource: playing live from %u Hz via dab2eti\n", freq);
+}
+
+DAB2ETISource::~DAB2ETISource() {
+	// TODO: replace bad style temporary solution (here possible, because dab2eti allows only one concurrent session)
+	std::string cmd_killall = "killall " + binary_name;
+	system(cmd_killall.c_str());
+
+	pclose(input_file);
+	input_file = NULL;
 }

@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <mutex>
 #include <string>
+#include <sstream>
 #include <thread>
 #include <unistd.h>
 #include <fcntl.h>
@@ -39,7 +40,7 @@ public:
 
 // --- ETISource -----------------------------------------------------------------
 class ETISource {
-private:
+protected:
 	std::string filename;
 	ETISourceObserver *observer;
 
@@ -49,13 +50,29 @@ private:
 	FILE *input_file;
 
 	uint8_t eti_frame[6144];
+
+	virtual void PrintSource();
 public:
 	ETISource(std::string filename, ETISourceObserver *observer);
-	~ETISource();
+	virtual ~ETISource();
 
 	int Main();
 	void DoExit();
 };
+
+
+// --- DAB2ETISource -----------------------------------------------------------------
+class DAB2ETISource : public ETISource {
+private:
+	uint32_t freq;
+	std::string binary_name;
+
+	void PrintSource();
+public:
+	DAB2ETISource(std::string binary, uint32_t freq, ETISourceObserver *observer);
+	~DAB2ETISource();
+};
+
 
 
 
