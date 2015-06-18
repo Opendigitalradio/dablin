@@ -105,6 +105,25 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	set_title("DABlin");
 	set_default_icon_name("media-playback-start");
 
+	InitWidgets();
+
+	set_border_width(2 * WIDGET_SPACE);
+	show_all_children();
+}
+
+DABlinGTK::~DABlinGTK() {
+	eti_source->DoExit();
+	if(eti_source_thread.joinable())
+		eti_source_thread.join();
+	delete eti_source;
+
+	delete eti_player;
+
+	delete pad_decoder;
+	delete fic_decoder;
+}
+
+void DABlinGTK::InitWidgets() {
 	// init widgets
 	frame_label_ensemble.set_label("Ensemble");
 	frame_label_ensemble.set_size_request(150, -1);
@@ -155,21 +174,6 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	top_grid.attach_next_to(frame_label_format, frame_combo_services, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(tglbtn_mute, frame_label_format, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach(frame_label_dl, 0, 1, 4, 1);
-
-	set_border_width(2 * WIDGET_SPACE);
-	show_all_children();
-}
-
-DABlinGTK::~DABlinGTK() {
-	eti_source->DoExit();
-	if(eti_source_thread.joinable())
-		eti_source_thread.join();
-	delete eti_source;
-
-	delete eti_player;
-
-	delete pad_decoder;
-	delete fic_decoder;
 }
 
 void DABlinGTK::SetService(SERVICE service) {

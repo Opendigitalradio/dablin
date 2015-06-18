@@ -98,6 +98,7 @@ private:
 	Gtk::Frame frame_label_dl;
 	Gtk::Label label_dl;
 
+	void InitWidgets();
 	void SetService(SERVICE service);
 
 	void on_tglbtn_mute();
