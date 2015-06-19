@@ -29,8 +29,11 @@ static void break_handler(int param) {
 
 static void usage(const char* exe) {
 	fprintf(stderr, "DABlin - plays a DAB(+) subchannel from a frame-aligned ETI(NI) stream via stdin\n");
-	fprintf(stderr, "Usage: %s [-s <sid>] [file]\n", exe);
-	fprintf(stderr, "  -s <sid>      ID of the service to be played (otherwise no service)\n");
+	fprintf(stderr, "Usage: %s [-d <binary> [-C <ch>,...] [-c <ch>]] [-s <sid>] [file]\n", exe);
+	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
+	fprintf(stderr, "  -C <ch>,...   Channels to be displayed (separated by comma; requires dab2eti as source)\n");
+	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source; otherwise no initial channel)\n");
+	fprintf(stderr, "  -s <sid>      ID of the service to be played (otherwise no initial service)\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
 	exit(1);
 }
@@ -47,8 +50,17 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "s:")) != -1) {
+	while((c = getopt(argc, argv, "d:C:c:s:")) != -1) {
 		switch(c) {
+		case 'd':
+			options.dab2eti_binary = optarg;
+			break;
+		case 'C':
+			options.displayed_channels = optarg;
+			break;
+		case 'c':
+			options.initial_channel = optarg;
+			break;
 		case 's':
 			options.initial_sid = strtol(optarg, NULL, 0);
 			break;
@@ -67,6 +79,31 @@ int main(int argc, char **argv) {
 		break;
 	default:
 		usage(argv[0]);
+	}
+
+	// ensure valid options
+	if(options.dab2eti_binary.empty()) {
+		if(!options.displayed_channels.empty()) {
+			fprintf(stderr, "If displayed channels are used, dab2eti must be used!\n");
+			usage(argv[0]);
+		}
+		if(!options.displayed_channels.empty()) {
+			fprintf(stderr, "If displayed channels are selected, dab2eti must be used!\n");
+			usage(argv[0]);
+		}
+		if(!options.initial_channel.empty()) {
+			fprintf(stderr, "If a channel is selected, dab2eti must be used!\n");
+			usage(argv[0]);
+		}
+	} else {
+		if(!options.filename.empty()) {
+			fprintf(stderr, "Both a file and dab2eti cannot be used as source!\n");
+			usage(argv[0]);
+		}
+		if(!options.initial_channel.empty() && dab_channels.find(options.initial_channel) == dab_channels.end()) {
+			fprintf(stderr, "The channel '%s' is not supported!\n", options.initial_channel.c_str());
+			usage(argv[0]);
+		}
 	}
 
 
@@ -89,6 +126,8 @@ int main(int argc, char **argv) {
 DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	this->options = options;
 
+	initial_channel_appended = false;
+
 	format_change.connect(sigc::mem_fun(*this, &DABlinGTK::ETIChangeFormatEmitted));
 	fic_data_change_ensemble.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeEnsembleEmitted));
 	fic_data_change_services.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServicesEmitted));
@@ -96,8 +135,12 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 
 	eti_player = new ETIPlayer(this);
 
-	eti_source = new ETISource(options.filename, this);
-	eti_source_thread = std::thread(&ETISource::Main, eti_source);
+	if(!options.dab2eti_binary.empty()) {
+		eti_source = NULL;
+	} else {
+		eti_source = new ETISource(options.filename, this);
+		eti_source_thread = std::thread(&ETISource::Main, eti_source);
+	}
 
 	fic_decoder = new FICDecoder(this);
 	pad_decoder = new PADDecoder(this);
@@ -109,13 +152,19 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 
 	set_border_width(2 * WIDGET_SPACE);
 	show_all_children();
+
+	// combobox first must be visible
+	if(combo_channels_liststore->iter_is_valid(initial_channel_it))
+		combo_channels.set_active(initial_channel_it);
+	initial_channel_appended = true;
 }
 
 DABlinGTK::~DABlinGTK() {
-	eti_source->DoExit();
-	if(eti_source_thread.joinable())
+	if(eti_source) {
+		eti_source->DoExit();
 		eti_source_thread.join();
-	delete eti_source;
+		delete eti_source;
+	}
 
 	delete eti_player;
 
@@ -125,14 +174,28 @@ DABlinGTK::~DABlinGTK() {
 
 void DABlinGTK::InitWidgets() {
 	// init widgets
+	frame_combo_channels.set_label("Channel");
+	frame_combo_channels.set_size_request(75, -1);
+	frame_combo_channels.add(combo_channels);
+
+	combo_channels_liststore = Gtk::ListStore::create(combo_channels_cols);
+	combo_channels_liststore->set_sort_column(combo_channels_cols.col_freq, Gtk::SORT_ASCENDING);
+
+	combo_channels.signal_changed().connect(sigc::mem_fun(*this, &DABlinGTK::on_combo_channels));
+	combo_channels.set_model(combo_channels_liststore);
+	combo_channels.pack_start(combo_channels_cols.col_string);
+
+	if(!options.dab2eti_binary.empty())
+		AddChannels();
+	else
+		frame_combo_channels.set_sensitive(false);
+
 	frame_label_ensemble.set_label("Ensemble");
 	frame_label_ensemble.set_size_request(150, -1);
 	frame_label_ensemble.add(label_ensemble);
 	label_ensemble.set_halign(Gtk::ALIGN_START);
 	label_ensemble.set_padding(WIDGET_SPACE, WIDGET_SPACE);
 
-
-	combo_services.signal_changed().connect(sigc::mem_fun(*this, &DABlinGTK::on_combo_services));
 
 	frame_combo_services.set_label("Service");
 	frame_combo_services.set_size_request(170, -1);
@@ -141,6 +204,7 @@ void DABlinGTK::InitWidgets() {
 	combo_services_liststore = Gtk::ListStore::create(combo_services_cols);
 	combo_services_liststore->set_sort_column(combo_services_cols.col_sort, Gtk::SORT_ASCENDING);
 
+	combo_services.signal_changed().connect(sigc::mem_fun(*this, &DABlinGTK::on_combo_services));
 	combo_services.set_model(combo_services_liststore);
 	combo_services.pack_start(combo_services_cols.col_string);
 
@@ -169,11 +233,40 @@ void DABlinGTK::InitWidgets() {
 	// add widgets
 	add(top_grid);
 
-	top_grid.attach(frame_label_ensemble, 0, 0, 1, 1);
+	top_grid.attach(frame_combo_channels, 0, 0, 1, 1);
+	top_grid.attach_next_to(frame_label_ensemble, frame_combo_channels, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(frame_combo_services, frame_label_ensemble, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(frame_label_format, frame_combo_services, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(tglbtn_mute, frame_label_format, Gtk::POS_RIGHT, 1, 1);
-	top_grid.attach(frame_label_dl, 0, 1, 4, 1);
+	top_grid.attach(frame_label_dl, 0, 1, 5, 1);
+}
+
+void DABlinGTK::AddChannels() {
+	if(options.displayed_channels.empty()) {
+		// add all channels
+		for(dab_channels_t::const_iterator it = dab_channels.cbegin(); it != dab_channels.cend(); it++)
+			AddChannel(it);
+	} else {
+		// add specific channels
+		std::stringstream ss(options.displayed_channels);
+		std::string ch;
+
+		while(std::getline(ss, ch, ',')) {
+			dab_channels_t::const_iterator it = dab_channels.find(ch);
+			if(it != dab_channels.end())
+				AddChannel(it);
+		}
+	}
+}
+
+void DABlinGTK::AddChannel(dab_channels_t::const_iterator &it) {
+	Gtk::ListStore::iterator row_it = combo_channels_liststore->append();
+	Gtk::TreeModel::Row row = *row_it;
+	row[combo_channels_cols.col_string] = it->first;
+	row[combo_channels_cols.col_freq] = it->second;
+
+	if(it->first == options.initial_channel)
+		initial_channel_it = row_it;
 }
 
 void DABlinGTK::SetService(SERVICE service) {
@@ -182,10 +275,15 @@ void DABlinGTK::SetService(SERVICE service) {
 	frame_label_dl.set_sensitive(false);
 	label_dl.set_label("");
 
-	Glib::ustring label = FICDecoder::ConvertTextToUTF8(service.label.label, 16, service.label.charset, false);
-	set_title(label + " - DABlin");
+	if(service.sid != SERVICE::no_service.sid) {
+		Glib::ustring label = FICDecoder::ConvertTextToUTF8(service.label.label, 16, service.label.charset, false);
+		set_title(label + " - DABlin");
 
-	eti_player->SetAudioSubchannel(service.service.subchid, service.service.dab_plus);
+		eti_player->SetAudioSubchannel(service.service.subchid, service.service.dab_plus);
+	} else {
+		set_title("DABlin");
+		eti_player->SetAudioSubchannel(ETI_PLAYER_NO_SUBCHANNEL, false);
+	}
 }
 
 
@@ -232,11 +330,38 @@ void DABlinGTK::FICChangeServicesEmitted() {
 	}
 }
 
-void DABlinGTK::on_combo_services() {
-	Gtk::TreeModel::Row row = *combo_services.get_active();
-	SERVICE service = row[combo_services_cols.col_service];
+void DABlinGTK::on_combo_channels() {
+	Gtk::TreeModel::Row row = *combo_channels.get_active();
 
-	SetService(service);
+	// cleanup
+	if(eti_source) {
+		eti_source->DoExit();
+		eti_source_thread.join();
+		delete eti_source;
+	}
+
+	ETIResetFIC();
+	combo_services_liststore->clear();	// TODO: prevent on_combo_services() being called for each deleted row
+	label_ensemble.set_label("");
+
+	// prevent re-use of initial SID
+	if(initial_channel_appended)
+		options.initial_sid = -1;
+
+	// append
+	eti_source = new DAB2ETISource(options.dab2eti_binary, row[combo_channels_cols.col_freq], this);
+	eti_source_thread = std::thread(&ETISource::Main, eti_source);
+}
+
+void DABlinGTK::on_combo_services() {
+	Gtk::TreeModel::iterator row_it = combo_services.get_active();
+	if(combo_services_liststore->iter_is_valid(row_it)) {
+		Gtk::TreeModel::Row row = *row_it;
+		SERVICE service = row[combo_services_cols.col_service];
+		SetService(service);
+	} else {
+		SetService(SERVICE::no_service);
+	}
 }
 
 void DABlinGTK::PADChangeDynamicLabelEmitted() {

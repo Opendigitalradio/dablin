@@ -29,7 +29,9 @@ static void break_handler(int param) {
 
 static void usage(const char* exe) {
 	fprintf(stderr, "DABlin - plays a DAB(+) subchannel from a frame-aligned ETI(NI) stream via stdin\n");
-	fprintf(stderr, "Usage: %s -s <sid> [file]\n", exe);
+	fprintf(stderr, "Usage: %s [-d <binary> -c <ch>] -s <sid> [file]\n", exe);
+	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
+	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source)\n");
 	fprintf(stderr, "  -s <sid>      ID of the service to be played\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
 	exit(1);
@@ -47,8 +49,14 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "s:")) != -1) {
+	while((c = getopt(argc, argv, "d:c:s:")) != -1) {
 		switch(c) {
+		case 'd':
+			options.dab2eti_binary = optarg;
+			break;
+		case 'c':
+			options.initial_channel = optarg;
+			break;
 		case 's':
 			options.initial_sid = strtol(optarg, NULL, 0);
 			break;
@@ -69,10 +77,33 @@ int main(int argc, char **argv) {
 		usage(argv[0]);
 	}
 
+	// ensure valid options
+	if(options.dab2eti_binary.empty()) {
+		if(!options.initial_channel.empty()) {
+			fprintf(stderr, "If a channel is selected, dab2eti must be used!\n");
+			usage(argv[0]);
+		}
+	} else {
+		if(!options.filename.empty()) {
+			fprintf(stderr, "Both a file and dab2eti cannot be used as source!\n");
+			usage(argv[0]);
+		}
+		if(options.initial_channel.empty()) {
+			fprintf(stderr, "If dab2eti is used, a channel must be selected!\n");
+			usage(argv[0]);
+		}
+		if(dab_channels.find(options.initial_channel) == dab_channels.end()) {
+			fprintf(stderr, "The channel '%s' is not supported!\n", options.initial_channel.c_str());
+			usage(argv[0]);
+		}
+	}
+
 
 	// SID needed!
-	if(options.initial_sid == -1)
+	if(options.initial_sid == -1) {
+		fprintf(stderr, "A service ID must be selected!\n");
 		usage(argv[0]);
+	}
 
 
 	fprintf(stderr, "DABlin - capital DAB experience\n");
@@ -92,7 +123,12 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	this->options = options;
 
 	eti_player = new ETIPlayer(this);
-	eti_source = new ETISource(options.filename, this);
+
+	if(options.dab2eti_binary.empty())
+		eti_source = new ETISource(options.filename, this);
+	else
+		eti_source = new DAB2ETISource(options.dab2eti_binary, dab_channels.find(options.initial_channel)->second, this);
+
 	fic_decoder = new FICDecoder(this);
 }
 

@@ -24,12 +24,15 @@
 #include "eti_source.h"
 #include "eti_player.h"
 #include "fic_decoder.h"
+#include "tools.h"
 
 
 // --- DABlinTextOptions -----------------------------------------------------------------
 struct DABlinTextOptions {
 	std::string filename;
 	int initial_sid;
+	std::string dab2eti_binary;
+	std::string initial_channel;
 
 	DABlinTextOptions() : initial_sid(-1) {}
 };

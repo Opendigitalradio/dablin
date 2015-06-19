@@ -59,6 +59,17 @@ You can also replay an existing ETI-NI recording, e.g.:
 	`dablin -s 0xd911 mux.eti`
 
 
+It is possible to let DABlin invoke `dab2eti`. You therefore just have
+to specify the path to the `dab2eti` binary and the desired channel.
+	`dablin -d ~/bin/dab2eti -c 11D -s 0xd911`
+
+In case of the GTK version the desired channel may not be specified. To
+avoid the huge channel list containing all possible DAB channels, one
+can also state the desired channels (separated by comma) which shall be
+displayed within the channel list.
+	`dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911`
+
+
 Status output
 -------------
 During (re-)synchronisation status messages are output. Also dropped
@@ -76,7 +87,7 @@ TODO
 ----
 At the moment, DABlin is kind of a rudimentary tool for the playback of
 DAB/DAB+ services. It is planned to add support for Program Aided Data
-(PAD) like Dynamic Label or MOT Slideshow.
+(PAD) like MOT Slideshow et cetera.
 
 
 License

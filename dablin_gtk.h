@@ -28,8 +28,23 @@
 #include "eti_player.h"
 #include "fic_decoder.h"
 #include "pad_decoder.h"
+#include "tools.h"
 
 #define WIDGET_SPACE 5
+
+
+// --- DABlinGTKChannelColumns -----------------------------------------------------------------
+class DABlinGTKChannelColumns : public Gtk::TreeModelColumnRecord {
+public:
+	Gtk::TreeModelColumn<Glib::ustring> col_string;
+	Gtk::TreeModelColumn<uint32_t> col_freq;
+
+	DABlinGTKChannelColumns() {
+		add(col_string);
+		add(col_freq);
+	}
+};
+
 
 // --- DABlinGTKServiceColumns -----------------------------------------------------------------
 class DABlinGTKServiceColumns : public Gtk::TreeModelColumnRecord {
@@ -50,6 +65,9 @@ public:
 struct DABlinGTKOptions {
 	std::string filename;
 	int initial_sid;
+	std::string dab2eti_binary;
+	std::string displayed_channels;
+	std::string initial_channel;
 
 	DABlinGTKOptions() : initial_sid(-1) {}
 };
@@ -59,6 +77,9 @@ struct DABlinGTKOptions {
 class DABlinGTK : public Gtk::Window, ETISourceObserver, ETIPlayerObserver, FICDecoderObserver, PADDecoderObserver {
 private:
 	DABlinGTKOptions options;
+
+	Gtk::ListStore::iterator initial_channel_it;
+	bool initial_channel_appended;
 
 	ETISource *eti_source;
 	std::thread eti_source_thread;
@@ -75,20 +96,24 @@ private:
 	void ETIChangeFormatEmitted();
 
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
+	void ETIResetFIC() {fic_decoder->Reset();};
 	void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad) {pad_decoder->Process(xpad_data, xpad_len, fpad);}
 	void ETIResetPAD() {pad_decoder->Reset();}
 
 	Gtk::Grid top_grid;
 
+	Gtk::Frame frame_combo_channels;
+	DABlinGTKChannelColumns combo_channels_cols;
+	Glib::RefPtr<Gtk::ListStore> combo_channels_liststore;
+	Gtk::ComboBox combo_channels;
+
 	Gtk::Frame frame_label_ensemble;
 	Gtk::Label label_ensemble;
-
 
 	Gtk::Frame frame_combo_services;
 	DABlinGTKServiceColumns combo_services_cols;
 	Glib::RefPtr<Gtk::ListStore> combo_services_liststore;
 	Gtk::ComboBox combo_services;
-
 
 	Gtk::Frame frame_label_format;
 	Gtk::Label label_format;
@@ -99,9 +124,13 @@ private:
 	Gtk::Label label_dl;
 
 	void InitWidgets();
+	void AddChannels();
+	void AddChannel(dab_channels_t::const_iterator &it);
+
 	void SetService(SERVICE service);
 
 	void on_tglbtn_mute();
+	void on_combo_channels();
 	void on_combo_services();
 
 	// FIC data change
