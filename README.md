@@ -19,14 +19,18 @@ libraries are needed:
 * SDL2
 
 On e.g. Ubuntu 14.04 you can install them (except ka9q-fec) via:
-	`sudo apt-get install libmpg123-dev libfaad-dev libsdl2-dev`
+```
+sudo apt-get install libmpg123-dev libfaad-dev libsdl2-dev
+```
 
 
 For the GTK GUI, you furthermore need:
 * gtkmm
 
 Package installation on e.g. Ubuntu 14.04:
-	`sudo apt-get install libgtkmm-3.0-dev`
+```
+sudo apt-get install libgtkmm-3.0-dev
+```
 
 
 Instead using FAAD2, DAB+ channels can be decoded with [FDK-AAC](https://github.com/mstorsjo/fdk-aac).
@@ -53,21 +57,32 @@ played until one is chosen.
 
 If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/linuxstb/dabtools)
 and transfer the ETI live stream via pipe, e.g.:
-	`dab2eti 216928000 | dablin_gtk`
+```
+dab2eti 216928000 | dablin_gtk
+```
 
 You can also replay an existing ETI-NI recording, e.g.:
-	`dablin -s 0xd911 mux.eti`
+```
+dablin -s 0xd911 mux.eti
+```
 
 
 It is possible to let DABlin invoke `dab2eti`. You therefore just have
 to specify the path to the `dab2eti` binary and the desired channel.
-	`dablin -d ~/bin/dab2eti -c 11D -s 0xd911`
+```
+dablin -d ~/bin/dab2eti -c 11D -s 0xd911
+```
 
 In case of the GTK version the desired channel may not be specified. To
 avoid the huge channel list containing all possible DAB channels, one
 can also state the desired channels (separated by comma) which shall be
 displayed within the channel list.
-	`dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911`
+```
+dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
+```
+
+Using `dab2eti` the E4000 tuner is recommended as auto gain is supported
+with it.
 
 
 Status output
