@@ -188,16 +188,30 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 	if(dl_dg_raw.size() < 2 + CRC_LEN)
 		return false;
 
+	bool toggle = dl_dg_raw[0] & 0x80;
+	bool first = dl_dg_raw[0] & 0x40;
+	bool last = dl_dg_raw[0] & 0x20;
 	bool command = dl_dg_raw[0] & 0x10;
 
-	// ignore commands
+	size_t field_len = 0;
+	bool cmd_remove_label = false;
+
+	// handle command/segment
 	if(command) {
-		dl_dg_raw.clear();
-		return false;
+		switch(dl_dg_raw[0] & 0x0F) {
+		case DL_CMD_REMOVE_LABEL:
+			cmd_remove_label = true;
+			break;
+		default:
+			// ignore command
+			dl_dg_raw.clear();
+			return false;
+		}
+	} else {
+		field_len = (dl_dg_raw[0] & 0x0F) + 1;
 	}
 
-	size_t chars_len = (dl_dg_raw[0] & 0x0F) + 1;
-	size_t real_len = 2 + chars_len + CRC_LEN;
+	size_t real_len = 2 + field_len + CRC_LEN;
 
 	if(dl_dg_raw.size() < real_len)
 		return false;
@@ -210,19 +224,24 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 		return false;
 	}
 
+	// on Remove Label command, display empty label
+	if(cmd_remove_label) {
+		label_len = 0;
+		label_charset = 0;	// EBU Latin based (though it doesn't matter)
+		return true;
+	}
 
 	// create new segment
 	DL_SEG dl_seg;
-	dl_seg.toggle = dl_dg_raw[0] & 0x80;
+	dl_seg.toggle = toggle;
 
-	bool first = dl_dg_raw[0] & 0x40;
 	dl_seg.segnum = first ? 0 : ((dl_dg_raw[1] & 0x70) >> 4);
-	dl_seg.last = dl_dg_raw[0] & 0x20;
+	dl_seg.last = last;
 
 	dl_seg.charset = first ? (dl_dg_raw[1] >> 4) : -1;
 
-	memcpy(dl_seg.chars, &dl_dg_raw[2], chars_len);
-	dl_seg.chars_len = chars_len;
+	memcpy(dl_seg.chars, &dl_dg_raw[2], field_len);
+	dl_seg.chars_len = field_len;
 
 //	fprintf(stderr, "DynamicLabelDecoder: segnum %d, toggle: %s, chars_len: %2d%s\n", dl_seg.segnum, dl_seg.toggle ? "Y" : "N", dl_seg.chars_len, dl_seg.last ? " [LAST]" : "");
 

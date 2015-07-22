@@ -32,6 +32,7 @@
 #define CRC_LEN 2
 #define DL_SEG_MAX_LEN 16
 #define DL_MAX_LEN 128
+#define DL_CMD_REMOVE_LABEL 0x01
 
 
 
