@@ -276,7 +276,7 @@ void DABlinGTK::SetService(SERVICE service) {
 	label_dl.set_label("");
 
 	if(service.sid != SERVICE::no_service.sid) {
-		Glib::ustring label = FICDecoder::ConvertTextToUTF8(service.label.label, 16, service.label.charset, false);
+		Glib::ustring label = FICDecoder::ConvertTextToUTF8(service.label.label, 16, service.label.charset);
 		set_title(label + " - DABlin");
 
 		eti_player->SetAudioSubchannel(service.service.subchid, service.service.dab_plus);
@@ -304,7 +304,7 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 	FIC_LABEL raw_label;
 	fic_decoder->GetEnsembleData(NULL, &raw_label);
 
-	Glib::ustring label = FICDecoder::ConvertTextToUTF8(raw_label.label, 16, raw_label.charset, false);
+	Glib::ustring label = FICDecoder::ConvertTextToUTF8(raw_label.label, 16, raw_label.charset);
 	label_ensemble.set_label(label);
 }
 
@@ -314,7 +314,7 @@ void DABlinGTK::FICChangeServicesEmitted() {
 	services_t new_services = fic_decoder->GetNewServices();
 
 	for(services_t::iterator it = new_services.begin(); it != new_services.end(); it++) {
-		Glib::ustring label = FICDecoder::ConvertTextToUTF8(it->label.label, 16, it->label.charset, false);
+		Glib::ustring label = FICDecoder::ConvertTextToUTF8(it->label.label, 16, it->label.charset);
 
 //		std::stringstream ss;
 //		ss << "'" << label << "' - Subchannel " << it->service.subchid << " " << (it->service.dab_plus ? "(DAB+)" : "(DAB)");
@@ -371,7 +371,7 @@ void DABlinGTK::PADChangeDynamicLabelEmitted() {
 	int dl_charset;
 	size_t dl_len = pad_decoder->GetDynamicLabel(dl_raw, &dl_charset);
 
-	Glib::ustring label = FICDecoder::ConvertTextToUTF8(dl_raw, dl_len, dl_charset, true);
+	Glib::ustring label = FICDecoder::ConvertTextToUTF8(dl_raw, dl_len, dl_charset);
 	frame_label_dl.set_sensitive(true);
 	label_dl.set_label(label);
 }

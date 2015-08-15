@@ -96,8 +96,10 @@ private:
 	FIC_LABEL *ensemble_label;
 	services_t new_services;
 
-	static const char* ebu_values_0x80[];
-	static std::string ConvertCharEBUToUTF8(const uint8_t value, bool dynamic_label);
+	static const char* no_char;
+	static const char* ebu_values_0x00_to_0x1F[];
+	static const char* ebu_values_0x7B_to_0xFF[];
+	static std::string ConvertCharEBUToUTF8(const uint8_t value);
 public:
 	FICDecoder(FICDecoderObserver *observer);
 
@@ -107,7 +109,7 @@ public:
 	void GetEnsembleData(uint16_t *id, FIC_LABEL *label);
 	services_t GetNewServices();
 
-	static std::string ConvertTextToUTF8(const uint8_t *data, size_t len, int charset, bool dynamic_label);
+	static std::string ConvertTextToUTF8(const uint8_t *data, size_t len, int charset);
 };
 
 
