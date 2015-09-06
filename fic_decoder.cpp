@@ -98,13 +98,17 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 	data++;
 	len--;
 
-	// TODO
-	if(header.cn || header.oe)
+	// ignore other ensembles
+	if(header.oe)
 		return;
 
 	switch(header.extension) {
 	case 2: {
 		// FIG 0/2 - Basic service and service component definition
+
+		// ignore next config
+		if(header.cn)
+			return;
 
 		for(size_t offset = 0; offset < len;) {
 			uint16_t sid_prog = 0;
@@ -180,6 +184,10 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	data++;
 	len--;
 
+	// ignore other ensembles
+	if(header.oe)
+		return;
+
 	switch(header.extension) {
 	case 0:
 		break;
@@ -202,11 +210,6 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	label->charset = header.charset;
 	memcpy(label->label, data + 2, 16);
 	label->short_label_mask = data[18] << 8 | data[19];
-
-	// ignore OE labels
-	if(header.oe)
-		return;
-
 
 
 //	fprintf(stderr, "FICDecoder: label: '%s'\n", label.c_str());
