@@ -21,6 +21,7 @@
 
 #include <cstdio>
 #include <cstdint>
+#include <cstdlib>
 #include <mutex>
 #include <string>
 #include <sstream>
