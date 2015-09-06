@@ -93,24 +93,24 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 		return;
 	}
 
-	bool cn = data[0] & 0x80;
-	bool oe = data[0] & 0x40;
-	bool pd = data[0] & 0x20;
-	int extension = data[0] & 0x1F;
+	// read/skip FIG 0 header
+	FIG0_HEADER header(data[0]);
+	data++;
+	len--;
 
 	// TODO
-	if(cn || oe)
+	if(header.cn || header.oe)
 		return;
 
-	switch(extension) {
+	switch(header.extension) {
 	case 2: {
-
 		// FIG 0/2 - Basic service and service component definition
-		for(size_t offset = 1; offset < len;) {
+
+		for(size_t offset = 0; offset < len;) {
 			uint16_t sid_prog = 0;
 //			uint32_t sid_data;
 
-			if(pd) {
+			if(header.pd) {
 //				sid_data = data[offset] << 24 | data[offset + 1] << 16 | data[offset + 2] << 8 | data[offset + 3];
 				offset += 4;
 			} else {
@@ -160,7 +160,7 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 
 		break; }
 	default:
-//		fprintf(stderr, "FICDecoder: received unsupported FIG 0/%d with %zu bytes\n", extension, len);
+//		fprintf(stderr, "FICDecoder: received unsupported FIG 0/%d with %zu field bytes\n", header.extension, len);
 		return;
 	}
 
@@ -175,42 +175,43 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 		return;
 	}
 
-	int charset = data[0] >> 4;
-	bool oe = data[0] & 0x08;
-	int extension = data[0] & 0x07;
+	// read/skip FIG 1 header
+	FIG1_HEADER header(data[0]);
+	data++;
+	len--;
 
-	switch(extension) {
+	switch(header.extension) {
 	case 0:
 		break;
 	case 1:
 		break;
 	default:
-//		fprintf(stderr, "FICDecoder: received unsupported FIG 1/%d with %zu bytes\n", extension, len);
+//		fprintf(stderr, "FICDecoder: received unsupported FIG 1/%d with %zu field bytes\n", header.extension, len);
 		return;
 	}
 
-	size_t len_calced = 1 + 2 + 16 + 2;
+	size_t len_calced = 2 + 16 + 2;
 	if(len != len_calced) {
-		fprintf(stderr, "FICDecoder: received FIG 1/%d having %zu bytes (expected: %zu)\n", extension, len, len_calced);
+		fprintf(stderr, "FICDecoder: received FIG 1/%d having %zu field bytes (expected: %zu)\n", header.extension, len, len_calced);
 		return;
 	}
 
 	// parse data
-	uint16_t id = data[1] << 8 | data[2];
+	uint16_t id = data[0] << 8 | data[1];
 	FIC_LABEL *label = new FIC_LABEL;
-	label->charset = charset;
-	memcpy(label->label, data + 1 + 2, 16);
-	label->short_label_mask = data[19] << 8 | data[20];
+	label->charset = header.charset;
+	memcpy(label->label, data + 2, 16);
+	label->short_label_mask = data[18] << 8 | data[19];
 
 	// ignore OE labels
-	if(oe)
+	if(header.oe)
 		return;
 
 
 
 //	fprintf(stderr, "FICDecoder: label: '%s'\n", label.c_str());
 
-	switch(extension) {
+	switch(header.extension) {
 	case 0: {
 			std::lock_guard<std::mutex> lock(data_mutex);
 

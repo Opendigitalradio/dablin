@@ -29,6 +29,23 @@
 #include "tools.h"
 
 
+struct FIG0_HEADER {
+	bool cn;
+	bool oe;
+	bool pd;
+	int extension;
+
+	FIG0_HEADER(uint8_t data) : cn(data & 0x80), oe(data & 0x40), pd(data & 0x20), extension(data & 0x1F) {}
+};
+
+struct FIG1_HEADER {
+	int charset;
+	bool oe;
+	int extension;
+
+	FIG1_HEADER(uint8_t data) : charset(data >> 4), oe(data & 0x08), extension(data & 0x07) {}
+};
+
 struct AUDIO_SERVICE {
 	int subchid;
 	bool dab_plus;
