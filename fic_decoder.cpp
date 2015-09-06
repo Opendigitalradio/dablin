@@ -102,75 +102,79 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 	if(header.oe)
 		return;
 
+
+	// handle extension
 	switch(header.extension) {
-	case 2: {
-		// FIG 0/2 - Basic service and service component definition
+	case 2:
+		ProcessFIG0_2(data, len, header);
+		break;
+//	default:
+//		fprintf(stderr, "FICDecoder: received unsupported FIG 0/%d with %zu field bytes\n", header.extension, len);
+	}
+}
 
-		// ignore next config
-		if(header.cn)
-			return;
 
-		for(size_t offset = 0; offset < len;) {
-			uint16_t sid_prog = 0;
-//			uint32_t sid_data;
 
-			if(header.pd) {
-//				sid_data = data[offset] << 24 | data[offset + 1] << 16 | data[offset + 2] << 8 | data[offset + 3];
-				offset += 4;
-			} else {
-				sid_prog = data[offset] << 8 | data[offset + 1];
-				offset += 2;
-			}
+void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len, FIG0_HEADER &header) {
+	// FIG 0/2 - Basic service and service component definition
 
-			size_t num_service_comps = data[offset++] & 0x0F;
+	// ignore next config
+	if(header.cn)
+		return;
 
-			// iterate through all service components
-			for(size_t comp = 0; comp < num_service_comps; comp++) {
-				int tmid = data[offset] >> 6;
+	for(size_t offset = 0; offset < len;) {
+		uint16_t sid_prog = 0;
+//		uint32_t sid_data;
 
-				switch(tmid) {
-				case 0b00:	// MSC stream audio
-					int ascty = data[offset] & 0x3F;
-					int subchid = data[offset + 1] >> 2;
-					bool ps = data[offset + 1] & 0x02;
-					bool ca = data[offset + 1] & 0x01;
-
-					if(ps && !ca) {
-						switch(ascty) {
-						case 0:		// DAB
-						case 63:	// DAB+
-							bool dab_plus = ascty == 63;
-
-							if(audio_services.find(sid_prog) == audio_services.end()) {
-								AUDIO_SERVICE service;
-								service.subchid = subchid;
-								service.dab_plus = dab_plus;
-
-								audio_services[sid_prog] = service;
-
-								fprintf(stderr, "FICDecoder: found new audio service: SID 0x%04X, subchannel %2d, %s\n", sid_prog, subchid, dab_plus ? "DAB+" : "DAB");
-
-								CheckService(sid_prog);
-							}
-
-							break;
-						}
-					}
-				}
-
-				offset += 2;
-			}
+		if(header.pd) {
+//			sid_data = data[offset] << 24 | data[offset + 1] << 16 | data[offset + 2] << 8 | data[offset + 3];
+			offset += 4;
+		} else {
+			sid_prog = data[offset] << 8 | data[offset + 1];
+			offset += 2;
 		}
 
-		break; }
-	default:
-//		fprintf(stderr, "FICDecoder: received unsupported FIG 0/%d with %zu field bytes\n", header.extension, len);
-		return;
+		size_t num_service_comps = data[offset++] & 0x0F;
+
+		// iterate through all service components
+		for(size_t comp = 0; comp < num_service_comps; comp++) {
+			int tmid = data[offset] >> 6;
+
+			switch(tmid) {
+			case 0b00:	// MSC stream audio
+				int ascty = data[offset] & 0x3F;
+				int subchid = data[offset + 1] >> 2;
+				bool ps = data[offset + 1] & 0x02;
+				bool ca = data[offset + 1] & 0x01;
+
+				if(ps && !ca) {
+					switch(ascty) {
+					case 0:		// DAB
+					case 63:	// DAB+
+						bool dab_plus = ascty == 63;
+
+						if(audio_services.find(sid_prog) == audio_services.end()) {
+							AUDIO_SERVICE service;
+							service.subchid = subchid;
+							service.dab_plus = dab_plus;
+
+							audio_services[sid_prog] = service;
+
+							fprintf(stderr, "FICDecoder: found new audio service: SID 0x%04X, subchannel %2d, %s\n", sid_prog, subchid, dab_plus ? "DAB+" : "DAB");
+
+							CheckService(sid_prog);
+						}
+
+						break;
+					}
+				}
+			}
+
+			offset += 2;
+		}
 	}
-
-
-
 }
+
 
 
 void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
@@ -188,9 +192,9 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	if(header.oe)
 		return;
 
+	// check for (un)supported extension
 	switch(header.extension) {
 	case 0:
-		break;
 	case 1:
 		break;
 	default:
@@ -198,6 +202,7 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 		return;
 	}
 
+	// check length
 	size_t len_calced = 2 + 16 + 2;
 	if(len != len_calced) {
 		fprintf(stderr, "FICDecoder: received FIG 1/%d having %zu field bytes (expected: %zu)\n", header.extension, len, len_calced);
@@ -210,42 +215,50 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	label->charset = header.charset;
 	memcpy(label->label, data + 2, 16);
 	label->short_label_mask = data[18] << 8 | data[19];
-
-
 //	fprintf(stderr, "FICDecoder: label: '%s'\n", label.c_str());
 
+
+	// handle extension
 	switch(header.extension) {
-	case 0: {
-			std::lock_guard<std::mutex> lock(data_mutex);
-
-			if(id != ensemble_id || !ensemble_label || *ensemble_label != *label) {
-				ensemble_id = id;
-
-				delete ensemble_label;
-				ensemble_label = label;
-				label = NULL;
-
-				std::string label_str((char*) ensemble_label->label, 16);
-				fprintf(stderr, "FICDecoder: found new ensemble ID/label: 0x%04X '%s'\n", id, label_str.c_str());
-
-				observer->FICChangeEnsemble();
-			}
-		break; }
-	case 1: {
-		if(labels.find(id) == labels.end()) {
-			labels[id] = *label;
-
-			std::string label_str((char*) label->label, 16);
-			fprintf(stderr, "FICDecoder: found new service ID/label: 0x%04X '%s'\n", id, label_str.c_str());
-
-			CheckService(id);
-		}
-
-		break; }
+	case 0:
+		ProcessFIG1_0(id, label);
+		break;
+	case 1:
+		ProcessFIG1_1(id, label);
+		break;
 	}
+}
 
+void FICDecoder::ProcessFIG1_0(uint16_t id, FIC_LABEL *label) {
+	std::lock_guard<std::mutex> lock(data_mutex);
+
+	if(id != ensemble_id || !ensemble_label || *ensemble_label != *label) {
+		ensemble_id = id;
+
+		delete ensemble_label;
+		ensemble_label = label;
+
+		std::string label_str((char*) ensemble_label->label, 16);
+		fprintf(stderr, "FICDecoder: found new ensemble ID/label: 0x%04X '%s'\n", id, label_str.c_str());
+
+		observer->FICChangeEnsemble();
+	} else {
+		delete label;
+	}
+}
+
+void FICDecoder::ProcessFIG1_1(uint16_t id, FIC_LABEL *label) {
+	if(labels.find(id) == labels.end()) {
+		labels[id] = *label;
+
+		std::string label_str((char*) label->label, 16);
+		fprintf(stderr, "FICDecoder: found new service ID/label: 0x%04X '%s'\n", id, label_str.c_str());
+
+		CheckService(id);
+	}
 	delete label;
 }
+
 
 void FICDecoder::GetEnsembleData(uint16_t *id, FIC_LABEL *label) {
 	std::lock_guard<std::mutex> lock(data_mutex);
