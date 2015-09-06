@@ -68,7 +68,7 @@ size_t PADDecoder::GetDynamicLabel(uint8_t *data, int *charset) {
 
 void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad) {
 	xpad_cis_t xpad_cis;
-	size_t xpad_cis_len;
+	size_t xpad_cis_len = -1;
 
 	int fpad_type = fpad >> 14;
 	int xpad_ind = (fpad & 0x3000) >> 12;
@@ -273,7 +273,7 @@ bool DynamicLabelDecoder::CheckForCompleteLabel() {
 	dl_segs_t::iterator it;
 
 	// check if all segments are in cache
-	int segs;
+	int segs = 0;
 	size_t dl_len = 0;
 	for(int i = 0; i < 8; i++) {
 		it = dl_segs.find(i);
