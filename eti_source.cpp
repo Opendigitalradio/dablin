@@ -144,7 +144,9 @@ void DAB2ETISource::PrintSource() {
 DAB2ETISource::~DAB2ETISource() {
 	// TODO: replace bad style temporary solution (here possible, because dab2eti allows only one concurrent session)
 	std::string cmd_killall = "killall " + binary_name;
-	system(cmd_killall.c_str());
+	int result = system(cmd_killall.c_str());
+	if(result != 0)
+		fprintf(stderr, "ETISource: error killing dab2eti\n");
 
 	pclose(input_file);
 	input_file = NULL;
