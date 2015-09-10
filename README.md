@@ -1,5 +1,4 @@
-DABlin - capital DAB experience
-===============================
+# DABlin - capital DAB experience
 
 DABlin plays a DAB/DAB+ audio service - either from a received live
 transmission or from a stored ensemble recording (frame-aligned ETI-NI).
@@ -8,10 +7,12 @@ supported.
 
 ![Screenshot of the GTK version](http://www.basicmaster.de/dab/DABlin.png)
 
-Requirements
-------------
-Besides a recent GCC (with C++11 support) and GNU Make, the following
-libraries are needed:
+## Requirements
+
+A recent GCC (with C++11 support) and GNU Make are required. Furthermore
+CMake, if used for compilation (see below).
+
+The following libraries are needed in addition:
 
 * ka9q-fec (tested with https://github.com/Opendigitalradio/ka9q-fec)
 * mpg123
@@ -33,19 +34,40 @@ sudo apt-get install libgtkmm-3.0-dev
 ```
 
 
-Instead using FAAD2, DAB+ channels can be decoded with [FDK-AAC](https://github.com/mstorsjo/fdk-aac).
-After installing it, you have to enable the regarding line in the
-Makefile.
+### Alternative DAB+ decoder
 
-Compilation
-------------
+Instead using FAAD2, DAB+ channels can be decoded with [FDK-AAC](https://github.com/mstorsjo/fdk-aac).
+You can also use the modified version [fdk-aac-dabplus](https://github.com/Opendigitalradio/fdk-aac-dabplus) of
+OpenDigitalradio itself, if already installed.
+
+After installing the lib, you have to:
+* enable the regarding line in `Makefile` (when using Make)
+* insert `-D USE_FDK-AAC=1` after the `cmake` call (when using CMake)
+
+## Compilation
+
+### Using Make
+
 To compile DABlin, just type `make`. If you only want to compile the
 console or the GTK version, you can use `make dablin` and/or
 `make dablin_gtk`.
 
+### Using CMake
 
-Usage
------
+You can use e.g. the following command sequence in order to compile
+DABlin:
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
+The console version will be built in any case while the GTK GUI is built
+only if `gtkmm` is available.
+
+
+## Usage
 
 You can either use the console version `dablin` or the GTK GUI version
 `dablin_gtk`.
@@ -85,8 +107,8 @@ Using `dab2eti` the E4000 tuner is recommended as auto gain is supported
 with it.
 
 
-Status output
--------------
+## Status output
+
 During (re-)synchronisation status messages are output. Also dropped
 Superframes or AU are mentioned.
 
@@ -98,15 +120,15 @@ while a plus (if present) indicates that at least one byte was
 incorrectable.
 
 
-TODO
-----
+## TODO
+
 At the moment, DABlin is kind of a rudimentary tool for the playback of
-DAB/DAB+ services. It is planned to add support for Program Aided Data
-(PAD) like MOT Slideshow et cetera.
+DAB/DAB+ services. It is planned to add support for further Program
+Aided Data (PAD) like MOT Slideshow et cetera.
 
 
-License
--------
+## License
+
 (please see the file COPYING for further details)
 
 DABlin - capital DAB experience
