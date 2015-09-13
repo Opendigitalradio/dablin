@@ -84,7 +84,7 @@ if(GIT_FOUND)
     endif()
 
 else()
-    message(WARNING "git missing -- unable to check libladeRF version.")
+    message(WARNING "git missing -- unable to check dablin version.")
     unset(NOT_GIT_REPOSITORY)
     unset(GIT_REV)
     unset(GIT_DIRTY)

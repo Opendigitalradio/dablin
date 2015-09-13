@@ -74,12 +74,13 @@ else()
 endif()
 
 # libfec
-find_package(Fec REQUIRED)
+find_package(FEC)
 if(NOT FEC_FOUND)
     message(FATAL_ERROR "libfec required to compile dablin\n")
 else()
     include_directories(${FEC_INCLUDE_DIRS})
 endif()
+
 
 # gtkmm 3.0
 pkg_check_modules(GTKMM gtkmm-3.0)
@@ -88,21 +89,30 @@ if(GTKMM_FOUND)
 endif()
 
 # libfaad2
-find_package(Faad)
+find_package(FAAD)
+
 
 # fdk-aac
-pkg_check_modules(FDKAAC fdk-aac-dabplus)
+pkg_check_modules(FDKAAC fdk-aac)
+
+# fdk-aac-dabplus
+pkg_check_modules(FDKAAC-DABPLUS fdk-aac-dabplus)
 
 if(USE_FDK-AAC)
-    if(NOT FDKAAC_FOUND)
-        message(FATAL_ERROR "fdk-aac required to compile dablin\n")
+    if(NOT(FDKAAC_FOUND OR FDKAAC-DABPLUS_FOUND))
+        message(FATAL_ERROR "fdk-aac or fdk-aac-dabplus required to compile dablin with USE_FDK-AAC\n")
     endif()
-    include_directories(${FDKAAC_INCLUDE_DIRS})
-    list(APPEND AAC_LIB fdk-aac)
+    if(FDKAAC-DABPLUS_FOUND)
+        include_directories(${FDKAAC-DABPLUS_INCLUDE_DIRS})
+        list(APPEND AAC_LIB ${FDKAAC-DABPLUS_LIBRARIES})
+    else()
+        include_directories(${FDKAAC_INCLUDE_DIRS})
+        list(APPEND AAC_LIB ${FDKAAC_LIBRARIES})
+    endif()
     add_definitions(-DDABLIN_AAC_FDKAAC)
 else()
     if(NOT FAAD_FOUND)
-        message(FATAL_ERROR "libfaad2 required to compile dablin\n")
+        message(FATAL_ERROR "libfaad required to compile dablin\n")
     endif()
     include_directories(${FAAD_INCLUDE_DIRS})
     list(APPEND AAC_LIB ${FAAD_LIBRARIES})
