@@ -276,12 +276,20 @@ void DABlinGTK::SetService(SERVICE service) {
 	label_dl.set_label("");
 
 	if(service.sid != SERVICE::no_service.sid) {
+		char sid_string[7];
+		snprintf(sid_string, sizeof(sid_string), "0x%4X", service.sid);
+
 		Glib::ustring label = FICDecoder::ConvertTextToUTF8(service.label.label, 16, service.label.charset);
 		set_title(label + " - DABlin");
+		combo_services.set_tooltip_text(
+				"Short label: \"" + DeriveShortLabel(label, service.label.short_label_mask) + "\"\n"
+				"SId: " + sid_string);
 
 		eti_player->SetAudioSubchannel(service.service.subchid, service.service.dab_plus);
 	} else {
 		set_title("DABlin");
+		combo_services.set_tooltip_text("");
+
 		eti_player->SetAudioSubchannel(ETI_PLAYER_NO_SUBCHANNEL, false);
 	}
 }
@@ -301,11 +309,18 @@ void DABlinGTK::ETIChangeFormatEmitted() {
 void DABlinGTK::FICChangeEnsembleEmitted() {
 //	fprintf(stderr, "### FICChangeEnsembleEmitted\n");
 
+	uint16_t eid;
 	FIC_LABEL raw_label;
-	fic_decoder->GetEnsembleData(NULL, &raw_label);
+	fic_decoder->GetEnsembleData(&eid, &raw_label);
+
+	char eid_string[7];
+	snprintf(eid_string, sizeof(eid_string), "0x%4X", eid);
 
 	Glib::ustring label = FICDecoder::ConvertTextToUTF8(raw_label.label, 16, raw_label.charset);
 	label_ensemble.set_label(label);
+	label_ensemble.set_tooltip_text(
+			"Short label: \"" + DeriveShortLabel(label, raw_label.short_label_mask) + "\"\n"
+			"EId: " + eid_string);
 }
 
 void DABlinGTK::FICChangeServicesEmitted() {
@@ -332,6 +347,7 @@ void DABlinGTK::FICChangeServicesEmitted() {
 
 void DABlinGTK::on_combo_channels() {
 	Gtk::TreeModel::Row row = *combo_channels.get_active();
+	uint32_t freq = row[combo_channels_cols.col_freq];
 
 	// cleanup
 	if(eti_source) {
@@ -343,13 +359,15 @@ void DABlinGTK::on_combo_channels() {
 	ETIResetFIC();
 	combo_services_liststore->clear();	// TODO: prevent on_combo_services() being called for each deleted row
 	label_ensemble.set_label("");
+	label_ensemble.set_tooltip_text("");
+	combo_channels.set_tooltip_text("Center frequency: " + std::to_string(freq) + " kHz");
 
 	// prevent re-use of initial SID
 	if(initial_channel_appended)
 		options.initial_sid = -1;
 
 	// append
-	eti_source = new DAB2ETISource(options.dab2eti_binary, row[combo_channels_cols.col_freq], this);
+	eti_source = new DAB2ETISource(options.dab2eti_binary, freq, this);
 	eti_source_thread = std::thread(&ETISource::Main, eti_source);
 }
 
@@ -374,4 +392,14 @@ void DABlinGTK::PADChangeDynamicLabelEmitted() {
 	Glib::ustring label = FICDecoder::ConvertTextToUTF8(dl_raw, dl_len, dl_charset);
 	frame_label_dl.set_sensitive(true);
 	label_dl.set_label(label);
+}
+
+Glib::ustring DABlinGTK::DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask) {
+	Glib::ustring short_label;
+
+	for(int i = 0; i < 16; i++)
+		if(short_label_mask & (0x8000 >> i))
+			short_label += long_label[i];
+
+	return short_label;
 }

@@ -146,6 +146,8 @@ private:
 	Glib::Dispatcher pad_data_change_dynamic_label;
 	void PADChangeDynamicLabel() {pad_data_change_dynamic_label.emit();}
 	void PADChangeDynamicLabelEmitted();
+
+	Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
 public:
 	DABlinGTK(DABlinGTKOptions options);
 	~DABlinGTK();
