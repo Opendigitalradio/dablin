@@ -281,14 +281,14 @@ void DABlinGTK::SetService(SERVICE service) {
 
 		Glib::ustring label = FICDecoder::ConvertTextToUTF8(service.label.label, 16, service.label.charset);
 		set_title(label + " - DABlin");
-		combo_services.set_tooltip_text(
+		frame_combo_services.set_tooltip_text(
 				"Short label: \"" + DeriveShortLabel(label, service.label.short_label_mask) + "\"\n"
 				"SId: " + sid_string);
 
 		eti_player->SetAudioSubchannel(service.service.subchid, service.service.dab_plus);
 	} else {
 		set_title("DABlin");
-		combo_services.set_tooltip_text("");
+		frame_combo_services.set_tooltip_text("");
 
 		eti_player->SetAudioSubchannel(ETI_PLAYER_NO_SUBCHANNEL, false);
 	}
@@ -318,7 +318,7 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 
 	Glib::ustring label = FICDecoder::ConvertTextToUTF8(raw_label.label, 16, raw_label.charset);
 	label_ensemble.set_label(label);
-	label_ensemble.set_tooltip_text(
+	frame_label_ensemble.set_tooltip_text(
 			"Short label: \"" + DeriveShortLabel(label, raw_label.short_label_mask) + "\"\n"
 			"EId: " + eid_string);
 }
@@ -359,8 +359,8 @@ void DABlinGTK::on_combo_channels() {
 	ETIResetFIC();
 	combo_services_liststore->clear();	// TODO: prevent on_combo_services() being called for each deleted row
 	label_ensemble.set_label("");
-	label_ensemble.set_tooltip_text("");
-	combo_channels.set_tooltip_text("Center frequency: " + std::to_string(freq) + " kHz");
+	frame_label_ensemble.set_tooltip_text("");
+	frame_combo_channels.set_tooltip_text("Center frequency: " + std::to_string(freq) + " kHz");
 
 	// prevent re-use of initial SID
 	if(initial_channel_appended)
