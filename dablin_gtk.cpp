@@ -211,6 +211,7 @@ void DABlinGTK::InitWidgets() {
 
 	frame_label_format.set_label("Format");
 	frame_label_format.set_size_request(250, -1);
+	frame_label_format.set_hexpand(true);
 	frame_label_format.add(label_format);
 	label_format.set_halign(Gtk::ALIGN_START);
 	label_format.set_padding(WIDGET_SPACE, WIDGET_SPACE);
@@ -221,8 +222,11 @@ void DABlinGTK::InitWidgets() {
 	frame_label_dl.set_label("Dynamic Label");
 	frame_label_dl.set_size_request(750, 50);
 	frame_label_dl.set_sensitive(false);
+	frame_label_dl.set_hexpand(true);
+	frame_label_dl.set_vexpand(true);
 	frame_label_dl.add(label_dl);
 	label_dl.set_halign(Gtk::ALIGN_START);
+	label_dl.set_valign(Gtk::ALIGN_START);
 	label_dl.set_padding(WIDGET_SPACE, WIDGET_SPACE);
 
 
