@@ -243,6 +243,8 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 	memcpy(dl_seg.chars, &dl_dg_raw[2], field_len);
 	dl_seg.chars_len = field_len;
 
+	dl_dg_raw.clear();
+
 //	fprintf(stderr, "DynamicLabelDecoder: segnum %d, toggle: %s, chars_len: %2d%s\n", dl_seg.segnum, dl_seg.toggle ? "Y" : "N", dl_seg.chars_len, dl_seg.last ? " [LAST]" : "");
 
 	// try to add segment
