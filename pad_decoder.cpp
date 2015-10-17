@@ -152,9 +152,14 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 
 
 // --- DataGroup -----------------------------------------------------------------
+void DataGroup::Reset() {
+	dg_raw.clear();
+	dg_size_needed = 0;
+}
+
 bool DataGroup::ProcessDataSubfield(bool start, const uint8_t *data, size_t len) {
 	if(start) {
-		dg_raw.clear();
+		Reset();
 	} else {
 		// ignore Data Group continuation without previous start
 		if(dg_raw.empty())
@@ -165,14 +170,25 @@ bool DataGroup::ProcessDataSubfield(bool start, const uint8_t *data, size_t len)
 	dg_raw.resize(dg_raw.size() + len);
 	memcpy(&dg_raw[dg_raw.size() - len], data, len);
 
-	// try do decode Data Group
+	// abort, if needed size not yet reached
+	if(dg_raw.size() < dg_size_needed)
+		return false;
+
 	return DecodeDataGroup();
+}
+
+bool DataGroup::EnsureDataGroupSize(size_t dg_size) {
+	if(dg_raw.size() < dg_size) {
+		dg_size_needed = dg_size;
+		return false;
+	}
+	return true;
 }
 
 
 // --- DynamicLabelDecoder -----------------------------------------------------------------
 void DynamicLabelDecoder::Reset() {
-	dg_raw.clear();
+	DataGroup::Reset();
 
 	dl_segs.clear();
 
@@ -188,7 +204,7 @@ size_t DynamicLabelDecoder::GetLabel(uint8_t *data, int *charset) {
 
 bool DynamicLabelDecoder::DecodeDataGroup() {
 	// at least prefix + CRC
-	if(dg_raw.size() < 2 + CRC_LEN)
+	if(!EnsureDataGroupSize(2 + CRC_LEN))
 		return false;
 
 	bool toggle = dg_raw[0] & 0x80;
@@ -207,7 +223,7 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 			break;
 		default:
 			// ignore command
-			dg_raw.clear();
+			DataGroup::Reset();
 			return false;
 		}
 	} else {
@@ -216,14 +232,14 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 
 	size_t real_len = 2 + field_len + CRC_LEN;
 
-	if(dg_raw.size() < real_len)
+	if(!EnsureDataGroupSize(real_len))
 		return false;
 
 	// abort on invalid CRC
 	uint16_t crc_stored = dg_raw[real_len-2] << 8 | dg_raw[real_len-1];
 	uint16_t crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(&dg_raw[0], real_len - 2);
 	if(crc_stored != crc_calced) {
-		dg_raw.clear();
+		DataGroup::Reset();
 		return false;
 	}
 
@@ -246,7 +262,7 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 	memcpy(dl_seg.chars, &dg_raw[2], field_len);
 	dl_seg.chars_len = field_len;
 
-	dg_raw.clear();
+	DataGroup::Reset();
 
 //	fprintf(stderr, "DynamicLabelDecoder: segnum %d, toggle: %s, chars_len: %2d%s\n", dl_seg.segnum, dl_seg.toggle ? "Y" : "N", dl_seg.chars_len, dl_seg.last ? " [LAST]" : "");
 

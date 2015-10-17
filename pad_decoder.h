@@ -52,9 +52,13 @@ struct DL_SEG {
 class DataGroup {
 protected:
 	std::vector<uint8_t> dg_raw;
+	size_t dg_size_needed;
 
 	virtual bool DecodeDataGroup() = 0;
+	bool EnsureDataGroupSize(size_t dg_size);
+	void Reset();
 public:
+	DataGroup() {Reset();}
 	virtual ~DataGroup() {}
 
 	bool ProcessDataSubfield(bool start, const uint8_t *data, size_t len);
