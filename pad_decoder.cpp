@@ -55,6 +55,7 @@ void PADDecoder::Reset() {
 	}
 
 	dl_decoder.Reset();
+	dgli_decoder.Reset();
 }
 
 size_t PADDecoder::GetDynamicLabel(uint8_t *data, int *charset) {
@@ -127,6 +128,12 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 
 		// handle Data Subfield
 		switch(it->type) {
+		case 1:		// Data Group Length Indicator
+			dgli_decoder.ProcessDataSubfield(xpad_ind, xpad_data + xpad_offset, it->len);
+
+			// TODO: process result
+
+			break;
 		case 2:		// Dynamic Label segment
 		case 3:
 			// if new label available, append it
@@ -193,6 +200,40 @@ bool DataGroup::CheckCRC(size_t len) {
 	uint16_t crc_stored = dg_raw[len] << 8 | dg_raw[len + 1];
 	uint16_t crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(&dg_raw[0], len);
 	return crc_stored == crc_calced;
+}
+
+
+// --- DGLIDecoder -----------------------------------------------------------------
+void DGLIDecoder::Reset() {
+	DataGroup::Reset();
+
+	dgli_len = -1;
+}
+
+bool DGLIDecoder::DecodeDataGroup() {
+	// DG len + CRC
+	if(!EnsureDataGroupSize(2 + CRC_LEN))
+		return false;
+
+	// abort on invalid CRC
+	if(!CheckCRC(2)) {
+		DataGroup::Reset();
+		return false;
+	}
+
+	dgli_len = (dg_raw[0] & 0x3F) << 8 | dg_raw[1];
+
+	DataGroup::Reset();
+
+//	fprintf(stderr, "DGLIDecoder: dgli_len: %zu\n", dgli_len);
+
+	return true;
+}
+
+size_t DGLIDecoder::GetDGLILen() {
+	size_t result = dgli_len;
+	dgli_len = -1;
+	return result;
 }
 
 

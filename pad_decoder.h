@@ -66,6 +66,21 @@ public:
 };
 
 
+// --- DGLIDecoder -----------------------------------------------------------------
+class DGLIDecoder : public DataGroup {
+private:
+	size_t dgli_len;
+
+	bool DecodeDataGroup();
+public:
+	DGLIDecoder() {Reset();}
+
+	void Reset();
+
+	size_t GetDGLILen();
+};
+
+
 typedef std::map<int,DL_SEG> dl_segs_t;
 
 // --- DynamicLabelDecoder -----------------------------------------------------------------
@@ -136,6 +151,7 @@ private:
 	int dl_charset;
 
 	DynamicLabelDecoder dl_decoder;
+	DGLIDecoder dgli_decoder;
 public:
 	PADDecoder(PADDecoderObserver *observer);
 
