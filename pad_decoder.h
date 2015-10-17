@@ -56,6 +56,7 @@ protected:
 
 	virtual bool DecodeDataGroup() = 0;
 	bool EnsureDataGroupSize(size_t dg_size);
+	bool CheckCRC(size_t len);
 	void Reset();
 public:
 	DataGroup() {Reset();}

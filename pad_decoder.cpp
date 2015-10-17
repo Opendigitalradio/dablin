@@ -185,6 +185,16 @@ bool DataGroup::EnsureDataGroupSize(size_t dg_size) {
 	return true;
 }
 
+bool DataGroup::CheckCRC(size_t len) {
+	// ensure needed size reached
+	if(dg_raw.size() < len + CRC_LEN)
+		return false;
+
+	uint16_t crc_stored = dg_raw[len] << 8 | dg_raw[len + 1];
+	uint16_t crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(&dg_raw[0], len);
+	return crc_stored == crc_calced;
+}
+
 
 // --- DynamicLabelDecoder -----------------------------------------------------------------
 void DynamicLabelDecoder::Reset() {
@@ -230,15 +240,13 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 		field_len = (dg_raw[0] & 0x0F) + 1;
 	}
 
-	size_t real_len = 2 + field_len + CRC_LEN;
+	size_t real_len = 2 + field_len;
 
-	if(!EnsureDataGroupSize(real_len))
+	if(!EnsureDataGroupSize(real_len + CRC_LEN))
 		return false;
 
 	// abort on invalid CRC
-	uint16_t crc_stored = dg_raw[real_len-2] << 8 | dg_raw[real_len-1];
-	uint16_t crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(&dg_raw[0], real_len - 2);
-	if(crc_stored != crc_calced) {
+	if(!CheckCRC(real_len)) {
 		DataGroup::Reset();
 		return false;
 	}
