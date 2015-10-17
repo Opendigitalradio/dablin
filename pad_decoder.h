@@ -47,13 +47,25 @@ struct DL_SEG {
 	size_t chars_len;
 };
 
+
+// --- DataGroup -----------------------------------------------------------------
+class DataGroup {
+protected:
+	std::vector<uint8_t> dg_raw;
+
+	virtual bool DecodeDataGroup() = 0;
+public:
+	virtual ~DataGroup() {}
+
+	bool ProcessDataSubfield(bool start, const uint8_t *data, size_t len);
+};
+
+
 typedef std::map<int,DL_SEG> dl_segs_t;
 
-
 // --- DynamicLabelDecoder -----------------------------------------------------------------
-class DynamicLabelDecoder {
+class DynamicLabelDecoder : public DataGroup {
 private:
-	std::vector<uint8_t> dl_dg_raw;
 	dl_segs_t dl_segs;
 
 	uint8_t label_raw[DL_MAX_LEN];
@@ -66,7 +78,6 @@ private:
 public:
 	DynamicLabelDecoder() {Reset();}
 
-	bool ProcessDataSubfield(bool start, const uint8_t *data, size_t len);
 	void Reset();
 
 	size_t GetLabel(uint8_t *data, int *charset);

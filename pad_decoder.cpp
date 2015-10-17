@@ -151,9 +151,29 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 }
 
 
+// --- DataGroup -----------------------------------------------------------------
+bool DataGroup::ProcessDataSubfield(bool start, const uint8_t *data, size_t len) {
+	if(start) {
+		dg_raw.clear();
+	} else {
+		// ignore Data Group continuation without previous start
+		if(dg_raw.empty())
+			return false;
+	}
+
+	// append Data Subfield
+	dg_raw.resize(dg_raw.size() + len);
+	memcpy(&dg_raw[dg_raw.size() - len], data, len);
+
+	// try do decode Data Group
+	return DecodeDataGroup();
+}
+
+
 // --- DynamicLabelDecoder -----------------------------------------------------------------
 void DynamicLabelDecoder::Reset() {
-	dl_dg_raw.clear();
+	dg_raw.clear();
+
 	dl_segs.clear();
 
 	label_len = 0;
@@ -166,61 +186,44 @@ size_t DynamicLabelDecoder::GetLabel(uint8_t *data, int *charset) {
 	return label_len;
 }
 
-bool DynamicLabelDecoder::ProcessDataSubfield(bool start, const uint8_t *data, size_t len) {
-	if(start) {
-		dl_dg_raw.clear();
-	} else {
-		// ignore Data Group continuation without previous start
-		if(dl_dg_raw.empty())
-			return false;
-	}
-
-	// append Data Subfield
-	dl_dg_raw.resize(dl_dg_raw.size() + len);
-	memcpy(&dl_dg_raw[dl_dg_raw.size() - len], data, len);
-
-	// try to decode Data Group
-	return DecodeDataGroup();
-}
-
 bool DynamicLabelDecoder::DecodeDataGroup() {
 	// at least prefix + CRC
-	if(dl_dg_raw.size() < 2 + CRC_LEN)
+	if(dg_raw.size() < 2 + CRC_LEN)
 		return false;
 
-	bool toggle = dl_dg_raw[0] & 0x80;
-	bool first = dl_dg_raw[0] & 0x40;
-	bool last = dl_dg_raw[0] & 0x20;
-	bool command = dl_dg_raw[0] & 0x10;
+	bool toggle = dg_raw[0] & 0x80;
+	bool first = dg_raw[0] & 0x40;
+	bool last = dg_raw[0] & 0x20;
+	bool command = dg_raw[0] & 0x10;
 
 	size_t field_len = 0;
 	bool cmd_remove_label = false;
 
 	// handle command/segment
 	if(command) {
-		switch(dl_dg_raw[0] & 0x0F) {
+		switch(dg_raw[0] & 0x0F) {
 		case DL_CMD_REMOVE_LABEL:
 			cmd_remove_label = true;
 			break;
 		default:
 			// ignore command
-			dl_dg_raw.clear();
+			dg_raw.clear();
 			return false;
 		}
 	} else {
-		field_len = (dl_dg_raw[0] & 0x0F) + 1;
+		field_len = (dg_raw[0] & 0x0F) + 1;
 	}
 
 	size_t real_len = 2 + field_len + CRC_LEN;
 
-	if(dl_dg_raw.size() < real_len)
+	if(dg_raw.size() < real_len)
 		return false;
 
 	// abort on invalid CRC
-	uint16_t crc_stored = dl_dg_raw[real_len-2] << 8 | dl_dg_raw[real_len-1];
-	uint16_t crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(&dl_dg_raw[0], real_len - 2);
+	uint16_t crc_stored = dg_raw[real_len-2] << 8 | dg_raw[real_len-1];
+	uint16_t crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(&dg_raw[0], real_len - 2);
 	if(crc_stored != crc_calced) {
-		dl_dg_raw.clear();
+		dg_raw.clear();
 		return false;
 	}
 
@@ -235,15 +238,15 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 	DL_SEG dl_seg;
 	dl_seg.toggle = toggle;
 
-	dl_seg.segnum = first ? 0 : ((dl_dg_raw[1] & 0x70) >> 4);
+	dl_seg.segnum = first ? 0 : ((dg_raw[1] & 0x70) >> 4);
 	dl_seg.last = last;
 
-	dl_seg.charset = first ? (dl_dg_raw[1] >> 4) : -1;
+	dl_seg.charset = first ? (dg_raw[1] >> 4) : -1;
 
-	memcpy(dl_seg.chars, &dl_dg_raw[2], field_len);
+	memcpy(dl_seg.chars, &dg_raw[2], field_len);
 	dl_seg.chars_len = field_len;
 
-	dl_dg_raw.clear();
+	dg_raw.clear();
 
 //	fprintf(stderr, "DynamicLabelDecoder: segnum %d, toggle: %s, chars_len: %2d%s\n", dl_seg.segnum, dl_seg.toggle ? "Y" : "N", dl_seg.chars_len, dl_seg.last ? " [LAST]" : "");
 
