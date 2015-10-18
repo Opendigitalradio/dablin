@@ -115,7 +115,7 @@ void SuperframeFilter::Feed(const uint8_t *data, size_t len) {
 		uint16_t au_crc_stored = au_data[au_len-2] << 8 | au_data[au_len-1];
 		uint16_t au_crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(au_data, au_len - 2);
 		if(au_crc_stored != au_crc_calced) {
-			fprintf(stderr, "SuperframeFilter: AU #%d dropped due to invalid CRC\n", i);
+			fprintf(stderr, "\x1B[31m" "(AU #%d)" "\x1B[0m" " ", i);
 			continue;
 		}
 

@@ -113,11 +113,15 @@ During (re-)synchronisation status messages are output. Also dropped
 Superframes or AU are mentioned.
 
 If the Reed Solomon FEC was used to correct bytes of a Superframe, this
-is mentioned by messages of the format `(3+)`. This shorter format is
-used as those messages occure several times with borderline reception.
-The digit refers to the number of corrected bytes within the Superframe
-while a plus (if present) indicates that at least one byte was
-incorrectable.
+is mentioned by messages of the format `(3+)` in cyan color. This 
+shorter format is used as those messages occure several times with
+borderline reception. The digit refers to the number of corrected bytes
+within the Superframe while a plus (if present) indicates that at least
+one byte was incorrectable.
+
+Audio Units (AUs) with invalid CRC are mentioned with short format
+messages like `(AU #2)` in red color, indicating that the CRC check on
+AU No. 2 failed.
 
 
 ## TODO
