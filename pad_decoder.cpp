@@ -173,6 +173,10 @@ bool DataGroup::ProcessDataSubfield(bool start, const uint8_t *data, size_t len)
 			return false;
 	}
 
+	// abort, if needed size already reached (except needed size not yet set)
+	if(dg_raw.size() >= dg_size_needed && dg_size_needed > 0)
+		return false;
+
 	// append Data Subfield
 	dg_raw.resize(dg_raw.size() + len);
 	memcpy(&dg_raw[dg_raw.size() - len], data, len);
