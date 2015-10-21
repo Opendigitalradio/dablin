@@ -257,7 +257,7 @@ void DABlinGTK::AddChannels() {
 
 		while(std::getline(ss, ch, ',')) {
 			dab_channels_t::const_iterator it = dab_channels.find(ch);
-			if(it != dab_channels.end())
+			if(it != dab_channels.cend())
 				AddChannel(it);
 		}
 	}
@@ -332,7 +332,7 @@ void DABlinGTK::FICChangeServicesEmitted() {
 
 	services_t new_services = fic_decoder->GetNewServices();
 
-	for(services_t::iterator it = new_services.begin(); it != new_services.end(); it++) {
+	for(services_t::const_iterator it = new_services.cbegin(); it != new_services.cend(); it++) {
 		Glib::ustring label = FICDecoder::ConvertTextToUTF8(it->label.label, 16, it->label.charset);
 
 //		std::stringstream ss;

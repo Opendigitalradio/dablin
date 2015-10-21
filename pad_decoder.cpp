@@ -121,7 +121,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 		return;
 
 	size_t xpad_offset = xpad_cis_len;
-	for(xpad_cis_t::iterator it = xpad_cis.begin(); it != xpad_cis.end(); it++) {
+	for(xpad_cis_t::const_iterator it = xpad_cis.cbegin(); it != xpad_cis.cend(); it++) {
 		// abort, if Data Subfield out of X-PAD
 		if(xpad_offset + it->len > xpad_len)
 			return;
@@ -324,16 +324,16 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 }
 
 bool DynamicLabelDecoder::AddSegment(DL_SEG &dl_seg) {
-	dl_segs_t::iterator it;
+	dl_segs_t::const_iterator it;
 
 	// if there are already segments with other toggle value in cache, first clear it
-	it = dl_segs.begin();
-	if(it != dl_segs.end() && it->second.toggle != dl_seg.toggle)
+	it = dl_segs.cbegin();
+	if(it != dl_segs.cend() && it->second.toggle != dl_seg.toggle)
 		dl_segs.clear();
 
 	// if the segment is already there, abort
 	it = dl_segs.find(dl_seg.segnum);
-	if(it != dl_segs.end())
+	if(it != dl_segs.cend())
 		return false;
 
 	// add segment
@@ -344,14 +344,14 @@ bool DynamicLabelDecoder::AddSegment(DL_SEG &dl_seg) {
 }
 
 bool DynamicLabelDecoder::CheckForCompleteLabel() {
-	dl_segs_t::iterator it;
+	dl_segs_t::const_iterator it;
 
 	// check if all segments are in cache
 	int segs = 0;
 	size_t dl_len = 0;
 	for(int i = 0; i < 8; i++) {
 		it = dl_segs.find(i);
-		if(it == dl_segs.end())
+		if(it == dl_segs.cend())
 			return false;
 
 		segs++;

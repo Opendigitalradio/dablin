@@ -144,7 +144,7 @@ void DABlinText::FICChangeServices() {
 
 	services_t new_services = fic_decoder->GetNewServices();
 
-	for(services_t::iterator it = new_services.begin(); it != new_services.end(); it++)
+	for(services_t::const_iterator it = new_services.cbegin(); it != new_services.cend(); it++)
 		if(it->sid == options.initial_sid)
 			eti_player->SetAudioSubchannel(it->service.subchid, it->service.dab_plus);
 }
