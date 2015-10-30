@@ -30,7 +30,6 @@
 #include "tools.h"
 
 #define CRC_LEN 2
-#define DL_SEG_MAX_LEN 16
 #define DL_MAX_LEN 128
 #define DL_CMD_REMOVE_LABEL 0x01
 
@@ -43,8 +42,7 @@ struct DL_SEG {
 
 	int charset;
 
-	uint8_t chars[DL_SEG_MAX_LEN];
-	size_t chars_len;
+	std::vector<uint8_t> chars;
 };
 
 
@@ -88,8 +86,7 @@ class DynamicLabelDecoder : public DataGroup {
 private:
 	dl_segs_t dl_segs;
 
-	uint8_t label_raw[DL_MAX_LEN];
-	size_t label_len;
+	std::vector<uint8_t> label_raw;
 	int label_charset;
 
 	bool DecodeDataGroup();
@@ -100,7 +97,7 @@ public:
 
 	void Reset();
 
-	size_t GetLabel(uint8_t *data, int *charset);
+	std::vector<uint8_t> GetLabel(int *charset);
 };
 
 
@@ -146,8 +143,7 @@ private:
 	XPAD_CI last_xpad_ci;
 
 	std::mutex data_mutex;
-	uint8_t dl_raw[DL_MAX_LEN];
-	size_t dl_len;
+	std::vector<uint8_t> dl_raw;
 	int dl_charset;
 
 	DynamicLabelDecoder dl_decoder;
@@ -158,7 +154,7 @@ public:
 	void Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad);
 	void Reset();
 
-	size_t GetDynamicLabel(uint8_t *data, int *charset);
+	std::vector<uint8_t> GetDynamicLabel(int *charset);
 };
 
 #endif /* PAD_DECODER_H_ */

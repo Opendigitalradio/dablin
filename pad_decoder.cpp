@@ -50,7 +50,7 @@ void PADDecoder::Reset() {
 	{
 		std::lock_guard<std::mutex> lock(data_mutex);
 
-		dl_len = 0;
+		dl_raw.clear();
 		dl_charset = -1;
 	}
 
@@ -58,12 +58,11 @@ void PADDecoder::Reset() {
 	dgli_decoder.Reset();
 }
 
-size_t PADDecoder::GetDynamicLabel(uint8_t *data, int *charset) {
+std::vector<uint8_t> PADDecoder::GetDynamicLabel(int *charset) {
 	std::lock_guard<std::mutex> lock(data_mutex);
 
-	memcpy(data, dl_raw, dl_len);
 	*charset = dl_charset;
-	return dl_len;
+	return dl_raw;
 }
 
 
@@ -141,7 +140,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 				{
 					std::lock_guard<std::mutex> lock(data_mutex);
 
-					dl_len = dl_decoder.GetLabel(dl_raw, &dl_charset);
+					dl_raw = dl_decoder.GetLabel(&dl_charset);
 				}
 				observer->PADChangeDynamicLabel();
 			}
@@ -247,14 +246,13 @@ void DynamicLabelDecoder::Reset() {
 
 	dl_segs.clear();
 
-	label_len = 0;
+	label_raw.clear();
 	label_charset = -1;
 }
 
-size_t DynamicLabelDecoder::GetLabel(uint8_t *data, int *charset) {
-	memcpy(data, label_raw, label_len);
+std::vector<uint8_t> DynamicLabelDecoder::GetLabel(int *charset) {
 	*charset = label_charset;
-	return label_len;
+	return label_raw;
 }
 
 bool DynamicLabelDecoder::DecodeDataGroup() {
@@ -298,7 +296,7 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 
 	// on Remove Label command, display empty label
 	if(cmd_remove_label) {
-		label_len = 0;
+		label_raw.clear();
 		label_charset = 0;	// EBU Latin based (though it doesn't matter)
 		return true;
 	}
@@ -312,12 +310,11 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 
 	dl_seg.charset = first ? (dg_raw[1] >> 4) : -1;
 
-	memcpy(dl_seg.chars, &dg_raw[2], field_len);
-	dl_seg.chars_len = field_len;
+	dl_seg.chars.insert(dl_seg.chars.begin(), dg_raw.begin() + 2, dg_raw.begin() + 2 + field_len);
 
 	DataGroup::Reset();
 
-//	fprintf(stderr, "DynamicLabelDecoder: segnum %d, toggle: %s, chars_len: %2d%s\n", dl_seg.segnum, dl_seg.toggle ? "Y" : "N", dl_seg.chars_len, dl_seg.last ? " [LAST]" : "");
+//	fprintf(stderr, "DynamicLabelDecoder: segnum %d, toggle: %s, chars_len: %2d%s\n", dl_seg.segnum, dl_seg.toggle ? "Y" : "N", dl_seg.chars.size(), dl_seg.last ? " [LAST]" : "");
 
 	// try to add segment
 	return AddSegment(dl_seg);
@@ -363,14 +360,12 @@ bool DynamicLabelDecoder::CheckForCompleteLabel() {
 	}
 
 	// append complete label
-	label_len = 0;
-	for(int i = 0; i < segs; i++) {
-		memcpy(label_raw + label_len, dl_segs[i].chars, dl_segs[i].chars_len);
-		label_len += dl_segs[i].chars_len;
-	}
+	label_raw.clear();
+	for(int i = 0; i < segs; i++)
+		label_raw.insert(label_raw.end(), dl_segs[i].chars.begin(), dl_segs[i].chars.end());
 	label_charset = dl_segs[0].charset;
 
-//	std::string label((const char*) label_raw, label_len);
+//	std::string label((const char*) &label_raw[0], label_raw.size());
 //	fprintf(stderr, "DynamicLabelDecoder: new label: '%s'\n", label.c_str());
 	return true;
 }

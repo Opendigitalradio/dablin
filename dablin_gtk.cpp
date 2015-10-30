@@ -389,11 +389,10 @@ void DABlinGTK::on_combo_services() {
 void DABlinGTK::PADChangeDynamicLabelEmitted() {
 //	fprintf(stderr, "### PADChangeDynamicLabelEmitted\n");
 
-	uint8_t dl_raw[DL_MAX_LEN];
 	int dl_charset;
-	size_t dl_len = pad_decoder->GetDynamicLabel(dl_raw, &dl_charset);
+	std::vector<uint8_t> dl = pad_decoder->GetDynamicLabel(&dl_charset);
 
-	Glib::ustring label = FICDecoder::ConvertTextToUTF8(dl_raw, dl_len, dl_charset);
+	Glib::ustring label = FICDecoder::ConvertTextToUTF8(&dl[0], dl.size(), dl_charset);
 	frame_label_dl.set_sensitive(true);
 	label_dl.set_label(label);
 }
