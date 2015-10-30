@@ -348,14 +348,12 @@ bool DynamicLabelDecoder::CheckForCompleteLabel() {
 
 	// check if all segments are in cache
 	int segs = 0;
-	size_t dl_len = 0;
 	for(int i = 0; i < 8; i++) {
 		it = dl_segs.find(i);
 		if(it == dl_segs.cend())
 			return false;
 
 		segs++;
-		dl_len += it->second.chars_len;
 
 		if(it->second.last)
 			break;
@@ -365,9 +363,11 @@ bool DynamicLabelDecoder::CheckForCompleteLabel() {
 	}
 
 	// append complete label
-	for(int i = 0; i < segs; i++)
-		memcpy(label_raw + i * DL_SEG_MAX_LEN, dl_segs[i].chars, dl_segs[i].chars_len);
-	label_len = dl_len;
+	label_len = 0;
+	for(int i = 0; i < segs; i++) {
+		memcpy(label_raw + label_len, dl_segs[i].chars, dl_segs[i].chars_len);
+		label_len += dl_segs[i].chars_len;
+	}
 	label_charset = dl_segs[0].charset;
 
 //	std::string label((const char*) label_raw, label_len);
