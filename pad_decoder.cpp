@@ -260,9 +260,6 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 	if(!EnsureDataGroupSize(2 + CRC_LEN))
 		return false;
 
-	bool toggle = dg_raw[0] & 0x80;
-	bool first = dg_raw[0] & 0x40;
-	bool last = dg_raw[0] & 0x20;
 	bool command = dg_raw[0] & 0x10;
 
 	size_t field_len = 0;
@@ -303,18 +300,12 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 
 	// create new segment
 	DL_SEG dl_seg;
-	dl_seg.toggle = toggle;
-
-	dl_seg.segnum = first ? 0 : ((dg_raw[1] & 0x70) >> 4);
-	dl_seg.last = last;
-
-	dl_seg.charset = first ? (dg_raw[1] >> 4) : -1;
-
+	memcpy(dl_seg.prefix, &dg_raw[0], 2);
 	dl_seg.chars.insert(dl_seg.chars.begin(), dg_raw.begin() + 2, dg_raw.begin() + 2 + field_len);
 
 	DataGroup::Reset();
 
-//	fprintf(stderr, "DynamicLabelDecoder: segnum %d, toggle: %s, chars_len: %2d%s\n", dl_seg.segnum, dl_seg.toggle ? "Y" : "N", dl_seg.chars.size(), dl_seg.last ? " [LAST]" : "");
+//	fprintf(stderr, "DynamicLabelDecoder: segnum %d, toggle: %s, chars_len: %2d%s\n", dl_seg.SegNum(), dl_seg.Toggle() ? "Y" : "N", dl_seg.chars.size(), dl_seg.Last() ? " [LAST]" : "");
 
 	// try to add segment
 	return AddSegment(dl_seg);
@@ -325,16 +316,16 @@ bool DynamicLabelDecoder::AddSegment(DL_SEG &dl_seg) {
 
 	// if there are already segments with other toggle value in cache, first clear it
 	it = dl_segs.cbegin();
-	if(it != dl_segs.cend() && it->second.toggle != dl_seg.toggle)
+	if(it != dl_segs.cend() && it->second.Toggle() != dl_seg.Toggle())
 		dl_segs.clear();
 
 	// if the segment is already there, abort
-	it = dl_segs.find(dl_seg.segnum);
+	it = dl_segs.find(dl_seg.SegNum());
 	if(it != dl_segs.cend())
 		return false;
 
 	// add segment
-	dl_segs[dl_seg.segnum] = dl_seg;
+	dl_segs[dl_seg.SegNum()] = dl_seg;
 
 	// check for complete label
 	return CheckForCompleteLabel();
@@ -352,7 +343,7 @@ bool DynamicLabelDecoder::CheckForCompleteLabel() {
 
 		segs++;
 
-		if(it->second.last)
+		if(it->second.Last())
 			break;
 
 		if(i == 7)
@@ -363,7 +354,7 @@ bool DynamicLabelDecoder::CheckForCompleteLabel() {
 	label_raw.clear();
 	for(int i = 0; i < segs; i++)
 		label_raw.insert(label_raw.end(), dl_segs[i].chars.begin(), dl_segs[i].chars.end());
-	label_charset = dl_segs[0].charset;
+	label_charset = dl_segs[0].prefix[1] >> 4;
 
 //	std::string label((const char*) &label_raw[0], label_raw.size());
 //	fprintf(stderr, "DynamicLabelDecoder: new label: '%s'\n", label.c_str());

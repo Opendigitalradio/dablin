@@ -35,14 +35,15 @@
 
 
 
+// --- DL_SEG -----------------------------------------------------------------
 struct DL_SEG {
-	bool toggle;
-	int segnum;
-	bool last;
-
-	int charset;
-
+	uint8_t prefix[2];
 	std::vector<uint8_t> chars;
+
+	bool Toggle() const {return prefix[0] & 0x80;}
+	bool First() const {return prefix[0] & 0x40;}
+	bool Last() const {return prefix[0] & 0x20;}
+	int SegNum() const {return First() ? 0 : ((prefix[1] & 0x70) >> 4);}
 };
 
 
