@@ -50,21 +50,12 @@ void PADDecoder::Reset() {
 	{
 		std::lock_guard<std::mutex> lock(data_mutex);
 
-		dl_raw.clear();
-		dl_charset = -1;
+		dl.Reset();
 	}
 
 	dl_decoder.Reset();
 	dgli_decoder.Reset();
 }
-
-std::vector<uint8_t> PADDecoder::GetDynamicLabel(int *charset) {
-	std::lock_guard<std::mutex> lock(data_mutex);
-
-	*charset = dl_charset;
-	return dl_raw;
-}
-
 
 void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad) {
 	xpad_cis_t xpad_cis;
@@ -140,7 +131,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 				{
 					std::lock_guard<std::mutex> lock(data_mutex);
 
-					dl_raw = dl_decoder.GetLabel(&dl_charset);
+					dl = dl_decoder.GetLabel();
 				}
 				observer->PADChangeDynamicLabel();
 			}
@@ -245,14 +236,7 @@ void DynamicLabelDecoder::Reset() {
 	DataGroup::Reset();
 
 	dl_sr.Reset();
-
-	label_raw.clear();
-	label_charset = -1;
-}
-
-std::vector<uint8_t> DynamicLabelDecoder::GetLabel(int *charset) {
-	*charset = label_charset;
-	return label_raw;
+	label.Reset();
 }
 
 bool DynamicLabelDecoder::DecodeDataGroup() {
@@ -293,8 +277,8 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 
 	// on Remove Label command, display empty label
 	if(cmd_remove_label) {
-		label_raw.clear();
-		label_charset = 0;	// EBU Latin based (though it doesn't matter)
+		label.raw.clear();
+		label.charset = 0;	// EBU Latin based (though it doesn't matter)
 		return true;
 	}
 
@@ -312,8 +296,8 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 		return false;
 
 	// append new label
-	label_raw = dl_sr.label_raw;
-	label_charset = dl_sr.dl_segs[0].prefix[1] >> 4;
+	label.raw = dl_sr.label_raw;
+	label.charset = dl_sr.dl_segs[0].prefix[1] >> 4;
 	return true;
 }
 

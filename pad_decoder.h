@@ -93,13 +93,24 @@ struct DL_SEG_REASSEMBLER {
 };
 
 
+// --- DL_STATE -----------------------------------------------------------------
+struct DL_STATE {
+	std::vector<uint8_t> raw;
+	int charset;
+
+	DL_STATE() {Reset();}
+	void Reset() {
+		raw.clear();
+		charset = -1;
+	}
+};
+
+
 // --- DynamicLabelDecoder -----------------------------------------------------------------
 class DynamicLabelDecoder : public DataGroup {
 private:
 	DL_SEG_REASSEMBLER dl_sr;
-
-	std::vector<uint8_t> label_raw;
-	int label_charset;
+	DL_STATE label;
 
 	bool DecodeDataGroup();
 public:
@@ -107,7 +118,7 @@ public:
 
 	void Reset();
 
-	std::vector<uint8_t> GetLabel(int *charset);
+	DL_STATE GetLabel() {return label;}
 };
 
 
@@ -153,8 +164,7 @@ private:
 	XPAD_CI last_xpad_ci;
 
 	std::mutex data_mutex;
-	std::vector<uint8_t> dl_raw;
-	int dl_charset;
+	DL_STATE dl;
 
 	DynamicLabelDecoder dl_decoder;
 	DGLIDecoder dgli_decoder;
@@ -164,7 +174,7 @@ public:
 	void Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad);
 	void Reset();
 
-	std::vector<uint8_t> GetDynamicLabel(int *charset);
+	DL_STATE GetDynamicLabel() {return dl;}
 };
 
 #endif /* PAD_DECODER_H_ */
