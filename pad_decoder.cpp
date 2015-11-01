@@ -244,7 +244,7 @@ size_t DGLIDecoder::GetDGLILen() {
 void DynamicLabelDecoder::Reset() {
 	DataGroup::Reset();
 
-	dl_segs.clear();
+	dl_sr.Reset();
 
 	label_raw.clear();
 	label_charset = -1;
@@ -308,10 +308,23 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 //	fprintf(stderr, "DynamicLabelDecoder: segnum %d, toggle: %s, chars_len: %2d%s\n", dl_seg.SegNum(), dl_seg.Toggle() ? "Y" : "N", dl_seg.chars.size(), dl_seg.Last() ? " [LAST]" : "");
 
 	// try to add segment
-	return AddSegment(dl_seg);
+	if(!dl_sr.AddSegment(dl_seg))
+		return false;
+
+	// append new label
+	label_raw = dl_sr.label_raw;
+	label_charset = dl_sr.dl_segs[0].prefix[1] >> 4;
+	return true;
 }
 
-bool DynamicLabelDecoder::AddSegment(DL_SEG &dl_seg) {
+
+// --- DL_SEG_REASSEMBLER -----------------------------------------------------------------
+void DL_SEG_REASSEMBLER::Reset() {
+	dl_segs.clear();
+	label_raw.clear();
+}
+
+bool DL_SEG_REASSEMBLER::AddSegment(DL_SEG &dl_seg) {
 	dl_segs_t::const_iterator it;
 
 	// if there are already segments with other toggle value in cache, first clear it
@@ -331,7 +344,7 @@ bool DynamicLabelDecoder::AddSegment(DL_SEG &dl_seg) {
 	return CheckForCompleteLabel();
 }
 
-bool DynamicLabelDecoder::CheckForCompleteLabel() {
+bool DL_SEG_REASSEMBLER::CheckForCompleteLabel() {
 	dl_segs_t::const_iterator it;
 
 	// check if all segments are in cache
@@ -354,9 +367,8 @@ bool DynamicLabelDecoder::CheckForCompleteLabel() {
 	label_raw.clear();
 	for(int i = 0; i < segs; i++)
 		label_raw.insert(label_raw.end(), dl_segs[i].chars.begin(), dl_segs[i].chars.end());
-	label_charset = dl_segs[0].prefix[1] >> 4;
 
 //	std::string label((const char*) &label_raw[0], label_raw.size());
-//	fprintf(stderr, "DynamicLabelDecoder: new label: '%s'\n", label.c_str());
+//	fprintf(stderr, "DL_SEG_REASSEMBLER: new label: '%s'\n", label.c_str());
 	return true;
 }

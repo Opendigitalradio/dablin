@@ -82,17 +82,26 @@ public:
 
 typedef std::map<int,DL_SEG> dl_segs_t;
 
+// --- DL_SEG_REASSEMBLER -----------------------------------------------------------------
+struct DL_SEG_REASSEMBLER {
+	dl_segs_t dl_segs;
+	std::vector<uint8_t> label_raw;
+
+	bool AddSegment(DL_SEG &dl_seg);
+	bool CheckForCompleteLabel();
+	void Reset();
+};
+
+
 // --- DynamicLabelDecoder -----------------------------------------------------------------
 class DynamicLabelDecoder : public DataGroup {
 private:
-	dl_segs_t dl_segs;
+	DL_SEG_REASSEMBLER dl_sr;
 
 	std::vector<uint8_t> label_raw;
 	int label_charset;
 
 	bool DecodeDataGroup();
-	bool AddSegment(DL_SEG &dl_seg);
-	bool CheckForCompleteLabel();
 public:
 	DynamicLabelDecoder() {Reset();}
 
