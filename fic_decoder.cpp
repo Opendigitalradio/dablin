@@ -338,8 +338,8 @@ std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int c
 
 const char* FICDecoder::no_char = "";
 const char* FICDecoder::ebu_values_0x00_to_0x1F[] = {
-		no_char , "\u0118", "\u012E", "\u0172", "\u0102", "\u0116", "\u010E", "\u0218", "\u021A", "\u010A", no_char , no_char , "\u0120", no_char , "\u017B", "\u0143",
-		"\u0105", "\u0119", "\u012F", "\u0173", "\u0103", "\u0117", "\u010F", "\u0219", "\u021B", "\u010B", "\u0147", "\u011A", "\u0121", "\u0139", "\u017C", "\u002D"
+		no_char , "\u0118", "\u012E", "\u0172", "\u0102", "\u0116", "\u010E", "\u0218", "\u021A", "\u010A", no_char , no_char , "\u0120", "\u0139" , "\u017B", "\u0143",
+		"\u0105", "\u0119", "\u012F", "\u0173", "\u0103", "\u0117", "\u010F", "\u0219", "\u021B", "\u010B", "\u0147", "\u011A", "\u0121", "\u013A", "\u017C", "\u002D"
 };
 const char* FICDecoder::ebu_values_0x7B_to_0xFF[] = {
 		/* starting some chars earlier than 0x80 -----> */                                                            "\u00AB", "\u016F", "\u00BB", "\u013D", "\u0126",
@@ -363,13 +363,11 @@ std::string FICDecoder::ConvertCharEBUToUTF8(const uint8_t value) {
 	// convert by hand (avoiding a LUT with mostly 1:1 mapping)
 	switch(value) {
 	case 0x24:
-		return "\u013A";
+		return "\u0142";
 	case 0x5C:
 		return "\u016E";
 	case 0x5E:
 		return "\u0141";
-	case 0x5F:
-		return "\u0142";
 	case 0x60:
 		return "\u0104";
 	}
