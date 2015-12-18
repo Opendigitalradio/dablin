@@ -287,7 +287,8 @@ void DABlinGTK::SetService(SERVICE service) {
 		set_title(label + " - DABlin");
 		frame_combo_services.set_tooltip_text(
 				"Short label: \"" + DeriveShortLabel(label, service.label.short_label_mask) + "\"\n"
-				"SId: " + sid_string);
+				"SId: " + sid_string + "\n"
+				"SubChId: " + std::to_string(service.service.subchid));
 
 		eti_player->SetAudioSubchannel(service.service.subchid, service.service.dab_plus);
 	} else {
