@@ -6,14 +6,9 @@ compiler:
   - gcc
   - clang
 
-addons: &addons
-  apt:
-    packages: &packages
-      - libfaad-dev
-      - libfaad2
-      - libmpg123-dev
-      - libsdl2-dev
-      - libgtkmm-3.0-dev
+before_script:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y libfaad-dev libfaad2 libmpg123-dev libsdl2-dev libgtkmm-3.0-dev
 
 script:
   - |
