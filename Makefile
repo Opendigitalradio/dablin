@@ -9,7 +9,7 @@ CFLAGS += -O0 -g3
 
 CFLAGS_GTK = `pkg-config gtkmm-3.0 --cflags`
 
-LDFLAGS = -lfec -lfaad -lmpg123 -lpthread `sdl2-config --libs`
+LDFLAGS = -lfec -lmpg123 -lpthread `sdl2-config --libs`
 
 ifdef use_fdk-aac
 	CFLAGS += -DDABLIN_AAC_FDKAAC
