@@ -44,6 +44,13 @@ After installing the lib, you have to:
 * enable the regarding line in `Makefile` (when using Make)
 * insert `-D USE_FDK-AAC=1` after the `cmake` call (when using CMake)
 
+### Surround sound
+
+Services with surround sound are only decoded from their Mono/Stereo
+core, as unfortunately there is no FOSS AAC decoder which supports the
+required Spatial Audio Coding (SAC) extension of MPEG Surround at the
+moment.
+
 ## Compilation
 
 ### Using Make
@@ -136,7 +143,7 @@ Aided Data (PAD) like MOT Slideshow et cetera.
 (please see the file COPYING for further details)
 
 DABlin - capital DAB experience
-Copyright (C) 2015 Stefan Pöschel
+Copyright (C) 2015-2016 Stefan Pöschel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

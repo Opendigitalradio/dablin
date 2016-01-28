@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -204,19 +204,21 @@ bool SuperframeFilter::CheckSync() {
 
 void SuperframeFilter::ProcessFormat() {
 	// output format
-	const char *mode;
+	const char *stereo_mode = (sf_format.aac_channel_mode || sf_format.ps_flag) ? "Stereo" : "Mono";
+	const char *surround_mode;
+
 	switch(sf_format.mpeg_surround_config) {
 	case 0:
-		mode = (sf_format.aac_channel_mode || sf_format.ps_flag) ? "Stereo" : "Mono";
+		surround_mode = NULL;
 		break;
 	case 1:
-		mode = "Surround 5.1";
+		surround_mode = "Surround 5.1";
 		break;
 	case 2:
-		mode = "Surround 7.1";
+		surround_mode = "Surround 7.1";
 		break;
 	default:
-		mode = "Surround (unknown)";
+		surround_mode = "Surround (unknown)";
 		break;
 	}
 
@@ -225,7 +227,10 @@ void SuperframeFilter::ProcessFormat() {
 	std::stringstream ss;
 	ss << (sf_format.sbr_flag ? (sf_format.ps_flag ? "HE-AAC v2" : "HE-AAC") : "AAC-LC") << ", ";
 	ss << (sf_format.dac_rate ? 48 : 32) << " kHz ";
-	ss << mode << " ";
+	if(surround_mode)
+		ss << surround_mode << " (" << stereo_mode << " core) ";
+	else
+		ss << stereo_mode << " ";
 	ss << "@ " << bitrate << " kBit/s";
 	observer->FormatChange(ss.str());
 
@@ -313,22 +318,10 @@ AACDecoder::AACDecoder(std::string decoder_name, SubchannelSinkObserver* observe
 	 */
 
 	int core_sr_index = sf_format.dac_rate ? (sf_format.sbr_flag ? 6 : 3) : (sf_format.sbr_flag ? 8 : 5);	// 24/48/16/32 kHz
-	int core_ch_config = GetAACChannelConfiguration(sf_format);
+	int core_ch_config = sf_format.aac_channel_mode ? 2 : 1;
 
 	asc[0] = 0b00010 << 3 | core_sr_index >> 1;
 	asc[1] = (core_sr_index & 0x01) << 7 | core_ch_config << 3 | 0b100;
-}
-
-int AACDecoder::GetAACChannelConfiguration(SuperframeFormat sf_format) {
-	switch(sf_format.mpeg_surround_config) {
-	case 0:		// no surround
-	default:
-		return sf_format.aac_channel_mode ? 2 : 1;
-	case 1:		// 5.1
-		return 6;
-	case 2:		// 7.1
-		return 7;
-	}
 }
 
 
@@ -350,7 +343,6 @@ AACDecoderFAAD2::AACDecoderFAAD2(SubchannelSinkObserver* observer, SuperframeFor
 		throw std::runtime_error("AACDecoderFAAD2: error while NeAACDecGetCurrentConfiguration");
 
 	config->outputFormat = FAAD_FMT_FLOAT;
-	config->downMatrix = 1;
 	config->dontUpSampleImplicitSBR = 0;
 
 	if(NeAACDecSetConfiguration(handle, config) != 1)
