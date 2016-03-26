@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@
 #include "dab_decoder.h"
 #include "dabplus_decoder.h"
 #include "sdl_output.h"
-#include "tools.h"
 
 
 #define ETI_PLAYER_NO_SUBCHANNEL -1
@@ -47,7 +46,7 @@ public:
 
 
 // --- ETIPlayer -----------------------------------------------------------------
-class ETIPlayer : SubchannelSinkObserver, AudioSource {
+class ETIPlayer : SubchannelSinkObserver {
 private:
 	ETIPlayerObserver *observer;
 
@@ -64,20 +63,13 @@ private:
 	SubchannelSink *dec;
 	AudioOutput *out;
 
-	std::mutex audio_buffer_mutex;
-	CircularBuffer *audio_buffer;
-	size_t audio_start_buffer_size;
-	bool audio_mute;
-
 	void DecodeFrame(const uint8_t *eti_frame);
 
 	void FormatChange(std::string format);
-	void StartAudio(int samplerate, int channels, bool float32);
-	void PutAudio(const uint8_t *data, size_t len);
+	void StartAudio(int samplerate, int channels, bool float32) {out->StartAudio(samplerate, channels, float32);}
+	void PutAudio(const uint8_t *data, size_t len) {out->PutAudio(data, len);}
 	void ProcessFIC(const uint8_t *data, size_t len);
 	void ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, const uint8_t *fpad_data);
-
-	size_t GetAudio(uint8_t *data, size_t len, uint8_t silence);
 public:
 	ETIPlayer(ETIPlayerObserver *observer);
 	~ETIPlayer();
@@ -85,7 +77,7 @@ public:
 	void ProcessFrame(const uint8_t *data);
 
 	void SetAudioSubchannel(int subchannel, bool dab_plus);
-	void SetAudioMute(bool audio_mute);
+	void SetAudioMute(bool audio_mute) {out->SetAudioMute(audio_mute);}
 	std::string GetFormat();
 };
 

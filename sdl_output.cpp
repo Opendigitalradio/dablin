@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,8 +41,8 @@ static void sdl_audio_callback(void *userdata, Uint8 *stream, int len) {
 
 
 // --- SDLOutput -----------------------------------------------------------------
-SDLOutput::SDLOutput(AudioSource *audio_source) : AudioOutput(audio_source) {
-	cb_data.audio_source = audio_source;
+SDLOutput::SDLOutput() : AudioOutput() {
+	cb_data.audio_source = this;
 	cb_data.silence_len = 0;
 
 	audio_device = 0;
@@ -50,6 +50,10 @@ SDLOutput::SDLOutput(AudioSource *audio_source) : AudioOutput(audio_source) {
 	samplerate = 0;
 	channels = 0;
 	float32 = false;
+
+	audio_buffer = NULL;
+	audio_start_buffer_size = 0;
+	audio_mute = false;
 
 	// init SDL
 	if(SDL_Init(SDL_INIT_AUDIO)) {
@@ -66,6 +70,8 @@ SDLOutput::SDLOutput(AudioSource *audio_source) : AudioOutput(audio_source) {
 SDLOutput::~SDLOutput() {
 	StopAudio();
 	SDL_Quit();
+
+	delete audio_buffer;
 }
 
 void SDLOutput::StopAudio() {
@@ -77,19 +83,36 @@ void SDLOutput::StopAudio() {
 }
 
 void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
-	SDL_AudioSpec desired;
-	SDL_AudioSpec obtained;
-
-	// if audio already matches, return
-	if(audio_device && this->samplerate == samplerate && this->channels == channels && this->float32 == float32)
+	// if no change, do quick restart
+	if(audio_device && this->samplerate == samplerate && this->channels == channels && this->float32 == float32) {
+		std::lock_guard<std::mutex> lock(audio_buffer_mutex);
+		audio_buffer->Clear();
+		SetAudioStartBufferSize();
 		return;
+	}
 	this->samplerate = samplerate;
 	this->channels = channels;
 	this->float32 = float32;
 
 	StopAudio();
 
+	// (re)init buffer
+	{
+		std::lock_guard<std::mutex> lock(audio_buffer_mutex);
+
+		if(audio_buffer)
+			delete audio_buffer;
+
+		// use 500ms buffer
+		size_t buffersize = samplerate / 2 * channels * (float32 ? 4 : 2);
+		fprintf(stderr, "SDLOutput: using audio buffer of %zu bytes\n", buffersize);
+		audio_buffer = new CircularBuffer(buffersize);
+		SetAudioStartBufferSize();
+	}
+
 	// init audio
+	SDL_AudioSpec desired;
+	SDL_AudioSpec obtained;
 	desired.freq = samplerate;
 	desired.format = float32 ? AUDIO_F32SYS : AUDIO_S16SYS;
 	desired.channels = channels;
@@ -115,4 +138,48 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 	cb_data.silence = obtained.silence;
 
 	SDL_PauseAudioDevice(audio_device, 0);
+}
+
+void SDLOutput::SetAudioStartBufferSize() {
+	// start audio when 1/2 filled
+	audio_start_buffer_size = audio_buffer->Capacity() / 2;
+}
+
+void SDLOutput::PutAudio(const uint8_t *data, size_t len) {
+	std::lock_guard<std::mutex> lock(audio_buffer_mutex);
+
+	size_t capa = audio_buffer->Capacity() - audio_buffer->Size();
+//	if(capa < len) {
+//		fprintf(stderr, "SDLOutput: audio buffer overflow, therefore cleaning buffer!\n");
+//		audio_buffer->Clear();
+//		capa = audio_buffer->capacity();
+//	}
+
+	if(len > capa)
+		fprintf(stderr, "SDLOutput: audio buffer overflow: %zu > %zu\n", len, capa);
+
+	audio_buffer->Write(data, len);
+
+//	fprintf(stderr, "Buffer: %zu / %zu\n", audio_buffer->Size(), audio_buffer->Capacity());
+}
+
+void SDLOutput::SetAudioMute(bool audio_mute) {
+	std::lock_guard<std::mutex> lock(audio_buffer_mutex);
+	this->audio_mute = audio_mute;
+}
+
+size_t SDLOutput::GetAudio(uint8_t *data, size_t len, uint8_t silence) {
+	std::lock_guard<std::mutex> lock(audio_buffer_mutex);
+
+	if(audio_start_buffer_size && audio_buffer->Size() >= audio_start_buffer_size)
+		audio_start_buffer_size = 0;
+
+	if(audio_mute || audio_start_buffer_size) {
+		if(audio_start_buffer_size == 0)
+			audio_buffer->Read(NULL, len);
+		memset(data, silence, len);
+		return len;
+	}
+
+	return audio_buffer->Read(data, len);
 }

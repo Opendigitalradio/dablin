@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,20 +29,12 @@ ETIPlayer::ETIPlayer(ETIPlayerObserver *observer) {
 	dab_plus_now = dab_plus_next = false;
 
 	dec = NULL;
-	out = new SDLOutput(this);
-
-	audio_buffer = NULL;
-	audio_start_buffer_size = 0;
-	audio_mute = false;
+	out = new SDLOutput;
 }
 
 ETIPlayer::~ETIPlayer() {
-	// cleanup
-	out->StopAudio();
-
 	delete dec;
 	delete out;
-	delete audio_buffer;
 }
 
 void ETIPlayer::SetAudioSubchannel(int subchannel, bool dab_plus) {
@@ -153,64 +145,6 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 
 
 	dec->Feed(eti_frame + subch_offset, subch_bytes);
-}
-
-void ETIPlayer::StartAudio(int samplerate, int channels, bool float32) {
-//	out->StopAudio();
-
-	{
-		std::lock_guard<std::mutex> lock(audio_buffer_mutex);
-
-		if(audio_buffer)
-			delete audio_buffer;
-
-		// use 500ms buffer (start audio when 1/2 filled)
-		size_t buffersize = samplerate / 2 * channels * (float32 ? 4 : 2);
-		fprintf(stderr, "ETIPlayer: using audio buffer of %zu bytes\n", buffersize);
-		audio_buffer = new CircularBuffer(buffersize);
-		audio_start_buffer_size = buffersize / 2;
-	}
-
-	out->StartAudio(samplerate, channels, float32);
-}
-
-void ETIPlayer::PutAudio(const uint8_t *data, size_t len) {
-	std::lock_guard<std::mutex> lock(audio_buffer_mutex);
-
-	size_t capa = audio_buffer->Capacity() - audio_buffer->Size();
-//	if(capa < len) {
-//		fprintf(stderr, "DABlin: audio buffer overflow, therefore cleaning buffer!\n");
-//		audio_buffer->Clear();
-//		capa = audio_buffer->capacity();
-//	}
-
-	if(len > capa)
-		fprintf(stderr, "ETIPlayer: audio buffer overflow: %zu > %zu\n", len, capa);
-
-	audio_buffer->Write(data, len);
-
-//	fprintf(stderr, "Buffer: %zu / %zu\n", audio_buffer->Size(), audio_buffer->Capacity());
-}
-
-size_t ETIPlayer::GetAudio(uint8_t *data, size_t len, uint8_t silence) {
-	std::lock_guard<std::mutex> lock(audio_buffer_mutex);
-
-	if(audio_start_buffer_size && audio_buffer->Size() >= audio_start_buffer_size)
-		audio_start_buffer_size = 0;
-
-	if(audio_mute || audio_start_buffer_size) {
-		if(audio_start_buffer_size == 0)
-			audio_buffer->Read(NULL, len);
-		memset(data, silence, len);
-		return len;
-	}
-
-	return audio_buffer->Read(data, len);
-}
-
-void ETIPlayer::SetAudioMute(bool audio_mute) {
-	std::lock_guard<std::mutex> lock(audio_buffer_mutex);
-	this->audio_mute = audio_mute;
 }
 
 void ETIPlayer::FormatChange(std::string format) {

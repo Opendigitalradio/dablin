@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,25 +22,14 @@
 #include <cstring>
 
 
-// --- AudioSource -----------------------------------------------------------------
-class AudioSource {
-public:
-	virtual ~AudioSource() {};
-
-	virtual size_t GetAudio(uint8_t *data, size_t len, uint8_t silence) = 0;
-};
-
-
 // --- AudioOutput -----------------------------------------------------------------
 class AudioOutput {
-protected:
-	AudioSource *audio_source;
 public:
-	AudioOutput(AudioSource *audio_source) : audio_source(audio_source) {}
 	virtual ~AudioOutput() {}
 
 	virtual void StartAudio(int samplerate, int channels, bool float32) = 0;
-	virtual void StopAudio() = 0;
+	virtual void PutAudio(const uint8_t *data, size_t len) = 0;
+	virtual void SetAudioMute(bool audio_mute) = 0;
 };
 
 

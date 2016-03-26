@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,10 +22,21 @@
 #include <stdexcept>
 #include <sstream>
 #include <cstdint>
+#include <mutex>
 
 #include "SDL.h"
 
 #include "audio_output.h"
+#include "tools.h"
+
+
+// --- AudioSource -----------------------------------------------------------------
+class AudioSource {
+public:
+	virtual ~AudioSource() {};
+
+	virtual size_t GetAudio(uint8_t *data, size_t len, uint8_t silence) = 0;
+};
 
 
 struct SDLOutputCallbackData {
@@ -36,7 +47,7 @@ struct SDLOutputCallbackData {
 };
 
 // --- SDLOutput -----------------------------------------------------------------
-class SDLOutput : public AudioOutput {
+class SDLOutput : public AudioOutput, AudioSource {
 private:
 	SDLOutputCallbackData cb_data;
 	SDL_AudioDeviceID audio_device;
@@ -44,12 +55,22 @@ private:
 	int samplerate;
 	int channels;
 	bool float32;
+
+	std::mutex audio_buffer_mutex;
+	CircularBuffer *audio_buffer;
+	size_t audio_start_buffer_size;
+	bool audio_mute;
+
+	size_t GetAudio(uint8_t *data, size_t len, uint8_t silence);
+	void StopAudio();
+	void SetAudioStartBufferSize();
 public:
-	SDLOutput(AudioSource *audio_source);
+	SDLOutput();
 	~SDLOutput();
 
 	void StartAudio(int samplerate, int channels, bool float32);
-	void StopAudio();
+	void PutAudio(const uint8_t *data, size_t len);
+	void SetAudioMute(bool audio_mute);
 };
 
 #endif /* SDL_OUTPUT_H_ */
