@@ -20,7 +20,7 @@
 
 
 // --- ETIPlayer -----------------------------------------------------------------
-ETIPlayer::ETIPlayer(ETIPlayerObserver *observer) {
+ETIPlayer::ETIPlayer(bool pcm_output, ETIPlayerObserver *observer) {
 	this->observer = observer;
 
 	next_frame_time = std::chrono::steady_clock::now();
@@ -29,7 +29,11 @@ ETIPlayer::ETIPlayer(ETIPlayerObserver *observer) {
 	dab_plus_now = dab_plus_next = false;
 
 	dec = NULL;
-	out = new SDLOutput;
+
+	if(!pcm_output)
+		out = new SDLOutput;
+	else
+		out = new PCMOutput;
 }
 
 ETIPlayer::~ETIPlayer() {

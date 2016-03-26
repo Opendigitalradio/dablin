@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,8 +68,9 @@ struct DABlinGTKOptions {
 	std::string dab2eti_binary;
 	std::string displayed_channels;
 	std::string initial_channel;
+	bool pcm_output;
 
-	DABlinGTKOptions() : initial_sid(-1) {}
+	DABlinGTKOptions() : initial_sid(-1), pcm_output(false) {}
 };
 
 

@@ -28,6 +28,7 @@
 #include "subchannel_sink.h"
 #include "dab_decoder.h"
 #include "dabplus_decoder.h"
+#include "pcm_output.h"
 #include "sdl_output.h"
 
 
@@ -71,7 +72,7 @@ private:
 	void ProcessFIC(const uint8_t *data, size_t len);
 	void ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, const uint8_t *fpad_data);
 public:
-	ETIPlayer(ETIPlayerObserver *observer);
+	ETIPlayer(bool pcm_output, ETIPlayerObserver *observer);
 	~ETIPlayer();
 
 	void ProcessFrame(const uint8_t *data);

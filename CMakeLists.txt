@@ -134,6 +134,7 @@ list(APPEND dablin_sources
     eti_player.cpp
     dab_decoder.cpp
     fic_decoder.cpp
+    pcm_output.cpp
     sdl_output.cpp
     tools.cpp
     )

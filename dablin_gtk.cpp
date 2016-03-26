@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,11 +29,12 @@ static void break_handler(int param) {
 
 static void usage(const char* exe) {
 	fprintf(stderr, "DABlin - plays a DAB(+) subchannel from a frame-aligned ETI(NI) stream via stdin\n");
-	fprintf(stderr, "Usage: %s [-d <binary> [-C <ch>,...] [-c <ch>]] [-s <sid>] [file]\n", exe);
+	fprintf(stderr, "Usage: %s [-d <binary> [-C <ch>,...] [-c <ch>]] [-s <sid>] [-p] [file]\n", exe);
 	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
 	fprintf(stderr, "  -C <ch>,...   Channels to be displayed (separated by comma; requires dab2eti as source)\n");
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source; otherwise no initial channel)\n");
 	fprintf(stderr, "  -s <sid>      ID of the service to be played (otherwise no initial service)\n");
+	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
 	exit(1);
 }
@@ -50,7 +51,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "d:C:c:s:")) != -1) {
+	while((c = getopt(argc, argv, "d:C:c:s:p")) != -1) {
 		switch(c) {
 		case 'd':
 			options.dab2eti_binary = optarg;
@@ -63,6 +64,9 @@ int main(int argc, char **argv) {
 			break;
 		case 's':
 			options.initial_sid = strtol(optarg, NULL, 0);
+			break;
+		case 'p':
+			options.pcm_output = true;
 			break;
 		case '?':
 		default:
@@ -133,7 +137,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	fic_data_change_services.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServicesEmitted));
 	pad_data_change_dynamic_label.connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 
-	eti_player = new ETIPlayer(this);
+	eti_player = new ETIPlayer(options.pcm_output, this);
 
 	if(!options.dab2eti_binary.empty()) {
 		eti_source = NULL;
