@@ -109,6 +109,12 @@ int main(int argc, char **argv) {
 			usage(argv[0]);
 		}
 	}
+#ifdef DABLIN_DISABLE_SDL
+	if(!options.pcm_output) {
+		fprintf(stderr, "SDL output was disabled, so PCM output must be selected!\n");
+		usage(argv[0]);
+	}
+#endif
 
 
 	fprintf(stderr, "DABlin - capital DAB experience\n");

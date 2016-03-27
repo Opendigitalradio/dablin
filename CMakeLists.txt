@@ -61,16 +61,20 @@ find_package(PkgConfig)
 find_package(Threads REQUIRED)
 
 # SDL2
-pkg_check_modules(SDL2 sdl2 REQUIRED)
-if(NOT SDL2_FOUND)
-    message(FATAL_ERROR "SDL2 required to compile dablin\n")
+if(NOT DISABLE_SDL)
+    pkg_check_modules(SDL2 sdl2 REQUIRED)
+    if(NOT SDL2_FOUND)
+        message(FATAL_ERROR "SDL2 required to compile dablin\n")
+    else()
+        include_directories(${SDL2_INCLUDE_DIRS})
+        list(APPEND dablin_sources sdl_output.cpp)
+    endif()
 else()
-    include_directories(${SDL2_INCLUDE_DIRS})
+    add_definitions(-DDABLIN_DISABLE_SDL)
 endif()
 
 # libmpg123
 pkg_check_modules(MPG123 libmpg123 REQUIRED)
-include_directories(${MPG123_INCLUDE_DIRS})
 if(NOT MPG123_FOUND)
     message(FATAL_ERROR "libmpg123 required to compile dablin\n")
 else()
@@ -135,7 +139,6 @@ list(APPEND dablin_sources
     dab_decoder.cpp
     fic_decoder.cpp
     pcm_output.cpp
-    sdl_output.cpp
     tools.cpp
     )
 

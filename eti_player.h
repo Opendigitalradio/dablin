@@ -29,7 +29,10 @@
 #include "dab_decoder.h"
 #include "dabplus_decoder.h"
 #include "pcm_output.h"
+
+#ifndef DABLIN_DISABLE_SDL
 #include "sdl_output.h"
+#endif
 
 
 #define ETI_PLAYER_NO_SUBCHANNEL -1

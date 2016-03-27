@@ -41,13 +41,18 @@ You can also use the modified version [fdk-aac-dabplus](https://github.com/Opend
 OpenDigitalradio itself, if already installed.
 
 After installing the lib, you have to:
-* enable the regarding line in `Makefile` (when using Make)
+* enable the regarding line in `Makefile` (when using Make) OR
 * insert `-D USE_FDK-AAC=1` after the `cmake` call (when using CMake)
 
 ### Audio output
 The SDL2 library is used for audio output, but you can instead choose to
 output the decoded audio in plain PCM for further processing (e.g. for
 forwarding to a streaming server).
+
+In case you only want PCM output, you can disable SDL output and
+therefore omit the SDL2 library prerequisite. You then also have to:
+* enable the regarding line in `Makefile` (when using Make) OR
+* insert `-D DISABLE_SDL=1` after the `cmake` call (when using CMake)
 
 ### Surround sound
 

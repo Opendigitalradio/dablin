@@ -30,9 +30,11 @@ ETIPlayer::ETIPlayer(bool pcm_output, ETIPlayerObserver *observer) {
 
 	dec = NULL;
 
+#ifndef DABLIN_DISABLE_SDL
 	if(!pcm_output)
 		out = new SDLOutput;
 	else
+#endif
 		out = new PCMOutput;
 }
 
