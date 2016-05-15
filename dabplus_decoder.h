@@ -139,6 +139,7 @@ private:
 	bool CheckSync();
 	void ProcessFormat();
 	void CheckForPAD(const uint8_t *data, size_t len);
+	void ResetPAD();
 public:
 	SuperframeFilter(SubchannelSinkObserver* observer);
 	~SuperframeFilter();
