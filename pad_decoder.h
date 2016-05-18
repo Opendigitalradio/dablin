@@ -51,14 +51,15 @@ struct DL_SEG {
 class DataGroup {
 protected:
 	std::vector<uint8_t> dg_raw;
+	size_t dg_size;
 	size_t dg_size_needed;
 
 	virtual bool DecodeDataGroup() = 0;
-	bool EnsureDataGroupSize(size_t dg_size);
+	bool EnsureDataGroupSize(size_t desired_dg_size);
 	bool CheckCRC(size_t len);
 	void Reset();
 public:
-	DataGroup() {Reset();}
+	DataGroup(size_t dg_size_max);
 	virtual ~DataGroup() {}
 
 	bool ProcessDataSubfield(bool start, const uint8_t *data, size_t len);
@@ -72,7 +73,7 @@ private:
 
 	bool DecodeDataGroup();
 public:
-	DGLIDecoder() {Reset();}
+	DGLIDecoder() : DataGroup(2 + CRC_LEN) {Reset();}
 
 	void Reset();
 
@@ -114,7 +115,7 @@ private:
 
 	bool DecodeDataGroup();
 public:
-	DynamicLabelDecoder() {Reset();}
+	DynamicLabelDecoder() : DataGroup(2 + 16 + CRC_LEN) {Reset();}
 
 	void Reset();
 

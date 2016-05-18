@@ -119,7 +119,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 		// handle Data Subfield
 		switch(it->type) {
 		case 1:		// Data Group Length Indicator
-			dgli_decoder.ProcessDataSubfield(xpad_ind, xpad_data + xpad_offset, it->len);
+			dgli_decoder.ProcessDataSubfield(ci_flag, xpad_data + xpad_offset, it->len);
 
 			// TODO: process result
 
@@ -149,8 +149,13 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 
 
 // --- DataGroup -----------------------------------------------------------------
+DataGroup::DataGroup(size_t dg_size_max) {
+	dg_raw.resize(dg_size_max);
+	Reset();
+}
+
 void DataGroup::Reset() {
-	dg_raw.clear();
+	dg_size = 0;
 	dg_size_needed = 0;
 }
 
@@ -159,28 +164,35 @@ bool DataGroup::ProcessDataSubfield(bool start, const uint8_t *data, size_t len)
 		Reset();
 	} else {
 		// ignore Data Group continuation without previous start
-		if(dg_raw.empty())
+		if(dg_size == 0)
 			return false;
 	}
 
 	// abort, if needed size already reached (except needed size not yet set)
-	if(dg_raw.size() >= dg_size_needed && dg_size_needed > 0)
+	if(dg_size >= dg_size_needed && dg_size_needed != 0)
+		return false;
+
+	// abort, if maximum size already reached
+	if(dg_size == dg_raw.size())
 		return false;
 
 	// append Data Subfield
-	dg_raw.resize(dg_raw.size() + len);
-	memcpy(&dg_raw[dg_raw.size() - len], data, len);
+	size_t copy_len = dg_raw.size() - dg_size;
+	if(len < copy_len)
+		copy_len = len;
+	memcpy(&dg_raw[dg_size], data, copy_len);
+	dg_size += copy_len;
 
 	// abort, if needed size not yet reached
-	if(dg_raw.size() < dg_size_needed)
+	if(dg_size < dg_size_needed)
 		return false;
 
 	return DecodeDataGroup();
 }
 
-bool DataGroup::EnsureDataGroupSize(size_t dg_size) {
-	if(dg_raw.size() < dg_size) {
-		dg_size_needed = dg_size;
+bool DataGroup::EnsureDataGroupSize(size_t desired_dg_size) {
+	if(dg_size < desired_dg_size) {
+		dg_size_needed = desired_dg_size;
 		return false;
 	}
 	return true;
@@ -188,7 +200,7 @@ bool DataGroup::EnsureDataGroupSize(size_t dg_size) {
 
 bool DataGroup::CheckCRC(size_t len) {
 	// ensure needed size reached
-	if(dg_raw.size() < len + CRC_LEN)
+	if(dg_size < len + CRC_LEN)
 		return false;
 
 	uint16_t crc_stored = dg_raw[len] << 8 | dg_raw[len + 1];
@@ -201,7 +213,7 @@ bool DataGroup::CheckCRC(size_t len) {
 void DGLIDecoder::Reset() {
 	DataGroup::Reset();
 
-	dgli_len = -1;
+	dgli_len = 0;
 }
 
 bool DGLIDecoder::DecodeDataGroup() {
@@ -226,7 +238,7 @@ bool DGLIDecoder::DecodeDataGroup() {
 
 size_t DGLIDecoder::GetDGLILen() {
 	size_t result = dgli_len;
-	dgli_len = -1;
+	dgli_len = 0;
 	return result;
 }
 
