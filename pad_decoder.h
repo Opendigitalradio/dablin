@@ -54,6 +54,7 @@ protected:
 	size_t dg_size;
 	size_t dg_size_needed;
 
+	virtual size_t GetInitialNeededSize() {return 0;};
 	virtual bool DecodeDataGroup() = 0;
 	bool EnsureDataGroupSize(size_t desired_dg_size);
 	bool CheckCRC(size_t len);
@@ -71,6 +72,7 @@ class DGLIDecoder : public DataGroup {
 private:
 	size_t dgli_len;
 
+	size_t GetInitialNeededSize() {return 2 + CRC_LEN;}	// DG len + CRC
 	bool DecodeDataGroup();
 public:
 	DGLIDecoder() : DataGroup(2 + CRC_LEN) {Reset();}
@@ -113,6 +115,7 @@ private:
 	DL_SEG_REASSEMBLER dl_sr;
 	DL_STATE label;
 
+	size_t GetInitialNeededSize() {return 2 + CRC_LEN;}	// at least prefix + CRC
 	bool DecodeDataGroup();
 public:
 	DynamicLabelDecoder() : DataGroup(2 + 16 + CRC_LEN) {Reset();}
@@ -122,6 +125,21 @@ public:
 	DL_STATE GetLabel() {return label;}
 };
 
+
+// --- MOTDecoder -----------------------------------------------------------------
+class MOTDecoder : public DataGroup {
+private:
+	size_t mot_len;
+
+	size_t GetInitialNeededSize() {return mot_len;}	// MOT len + CRC (or zero!)
+	bool DecodeDataGroup();
+public:
+	MOTDecoder() : DataGroup(16384) {Reset();}	// = 2^14
+
+	void Reset();
+
+	void SetLen(size_t mot_len) {this->mot_len = mot_len;}
+};
 
 
 // --- XPAD_CI -----------------------------------------------------------------
@@ -169,8 +187,9 @@ private:
 
 	DynamicLabelDecoder dl_decoder;
 	DGLIDecoder dgli_decoder;
+	MOTDecoder mot_decoder;
 public:
-	PADDecoder(PADDecoderObserver *observer);
+	PADDecoder(PADDecoderObserver *observer) : observer(observer) {}
 
 	void Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad);
 	void Reset();

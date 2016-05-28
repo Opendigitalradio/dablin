@@ -40,11 +40,6 @@ int XPAD_CI::GetContinuedLastCIType(int last_ci_type) {
 
 
 // --- PADDecoder -----------------------------------------------------------------
-PADDecoder::PADDecoder(PADDecoderObserver *observer) {
-	this->observer = observer;
-	Reset();
-}
-
 void PADDecoder::Reset() {
 	last_xpad_ci.Reset();
 	{
@@ -55,6 +50,7 @@ void PADDecoder::Reset() {
 
 	dl_decoder.Reset();
 	dgli_decoder.Reset();
+	mot_decoder.Reset();
 }
 
 void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad) {
@@ -116,16 +112,17 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 		if(xpad_offset + it->len > xpad_len)
 			return;
 
+		// len only valid for the *immediate* next data group after the DGLI!
+		size_t dgli_len = dgli_decoder.GetDGLILen();
+
 		// handle Data Subfield
 		switch(it->type) {
 		case 1:		// Data Group Length Indicator
 			dgli_decoder.ProcessDataSubfield(ci_flag, xpad_data + xpad_offset, it->len);
-
-			// TODO: process result
-
 			break;
-		case 2:		// Dynamic Label segment
-		case 3:
+
+		case 2:		// Dynamic Label segment (start)
+		case 3:		// Dynamic Label segment (continuation)
 			// if new label available, append it
 			if(dl_decoder.ProcessDataSubfield(it->type == 2, xpad_data + xpad_offset, it->len)) {
 				{
@@ -135,6 +132,14 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 				}
 				observer->PADChangeDynamicLabel();
 			}
+			break;
+
+		case 12:	// MOT, X-PAD data group (start)
+			mot_decoder.SetLen(dgli_len);
+			// no break
+		case 13:	// MOT, X-PAD data group (continuation)
+			mot_decoder.ProcessDataSubfield(it->type == 12, xpad_data + xpad_offset, it->len);
+			// TODO: process result
 			break;
 		}
 //		fprintf(stderr, "PADDecoder: Data Subfield: type: %2d, len: %2zu\n", it->type, it->len);
@@ -156,7 +161,7 @@ DataGroup::DataGroup(size_t dg_size_max) {
 
 void DataGroup::Reset() {
 	dg_size = 0;
-	dg_size_needed = 0;
+	dg_size_needed = GetInitialNeededSize();
 }
 
 bool DataGroup::ProcessDataSubfield(bool start, const uint8_t *data, size_t len) {
@@ -169,7 +174,7 @@ bool DataGroup::ProcessDataSubfield(bool start, const uint8_t *data, size_t len)
 	}
 
 	// abort, if needed size already reached (except needed size not yet set)
-	if(dg_size >= dg_size_needed && dg_size_needed != 0)
+	if(dg_size >= dg_size_needed)
 		return false;
 
 	// abort, if maximum size already reached
@@ -191,11 +196,8 @@ bool DataGroup::ProcessDataSubfield(bool start, const uint8_t *data, size_t len)
 }
 
 bool DataGroup::EnsureDataGroupSize(size_t desired_dg_size) {
-	if(dg_size < desired_dg_size) {
-		dg_size_needed = desired_dg_size;
-		return false;
-	}
-	return true;
+	dg_size_needed = desired_dg_size;
+	return dg_size >= dg_size_needed;
 }
 
 bool DataGroup::CheckCRC(size_t len) {
@@ -217,10 +219,6 @@ void DGLIDecoder::Reset() {
 }
 
 bool DGLIDecoder::DecodeDataGroup() {
-	// DG len + CRC
-	if(!EnsureDataGroupSize(2 + CRC_LEN))
-		return false;
-
 	// abort on invalid CRC
 	if(!CheckCRC(2)) {
 		DataGroup::Reset();
@@ -231,7 +229,7 @@ bool DGLIDecoder::DecodeDataGroup() {
 
 	DataGroup::Reset();
 
-//	fprintf(stderr, "DGLIDecoder: dgli_len: %zu\n", dgli_len);
+//	fprintf(stderr, "DGLIDecoder: dgli_len: %5zu\n", dgli_len);
 
 	return true;
 }
@@ -252,10 +250,6 @@ void DynamicLabelDecoder::Reset() {
 }
 
 bool DynamicLabelDecoder::DecodeDataGroup() {
-	// at least prefix + CRC
-	if(!EnsureDataGroupSize(2 + CRC_LEN))
-		return false;
-
 	bool command = dg_raw[0] & 0x10;
 
 	size_t field_len = 0;
@@ -366,5 +360,33 @@ bool DL_SEG_REASSEMBLER::CheckForCompleteLabel() {
 
 //	std::string label((const char*) &label_raw[0], label_raw.size());
 //	fprintf(stderr, "DL_SEG_REASSEMBLER: new label: '%s'\n", label.c_str());
+	return true;
+}
+
+
+// --- MOTDecoder -----------------------------------------------------------------
+void MOTDecoder::Reset() {
+	DataGroup::Reset();
+
+	mot_len = 0;
+}
+
+bool MOTDecoder::DecodeDataGroup() {
+	// ignore too short lens
+	if(mot_len < CRC_LEN)
+		return false;
+
+	// only DGs with CRC are supported here!
+
+	// abort on invalid CRC
+	if(!CheckCRC(mot_len - CRC_LEN)) {
+		DataGroup::Reset();
+		return false;
+	}
+
+	DataGroup::Reset();
+
+//	fprintf(stderr, "MOTDecoder: mot_len: %5zu\n", mot_len);
+
 	return true;
 }
