@@ -137,6 +137,23 @@ DAB2ETISource::DAB2ETISource(std::string binary, uint32_t freq, ETISourceObserve
 		perror("ETISource: error starting dab2eti");
 }
 
+DAB2ETISource::DAB2ETISource(std::string binary, uint32_t freq, int gain, ETISourceObserver *observer) : ETISource("", observer) {
+	this->freq = freq;
+
+	// it doesn't matter whether there is a prefixed path or not
+	binary_name = binary.substr(binary.find_last_of('/') + 1);
+
+	std::stringstream ss;
+	ss << binary << " " << (freq * 1000);
+	if (gain != -1) {
+		ss << " " << gain;
+	}
+	
+	input_file = popen(ss.str().c_str(), "r");
+	if(!input_file)
+		perror("ETISource: error starting dab2eti");
+}
+
 void DAB2ETISource::PrintSource() {
 	fprintf(stderr, "ETISource: playing live from %u kHz via dab2eti\n", freq);
 }

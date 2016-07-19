@@ -33,6 +33,7 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source)\n");
 	fprintf(stderr, "  -s <sid>      ID of the service to be played\n");
+	fprintf(stderr, "  -g <gain>     Set gain to pass to dab2eti (auto_gain is default)\n");
 	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
 	exit(1);
@@ -50,7 +51,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "d:c:s:p")) != -1) {
+	while((c = getopt(argc, argv, "c:d:g:s:p")) != -1) {
 		switch(c) {
 		case 'd':
 			options.dab2eti_binary = optarg;
@@ -60,6 +61,9 @@ int main(int argc, char **argv) {
 			break;
 		case 's':
 			options.initial_sid = strtol(optarg, NULL, 0);
+			break;
+		case 'g':
+			options.gain = strtol(optarg, NULL, 0);
 			break;
 		case 'p':
 			options.pcm_output = true;
@@ -137,7 +141,7 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	if(options.dab2eti_binary.empty())
 		eti_source = new ETISource(options.filename, this);
 	else
-		eti_source = new DAB2ETISource(options.dab2eti_binary, dab_channels.find(options.initial_channel)->second, this);
+		eti_source = new DAB2ETISource(options.dab2eti_binary, dab_channels.find(options.initial_channel)->second, options.gain, this);
 
 	fic_decoder = new FICDecoder(this);
 }
