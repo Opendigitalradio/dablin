@@ -69,8 +69,9 @@ struct DABlinGTKOptions {
 	std::string displayed_channels;
 	std::string initial_channel;
 	bool pcm_output;
-
-	DABlinGTKOptions() : initial_sid(-1), pcm_output(false) {}
+	int gain;
+	
+DABlinGTKOptions() : initial_sid(-1), pcm_output(false), gain(-10000) {}
 };
 
 

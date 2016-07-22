@@ -34,6 +34,7 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -C <ch>,...   Channels to be displayed (separated by comma; requires dab2eti as source)\n");
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source; otherwise no initial channel)\n");
 	fprintf(stderr, "  -s <sid>      ID of the service to be played (otherwise no initial service)\n");
+	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto_gain is default)\n");
 	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
 	exit(1);
@@ -51,7 +52,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "d:C:c:s:p")) != -1) {
+	while((c = getopt(argc, argv, "d:C:c:g:s:p")) != -1) {
 		switch(c) {
 		case 'd':
 			options.dab2eti_binary = optarg;
@@ -64,6 +65,9 @@ int main(int argc, char **argv) {
 			break;
 		case 's':
 			options.initial_sid = strtol(optarg, NULL, 0);
+			break;
+		case 'g':
+			options.gain = strtol(optarg, NULL, 0);
 			break;
 		case 'p':
 			options.pcm_output = true;
@@ -382,7 +386,7 @@ void DABlinGTK::on_combo_channels() {
 		options.initial_sid = -1;
 
 	// append
-	eti_source = new DAB2ETISource(options.dab2eti_binary, freq, this);
+	eti_source = new DAB2ETISource(options.dab2eti_binary, freq, options.gain, this);
 	eti_source_thread = std::thread(&ETISource::Main, eti_source);
 }
 

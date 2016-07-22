@@ -70,7 +70,7 @@ private:
 
 	void PrintSource();
 public:
-	DAB2ETISource(std::string binary, uint32_t freq, ETISourceObserver *observer);
+	DAB2ETISource(std::string binary, uint32_t freq, int gain, ETISourceObserver *observer);
 	~DAB2ETISource();
 };
 
