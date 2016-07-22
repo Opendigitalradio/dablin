@@ -33,7 +33,7 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source)\n");
 	fprintf(stderr, "  -s <sid>      ID of the service to be played\n");
-	fprintf(stderr, "  -g <gain>     Set gain to pass to dab2eti (auto_gain is default)\n");
+	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto_gain is default)\n");
 	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
 	exit(1);
