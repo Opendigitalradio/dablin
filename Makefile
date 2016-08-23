@@ -10,6 +10,12 @@ CFLAGS = -Wall -std=c++0x
 CFLAGS += -O0 -g3
 #CFLAGS += -O3 -g0
 
+# version derived from git (if possible)
+VERSION_FROM_GIT = $(shell git describe --dirty 2> /dev/null)
+ifneq "$(VERSION_FROM_GIT)" ""
+	CFLAGS += -DDABLIN_VERSION=\"$(VERSION_FROM_GIT)\"
+endif
+
 CFLAGS_GTK = `pkg-config gtkmm-3.0 --cflags`
 
 LDFLAGS = -lfec -lmpg123 -lpthread

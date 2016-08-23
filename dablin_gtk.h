@@ -29,6 +29,7 @@
 #include "fic_decoder.h"
 #include "pad_decoder.h"
 #include "tools.h"
+#include "version.h"
 
 #define WIDGET_SPACE 5
 

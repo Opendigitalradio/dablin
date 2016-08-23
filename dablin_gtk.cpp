@@ -28,8 +28,9 @@ static void break_handler(int param) {
 
 
 static void usage(const char* exe) {
-	fprintf(stderr, "DABlin - plays a DAB(+) subchannel from a frame-aligned ETI(NI) stream via stdin\n");
-	fprintf(stderr, "Usage: %s [-d <binary> [-C <ch>,...] [-c <ch>]] [-s <sid>] [-p] [file]\n", exe);
+	banner(stderr);
+	fprintf(stderr, "Usage: %s [-h] [-d <binary> [-C <ch>,...] [-c <ch>]] [-s <sid>] [-p] [file]\n", exe);
+	fprintf(stderr, "  -h            Show this help\n");
 	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
 	fprintf(stderr, "  -C <ch>,...   Channels to be displayed (separated by comma; requires dab2eti as source)\n");
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source; otherwise no initial channel)\n");
@@ -52,8 +53,11 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "d:C:c:g:s:p")) != -1) {
+	while((c = getopt(argc, argv, "hd:C:c:g:s:p")) != -1) {
 		switch(c) {
+		case 'h':
+			usage(argv[0]);
+			break;
 		case 'd':
 			options.dab2eti_binary = optarg;
 			break;
@@ -121,8 +125,7 @@ int main(int argc, char **argv) {
 #endif
 
 
-	fprintf(stderr, "DABlin - capital DAB experience\n");
-
+	banner(stderr);
 
 	int myargc = 1;
 	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(myargc, argv);

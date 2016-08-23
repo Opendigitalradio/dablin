@@ -19,20 +19,20 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 # Version information
 ########################################################################
 
-set(VERSION_INFO_MAJOR  0)
-set(VERSION_INFO_MINOR  0)
-set(VERSION_INFO_PATCH  0)
+# version derived from git (if possible)
+execute_process(
+	COMMAND git describe --dirty
+	OUTPUT_VARIABLE VERSION_FROM_GIT
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 
-if(NOT DEFINED VERSION_INFO_EXTRA)
-    set(VERSION_INFO_EXTRA "git")
+if(VERSION_FROM_GIT)
+	add_definitions(-DDABLIN_VERSION="${VERSION_FROM_GIT}")
+	set(VERSION_OUTPUT ${VERSION_FROM_GIT})
+else()
+	set(VERSION_OUTPUT "[see version.h]")
 endif()
-include(Version)
-
-if(NOT DEFINED VERSION)
-    #set(VERSION "\"${VERSION_INFO_MAJOR}.${VERSION_INFO_MINOR}.${VERSION_INFO_PATCH}\"")
-    set(VERSION "\"${VERSION_INFO}\"")
-endif()
-
 
 ########################################################################
 # Compiler specific setup
@@ -180,7 +180,7 @@ endif()
 ########################################################################
 message(STATUS "")
 message(STATUS "##########################################################")
-message(STATUS "## Building version: ${VERSION}")
+message(STATUS "## Building version: ${VERSION_OUTPUT}")
 message(STATUS "## Using install prefix: ${CMAKE_INSTALL_PREFIX}")
 if(NOT GTKMM_FOUND)
     message(STATUS "## gtkmm not found, thus do not build dablin_gtk")

@@ -25,6 +25,7 @@
 #include "eti_player.h"
 #include "fic_decoder.h"
 #include "tools.h"
+#include "version.h"
 
 
 // --- DABlinTextOptions -----------------------------------------------------------------
