@@ -4,6 +4,8 @@ DABlin plays a DAB/DAB+ audio service - either from a received live
 transmission or from a stored ensemble recording (frame-aligned ETI-NI).
 Both DAB (MP2) and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are
 supported.
+The GTK version in addition supports the data applications Dynamic Label
+and MOT Slideshow (if present).
 
 ![Screenshot of the GTK version](http://www.basicmaster.de/dab/DABlin.png)
 
@@ -39,6 +41,9 @@ sudo apt-get install libgtkmm-3.0-dev
 Instead using FAAD2, DAB+ channels can be decoded with [FDK-AAC](https://github.com/mstorsjo/fdk-aac).
 You can also use the modified version [fdk-aac-dabplus](https://github.com/Opendigitalradio/fdk-aac-dabplus) of
 OpenDigitalradio itself, if already installed.
+
+When the alternative AAC decoder is used, the FAAD2 library mentioned
+above is no longer required.
 
 After installing the lib, you have to:
 * enable the regarding line in `Makefile` (when using Make) OR
@@ -87,7 +92,8 @@ only if `gtkmm` is available.
 ## Usage
 
 You can either use the console version `dablin` or the GTK GUI version
-`dablin_gtk`.
+`dablin_gtk`. Use `-h` to get an overview of all available options.
+
 DABlin processes frame-aligned DAB ETI-NI recordings. If no filename is
 specified, `stdin` is used for input.
 You just have to specify the regarding Service ID (SID). The GUI version
@@ -121,7 +127,8 @@ dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 ```
 
 Using `dab2eti` the E4000 tuner is recommended as auto gain is supported
-with it.
+with it. If you want/have to use a gain value you can specify it using
+`-g`.
 
 
 ## Status output
@@ -145,7 +152,18 @@ AU No. 2 failed.
 
 At the moment, DABlin is kind of a rudimentary tool for the playback of
 DAB/DAB+ services. It is planned to add support for further Program
-Aided Data (PAD) like MOT Slideshow et cetera.
+Aided Data (PAD) features.
+
+### Slideshow
+
+The GTK version supports the MOT Slideshow if used by the current
+service. The slide window is initially hidden but appears as soon as the
+first slide has been received completely and without errors.
+
+Currently the following limitations apply:
+* slideshows in a separate subchannel are not supported (just X-PAD)
+* for MOT the hardcoded (default) X-PAD Application Types 12/13 are used
+* the MOT header is not parsed/checked (e.g. for TriggerTime)
 
 
 ## License

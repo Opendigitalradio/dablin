@@ -29,7 +29,7 @@ static void break_handler(int param) {
 
 static void usage(const char* exe) {
 	banner(stderr);
-	fprintf(stderr, "Usage: %s [-h] [-d <binary> [-C <ch>,...] [-c <ch>]] [-s <sid>] [-p] [file]\n", exe);
+	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
 	fprintf(stderr, "  -h            Show this help\n");
 	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
 	fprintf(stderr, "  -C <ch>,...   Channels to be displayed (separated by comma; requires dab2eti as source)\n");
@@ -37,6 +37,7 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -s <sid>      ID of the service to be played (otherwise no initial service)\n");
 	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto_gain is default)\n");
 	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
+	fprintf(stderr, "  -S            Initially disable slideshow\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
 	exit(1);
 }
@@ -53,7 +54,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hd:C:c:g:s:p")) != -1) {
+	while((c = getopt(argc, argv, "hd:C:c:g:s:pS")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -75,6 +76,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'p':
 			options.pcm_output = true;
+			break;
+		case 'S':
+			options.initially_disable_slideshow = true;
 			break;
 		case '?':
 		default:
@@ -145,10 +149,13 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 
 	initial_channel_appended = false;
 
+	slideshow_window.set_transient_for(*this);
+
 	format_change.connect(sigc::mem_fun(*this, &DABlinGTK::ETIChangeFormatEmitted));
 	fic_data_change_ensemble.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeEnsembleEmitted));
 	fic_data_change_services.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServicesEmitted));
 	pad_data_change_dynamic_label.connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
+	pad_data_change_slide.connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
 
 	eti_player = new ETIPlayer(options.pcm_output, this);
 
@@ -236,6 +243,10 @@ void DABlinGTK::InitWidgets() {
 	tglbtn_mute.set_label("Mute");
 	tglbtn_mute.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_mute));
 
+	tglbtn_slideshow.set_label("Slideshow");
+	tglbtn_slideshow.set_active(!options.initially_disable_slideshow);
+	tglbtn_slideshow.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_slideshow));
+
 	frame_label_dl.set_label("Dynamic Label");
 	frame_label_dl.set_size_request(750, 50);
 	frame_label_dl.set_sensitive(false);
@@ -254,12 +265,13 @@ void DABlinGTK::InitWidgets() {
 	// add widgets
 	add(top_grid);
 
-	top_grid.attach(frame_combo_channels, 0, 0, 1, 1);
-	top_grid.attach_next_to(frame_label_ensemble, frame_combo_channels, Gtk::POS_RIGHT, 1, 1);
-	top_grid.attach_next_to(frame_combo_services, frame_label_ensemble, Gtk::POS_RIGHT, 1, 1);
-	top_grid.attach_next_to(frame_label_format, frame_combo_services, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach(frame_combo_channels, 0, 0, 1, 2);
+	top_grid.attach_next_to(frame_label_ensemble, frame_combo_channels, Gtk::POS_RIGHT, 1, 2);
+	top_grid.attach_next_to(frame_combo_services, frame_label_ensemble, Gtk::POS_RIGHT, 1, 2);
+	top_grid.attach_next_to(frame_label_format, frame_combo_services, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(tglbtn_mute, frame_label_format, Gtk::POS_RIGHT, 1, 1);
-	top_grid.attach(frame_label_dl, 0, 1, 5, 1);
+	top_grid.attach_next_to(tglbtn_slideshow, tglbtn_mute, Gtk::POS_BOTTOM, 1, 1);
+	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 5, 1);
 }
 
 void DABlinGTK::AddChannels() {
@@ -296,6 +308,9 @@ void DABlinGTK::SetService(SERVICE service) {
 	frame_label_dl.set_sensitive(false);
 	label_dl.set_label("");
 
+	slideshow_window.hide();
+	slideshow_window.ClearSlide();
+
 	if(service.sid != SERVICE::no_service.sid) {
 		char sid_string[7];
 		snprintf(sid_string, sizeof(sid_string), "0x%4X", service.sid);
@@ -321,6 +336,12 @@ void DABlinGTK::on_tglbtn_mute() {
 	eti_player->SetAudioMute(tglbtn_mute.get_active());
 }
 
+void DABlinGTK::on_tglbtn_slideshow() {
+	if(tglbtn_slideshow.get_active())
+		slideshow_window.TryToShow();
+	else
+		slideshow_window.hide();
+}
 
 void DABlinGTK::ETIChangeFormatEmitted() {
 //	fprintf(stderr, "### ETIChangeFormatEmitted\n");
@@ -414,6 +435,15 @@ void DABlinGTK::PADChangeDynamicLabelEmitted() {
 	label_dl.set_label(label);
 }
 
+void DABlinGTK::PADChangeSlideEmitted() {
+//	fprintf(stderr, "### PADChangeSlideEmitted\n");
+
+	slideshow_window.UpdateSlide(pad_decoder->GetSlide());
+	if(tglbtn_slideshow.get_active())
+		slideshow_window.TryToShow();
+}
+
+
 Glib::ustring DABlinGTK::DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask) {
 	Glib::ustring short_label;
 
@@ -422,4 +452,48 @@ Glib::ustring DABlinGTK::DeriveShortLabel(Glib::ustring long_label, uint16_t sho
 			short_label += long_label[i];
 
 	return short_label;
+}
+
+
+// --- DABlinGTKSlideshowWindow -----------------------------------------------------------------
+DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
+	set_title("Slideshow");
+	set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
+	set_resizable(false);
+	set_deletable(false);
+
+	add(image);
+
+	show_all_children();
+}
+
+void DABlinGTKSlideshowWindow::TryToShow() {
+	// if already visible or no slide, abort
+	if(is_visible() || image.get_storage_type() == Gtk::ImageType::IMAGE_EMPTY)
+		return;
+
+	// arrange to the right of parent
+	int x, y, w, h;
+	get_transient_for()->get_position(x, y);
+	get_transient_for()->get_size(w, h);
+	move(x + w + 20, y);	// add some horizontal padding for WM decoration
+
+	show();
+}
+
+void DABlinGTKSlideshowWindow::UpdateSlide(const std::vector<uint8_t>& slide) {
+	Glib::RefPtr<Gdk::PixbufLoader> pixbuf_loader = Gdk::PixbufLoader::create();
+	pixbuf_loader->write(&slide[0], slide.size());
+	pixbuf_loader->close();
+
+	Glib::RefPtr<Gdk::Pixbuf> pixbuf = pixbuf_loader->get_pixbuf();
+	if(!pixbuf)
+		return;
+
+	// update slide
+	image.set(pixbuf);
+	image.set_tooltip_text(
+			"Resolution: " + std::to_string(pixbuf->get_width()) + "x" + std::to_string(pixbuf->get_height()) + " pixels\n" +
+			"Size: " + std::to_string(slide.size()) + " bytes\n" +
+			"Format: " + pixbuf_loader->get_format().get_name());
 }

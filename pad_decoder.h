@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@
 #include <string>
 #include <vector>
 
+#include "mot_manager.h"
 #include "tools.h"
 
-#define CRC_LEN 2
 #define DL_MAX_LEN 128
 #define DL_CMD_REMOVE_LABEL 0x01
 
@@ -72,10 +72,10 @@ class DGLIDecoder : public DataGroup {
 private:
 	size_t dgli_len;
 
-	size_t GetInitialNeededSize() {return 2 + CRC_LEN;}	// DG len + CRC
+	size_t GetInitialNeededSize() {return 2 + CalcCRC::CRCLen;}	// DG len + CRC
 	bool DecodeDataGroup();
 public:
-	DGLIDecoder() : DataGroup(2 + CRC_LEN) {Reset();}
+	DGLIDecoder() : DataGroup(2 + CalcCRC::CRCLen) {Reset();}
 
 	void Reset();
 
@@ -115,10 +115,10 @@ private:
 	DL_SEG_REASSEMBLER dl_sr;
 	DL_STATE label;
 
-	size_t GetInitialNeededSize() {return 2 + CRC_LEN;}	// at least prefix + CRC
+	size_t GetInitialNeededSize() {return 2 + CalcCRC::CRCLen;}	// at least prefix + CRC
 	bool DecodeDataGroup();
 public:
-	DynamicLabelDecoder() : DataGroup(2 + 16 + CRC_LEN) {Reset();}
+	DynamicLabelDecoder() : DataGroup(2 + 16 + CalcCRC::CRCLen) {Reset();}
 
 	void Reset();
 
@@ -139,6 +139,8 @@ public:
 	void Reset();
 
 	void SetLen(size_t mot_len) {this->mot_len = mot_len;}
+
+	std::vector<uint8_t> GetMOTDataGroup();
 };
 
 
@@ -172,6 +174,7 @@ public:
 	virtual ~PADDecoderObserver() {};
 
 	virtual void PADChangeDynamicLabel() {};
+	virtual void PADChangeSlide() {};
 };
 
 
@@ -184,17 +187,20 @@ private:
 
 	std::mutex data_mutex;
 	DL_STATE dl;
+	std::vector<uint8_t> slide;
 
 	DynamicLabelDecoder dl_decoder;
 	DGLIDecoder dgli_decoder;
 	MOTDecoder mot_decoder;
+	MOTManager mot_manager;
 public:
 	PADDecoder(PADDecoderObserver *observer) : observer(observer) {}
 
 	void Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad);
 	void Reset();
 
-	DL_STATE GetDynamicLabel() {return dl;}
+	DL_STATE GetDynamicLabel();
+	std::vector<uint8_t> GetSlide();
 };
 
 #endif /* PAD_DECODER_H_ */

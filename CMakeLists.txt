@@ -147,6 +147,7 @@ list(APPEND dablin_cli_sources
     )
 
 list(APPEND dablin_gtk_sources
+    mot_manager.cpp
     pad_decoder.cpp
     dablin_gtk.cpp
     )

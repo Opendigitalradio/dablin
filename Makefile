@@ -27,7 +27,7 @@ BIN_GTK = dablin_gtk
 
 OBJ = eti_source.o eti_player.o dab_decoder.o dabplus_decoder.o fic_decoder.o pcm_output.o tools.o
 OBJ_CLI =
-OBJ_GTK = pad_decoder.o
+OBJ_GTK = mot_manager.o pad_decoder.o
 OBJ_BIN_CLI = $(BIN_CLI).o
 OBJ_BIN_GTK = $(BIN_GTK).o
 

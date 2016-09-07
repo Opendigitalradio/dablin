@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,8 @@ public:
 
 	static CalcCRC CalcCRC_CRC16_CCITT;
 	static CalcCRC CalcCRC_FIRE_CODE;
+
+	static size_t CRCLen;
 };
 
 

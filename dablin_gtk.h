@@ -34,6 +34,20 @@
 #define WIDGET_SPACE 5
 
 
+
+// --- DABlinGTKSlideshowWindow -----------------------------------------------------------------
+class DABlinGTKSlideshowWindow : public Gtk::Window {
+private:
+	Gtk::Image image;
+public:
+	DABlinGTKSlideshowWindow();
+
+	void TryToShow();
+	void UpdateSlide(const std::vector<uint8_t>& slide);
+	void ClearSlide() {image.clear();}
+};
+
+
 // --- DABlinGTKChannelColumns -----------------------------------------------------------------
 class DABlinGTKChannelColumns : public Gtk::TreeModelColumnRecord {
 public:
@@ -71,8 +85,9 @@ struct DABlinGTKOptions {
 	std::string initial_channel;
 	bool pcm_output;
 	int gain;
+	bool initially_disable_slideshow;
 	
-DABlinGTKOptions() : initial_sid(-1), pcm_output(false), gain(-10000) {}
+DABlinGTKOptions() : initial_sid(-1), pcm_output(false), gain(-10000), initially_disable_slideshow(false) {}
 };
 
 
@@ -83,6 +98,8 @@ private:
 
 	Gtk::ListStore::iterator initial_channel_it;
 	bool initial_channel_appended;
+
+	DABlinGTKSlideshowWindow slideshow_window;
 
 	ETISource *eti_source;
 	std::thread eti_source_thread;
@@ -122,9 +139,11 @@ private:
 	Gtk::Label label_format;
 
 	Gtk::ToggleButton tglbtn_mute;
+	Gtk::ToggleButton tglbtn_slideshow;
 
 	Gtk::Frame frame_label_dl;
 	Gtk::Label label_dl;
+
 
 	void InitWidgets();
 	void AddChannels();
@@ -133,6 +152,7 @@ private:
 	void SetService(SERVICE service);
 
 	void on_tglbtn_mute();
+	void on_tglbtn_slideshow();
 	void on_combo_channels();
 	void on_combo_services();
 
@@ -149,6 +169,10 @@ private:
 	Glib::Dispatcher pad_data_change_dynamic_label;
 	void PADChangeDynamicLabel() {pad_data_change_dynamic_label.emit();}
 	void PADChangeDynamicLabelEmitted();
+
+	Glib::Dispatcher pad_data_change_slide;
+	void PADChangeSlide() {pad_data_change_slide.emit();}
+	void PADChangeSlideEmitted();
 
 	Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
 public:

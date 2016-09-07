@@ -29,7 +29,7 @@ static void break_handler(int param) {
 
 static void usage(const char* exe) {
 	banner(stderr);
-	fprintf(stderr, "Usage: %s [-h] [-d <binary> -c <ch>] -s <sid> [-p] [file]\n", exe);
+	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
 	fprintf(stderr, "  -h            Show this help\n");
 	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source)\n");

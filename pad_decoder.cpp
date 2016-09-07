@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,11 +46,23 @@ void PADDecoder::Reset() {
 		std::lock_guard<std::mutex> lock(data_mutex);
 
 		dl.Reset();
+		slide.clear();
 	}
 
 	dl_decoder.Reset();
 	dgli_decoder.Reset();
 	mot_decoder.Reset();
+	mot_manager.Reset();
+}
+
+DL_STATE PADDecoder::GetDynamicLabel() {
+	std::lock_guard<std::mutex> lock(data_mutex);
+	return dl;
+}
+
+std::vector<uint8_t> PADDecoder::GetSlide() {
+	std::lock_guard<std::mutex> lock(data_mutex);
+	return slide;
 }
 
 void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad) {
@@ -134,12 +146,23 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 			}
 			break;
 
+		// TODO: don't use hardcoded X-PAD Application Types for MOT
 		case 12:	// MOT, X-PAD data group (start)
 			mot_decoder.SetLen(dgli_len);
 			// no break
 		case 13:	// MOT, X-PAD data group (continuation)
-			mot_decoder.ProcessDataSubfield(it->type == 12, xpad_data + xpad_offset, it->len);
-			// TODO: process result
+			// if new Data Group available, append it
+			if(mot_decoder.ProcessDataSubfield(it->type == 12, xpad_data + xpad_offset, it->len)) {
+				// if new slide available, show it
+				if(mot_manager.HandleMOTDataGroup(mot_decoder.GetMOTDataGroup())) {
+					{
+						std::lock_guard<std::mutex> lock(data_mutex);
+
+						slide = mot_manager.GetSlide();
+					}
+					observer->PADChangeSlide();
+				}
+			}
 			break;
 		}
 //		fprintf(stderr, "PADDecoder: Data Subfield: type: %2d, len: %2zu\n", it->type, it->len);
@@ -202,7 +225,7 @@ bool DataGroup::EnsureDataGroupSize(size_t desired_dg_size) {
 
 bool DataGroup::CheckCRC(size_t len) {
 	// ensure needed size reached
-	if(dg_size < len + CRC_LEN)
+	if(dg_size < len + CalcCRC::CRCLen)
 		return false;
 
 	uint16_t crc_stored = dg_raw[len] << 8 | dg_raw[len + 1];
@@ -272,7 +295,7 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 
 	size_t real_len = 2 + field_len;
 
-	if(!EnsureDataGroupSize(real_len + CRC_LEN))
+	if(!EnsureDataGroupSize(real_len + CalcCRC::CRCLen))
 		return false;
 
 	// abort on invalid CRC
@@ -373,13 +396,13 @@ void MOTDecoder::Reset() {
 
 bool MOTDecoder::DecodeDataGroup() {
 	// ignore too short lens
-	if(mot_len < CRC_LEN)
+	if(mot_len < CalcCRC::CRCLen)
 		return false;
 
 	// only DGs with CRC are supported here!
 
 	// abort on invalid CRC
-	if(!CheckCRC(mot_len - CRC_LEN)) {
+	if(!CheckCRC(mot_len - CalcCRC::CRCLen)) {
 		DataGroup::Reset();
 		return false;
 	}
@@ -389,4 +412,10 @@ bool MOTDecoder::DecodeDataGroup() {
 //	fprintf(stderr, "MOTDecoder: mot_len: %5zu\n", mot_len);
 
 	return true;
+}
+
+std::vector<uint8_t> MOTDecoder::GetMOTDataGroup() {
+	std::vector<uint8_t> result(mot_len);
+	memcpy(&result[0], &dg_raw[0], mot_len);
+	return result;
 }
