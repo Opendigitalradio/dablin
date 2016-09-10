@@ -85,7 +85,7 @@ clean:
 
 
 .PHONY: install install_$(BIN_CLI) install_$(BIN_GTK)
-install: $(BIN_INSTALL)
+install: all $(BIN_INSTALL)
 
 install_$(BIN_CLI):
 	$(INSTALL) $(BIN_CLI) -D $(DESTDIR)$(prefix)/bin/$(BIN_CLI)
