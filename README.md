@@ -46,7 +46,7 @@ When the alternative AAC decoder is used, the FAAD2 library mentioned
 above is no longer required.
 
 After installing the lib, you have to:
-* enable the regarding line in `Makefile` (when using Make) OR
+* insert `USE_FDK-AAC=1` after the `make` call (when using Make) OR
 * insert `-D USE_FDK-AAC=1` after the `cmake` call (when using CMake)
 
 ### Audio output
@@ -56,7 +56,7 @@ forwarding to a streaming server).
 
 In case you only want PCM output, you can disable SDL output and
 therefore omit the SDL2 library prerequisite. You then also have to:
-* enable the regarding line in `Makefile` (when using Make) OR
+* insert `DISABLE_SDL=1` after the `make` call (when using Make) OR
 * insert `-D DISABLE_SDL=1` after the `cmake` call (when using CMake)
 
 ### Surround sound

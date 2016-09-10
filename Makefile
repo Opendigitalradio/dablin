@@ -1,8 +1,7 @@
-# uncomment the following line to use FDK-AAC instead of FAAD2 for audio decoding:
-#use_fdk-aac = true
+# Options:
+# insert "USE_FDK-AAC=1" after the "make" call to use FDK-AAC instead of FAAD2 for audio decoding
+# insert "DISABLE_SDL=1" after the "make" call to disable SDL output
 
-# uncomment the following line to disable SDL output:
-#disable_sdl = true
 
 
 CC = g++
@@ -31,7 +30,8 @@ OBJ_GTK = mot_manager.o pad_decoder.o
 OBJ_BIN_CLI = $(BIN_CLI).o
 OBJ_BIN_GTK = $(BIN_GTK).o
 
-ifdef use_fdk-aac
+# if desired, use FDK-AAC instead of FAAD2
+ifeq "$(USE_FDK-AAC)" "1"
 	CFLAGS += -DDABLIN_AAC_FDKAAC
 	LDFLAGS += -lfdk-aac
 else
@@ -39,12 +39,13 @@ else
 	LDFLAGS += -lfaad
 endif
 
-ifndef disable_sdl
+# if desired, disable SDL output
+ifeq "$(DISABLE_SDL)" "1"
+	CFLAGS += -DDABLIN_DISABLE_SDL
+else
 	CFLAGS += `sdl2-config --cflags`
 	LDFLAGS += `sdl2-config --libs`
 	OBJ += sdl_output.o
-else
-	CFLAGS += -DDABLIN_DISABLE_SDL
 endif
 
 
