@@ -9,6 +9,9 @@ CFLAGS = -Wall -std=c++0x
 CFLAGS += -O0 -g3
 #CFLAGS += -O3 -g0
 
+INSTALL = install
+prefix = /usr/local
+
 # version derived from git (if possible)
 VERSION_FROM_GIT = $(shell git describe --dirty 2> /dev/null)
 ifneq "$(VERSION_FROM_GIT)" ""
@@ -48,8 +51,20 @@ else
 	OBJ += sdl_output.o
 endif
 
+# check for gtkmm (pkg-config returns 0 if present)
+GTKMM_EXISTANCE_STATUS = $(shell pkg-config gtkmm-3.0 --exists 1>&2 2> /dev/null; echo $$?)
+ifeq "$(GTKMM_EXISTANCE_STATUS)" "0"
+	BIN = $(BIN_CLI) $(BIN_GTK)
+	BIN_INSTALL = install_$(BIN_CLI) install_$(BIN_GTK)
+else
+	BIN = $(BIN_CLI)
+	BIN_INSTALL = install_$(BIN_CLI)
+endif
 
-all: $(BIN_CLI) $(BIN_GTK)
+
+
+.PHONY: all
+all: $(BIN)
 
 $(BIN_CLI): $(OBJ) $(OBJ_CLI) $(OBJ_BIN_CLI)
 	$(CC) -o $@ $(OBJ) $(OBJ_CLI) $(OBJ_BIN_CLI) $(LDFLAGS)
@@ -63,6 +78,17 @@ $(OBJ_BIN_GTK): $(BIN_GTK).cpp
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $<
 
+
 .PHONY: clean
 clean:
 	rm -rf $(BIN_CLI) $(BIN_GTK) $(OBJ) $(OBJ_CLI) $(OBJ_GTK) $(OBJ_BIN_CLI) $(OBJ_BIN_GTK)
+
+
+.PHONY: install install_$(BIN_CLI) install_$(BIN_GTK)
+install: $(BIN_INSTALL)
+
+install_$(BIN_CLI):
+	$(INSTALL) $(BIN_CLI) -D $(DESTDIR)$(prefix)/bin/$(BIN_CLI)
+
+install_$(BIN_GTK):
+	$(INSTALL) $(BIN_GTK) -D $(DESTDIR)$(prefix)/bin/$(BIN_GTK)

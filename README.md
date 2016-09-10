@@ -68,26 +68,28 @@ moment.
 
 ## Compilation
 
+The console version will be built in any case while the GTK GUI is built
+only if `gtkmm` is available.
+
 ### Using Make
 
-To compile DABlin, just type `make`. If you only want to compile the
-console or the GTK version, you can use `make dablin` and/or
-`make dablin_gtk`.
+To compile and install DABlin, just type:
+```
+make
+sudo make install
+```
 
 ### Using CMake
 
-You can use e.g. the following command sequence in order to compile
-DABlin:
+You can use e.g. the following command sequence in order to compile and
+install DABlin:
 ```
 mkdir build
 cd build
 cmake ..
 make
+sudo make install
 ```
-
-The console version will be built in any case while the GTK GUI is built
-only if `gtkmm` is available.
-
 
 ## Usage
 
