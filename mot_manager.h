@@ -32,8 +32,14 @@
 struct MOT_FILE {
 	std::vector<uint8_t> data;
 
-	void clear() {
+	int content_type;
+	int content_sub_type;
+
+	MOT_FILE() {Reset();}
+	void Reset() {
 		data.clear();
+		content_type = -1;
+		content_sub_type = -1;
 	}
 };
 
@@ -52,6 +58,7 @@ public:
 
 	void AddSeg(int seg_number, bool last_seg, const uint8_t* data, size_t len);
 	bool IsFinished();
+	size_t GetSize() {return size;}
 	std::vector<uint8_t> GetData();
 };
 
@@ -62,12 +69,16 @@ private:
 	MOTEntity header;
 	MOTEntity body;
 	bool shown;
+
+	MOT_FILE result_file;
+
+	bool ParseCheckHeader(int& content_type, int& content_sub_type);
 public:
 	MOTTransport(): shown(false) {}
 
 	void AddSeg(bool dg_type_header, int seg_number, bool last_seg, const uint8_t* data, size_t len);
 	bool IsToBeShown();
-	MOT_FILE GetFile();
+	MOT_FILE GetFile() {return result_file;}
 };
 
 

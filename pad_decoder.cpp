@@ -46,7 +46,7 @@ void PADDecoder::Reset() {
 		std::lock_guard<std::mutex> lock(data_mutex);
 
 		dl.Reset();
-		slide.clear();
+		slide.Reset();
 	}
 
 	dl_decoder.Reset();
@@ -155,12 +155,29 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 			if(mot_decoder.ProcessDataSubfield(it->type == 12, xpad_data + xpad_offset, it->len)) {
 				// if new slide available, show it
 				if(mot_manager.HandleMOTDataGroup(mot_decoder.GetMOTDataGroup())) {
-					{
-						std::lock_guard<std::mutex> lock(data_mutex);
+					const MOT_FILE new_slide = mot_manager.GetFile();
 
-						slide = mot_manager.GetFile();
+					// check slide type
+					bool show_slide = true;
+					if(new_slide.content_type != 0x02)	// image
+						show_slide = false;
+					switch(new_slide.content_sub_type) {
+					case 0x01:	// JFIF
+						break;
+					case 0x03:	// PNG
+						break;
+					default:
+						show_slide = false;
 					}
-					observer->PADChangeSlide();
+
+					if(show_slide) {
+						{
+							std::lock_guard<std::mutex> lock(data_mutex);
+
+							slide = new_slide;
+						}
+						observer->PADChangeSlide();
+					}
 				}
 			}
 			break;

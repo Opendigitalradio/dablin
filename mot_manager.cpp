@@ -64,19 +64,53 @@ void MOTTransport::AddSeg(bool dg_type_header, int seg_number, bool last_seg, co
 	(dg_type_header ? header : body).AddSeg(seg_number, last_seg, data, len);
 }
 
-bool MOTTransport::IsToBeShown() {
-	// TODO: check MOT header
-	if(!shown && header.IsFinished() && body.IsFinished()) {
-		shown = true;
-		return true;
-	}
-	return false;
+bool MOTTransport::ParseCheckHeader(int& content_type, int& content_sub_type) {
+	std::vector<uint8_t> data = header.GetData();
+
+	// parse/check Header Core
+	if(data.size() < 7)
+		return false;
+
+	size_t body_size = (data[0] << 20) | (data[1] << 12) | (data[2] << 4) | (data[3] >> 4);
+	size_t header_size = ((data[3] & 0x0F) << 9) | (data[4] << 1) | (data[5] >> 7);
+	content_type = (data[5] & 0x7F) >> 1;
+	content_sub_type = ((data[5] & 0x01) << 8) | data[6];
+
+//	fprintf(stderr, "body_size: %5zu, header_size: %3zu, content_type: 0x%02X, content_sub_type: 0x%03X\n",
+//			body_size, header_size, content_type, content_sub_type);
+
+	if(header_size != header.GetSize())
+		return false;
+	if(body_size != body.GetSize())
+		return false;
+
+	// TODO: parse/check header extension
+
+	return true;
 }
 
-MOT_FILE MOTTransport::GetFile() {
-	MOT_FILE result;
-	result.data = body.GetData();
-	return result;
+bool MOTTransport::IsToBeShown() {
+	// abort, if already shown
+	if(shown)
+		return false;
+
+	// abort, if incomplete
+	if(!header.IsFinished() || !body.IsFinished())
+		return false;
+
+	// parse/check MOT header
+	int content_type;
+	int content_sub_type;
+	if(!ParseCheckHeader(content_type, content_sub_type))
+		return false;
+
+	// prepare result file
+	result_file.data = body.GetData();
+	result_file.content_type = content_type;
+	result_file.content_sub_type = content_sub_type;
+
+	shown = true;
+	return true;
 }
 
 
