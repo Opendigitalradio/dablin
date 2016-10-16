@@ -482,7 +482,21 @@ void DABlinGTKSlideshowWindow::TryToShow() {
 }
 
 void DABlinGTKSlideshowWindow::UpdateSlide(const MOT_FILE& slide) {
-	Glib::RefPtr<Gdk::PixbufLoader> pixbuf_loader = Gdk::PixbufLoader::create();
+	std::string type_mime = "";
+	std::string type_display = "unknown";
+
+	switch(slide.content_sub_type) {
+	case 0x01:	// JFIF
+		type_mime = "image/jpeg";
+		type_display = "JPEG";
+		break;
+	case 0x03:	// PNG
+		type_mime = "image/png";
+		type_display = "PNG";
+		break;
+	}
+
+	Glib::RefPtr<Gdk::PixbufLoader> pixbuf_loader = Gdk::PixbufLoader::create(type_mime, true);
 	pixbuf_loader->write(&slide.data[0], slide.data.size());
 	pixbuf_loader->close();
 
@@ -495,5 +509,5 @@ void DABlinGTKSlideshowWindow::UpdateSlide(const MOT_FILE& slide) {
 	image.set_tooltip_text(
 			"Resolution: " + std::to_string(pixbuf->get_width()) + "x" + std::to_string(pixbuf->get_height()) + " pixels\n" +
 			"Size: " + std::to_string(slide.data.size()) + " bytes\n" +
-			"Format: " + pixbuf_loader->get_format().get_name());
+			"Format: " + type_display);
 }
