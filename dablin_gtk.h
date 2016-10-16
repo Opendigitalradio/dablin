@@ -43,7 +43,7 @@ public:
 	DABlinGTKSlideshowWindow();
 
 	void TryToShow();
-	void UpdateSlide(const std::vector<uint8_t>& slide);
+	void UpdateSlide(const MOT_FILE& slide);
 	void ClearSlide() {image.clear();}
 };
 

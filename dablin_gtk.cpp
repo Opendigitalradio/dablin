@@ -481,9 +481,9 @@ void DABlinGTKSlideshowWindow::TryToShow() {
 	show();
 }
 
-void DABlinGTKSlideshowWindow::UpdateSlide(const std::vector<uint8_t>& slide) {
+void DABlinGTKSlideshowWindow::UpdateSlide(const MOT_FILE& slide) {
 	Glib::RefPtr<Gdk::PixbufLoader> pixbuf_loader = Gdk::PixbufLoader::create();
-	pixbuf_loader->write(&slide[0], slide.size());
+	pixbuf_loader->write(&slide.data[0], slide.data.size());
 	pixbuf_loader->close();
 
 	Glib::RefPtr<Gdk::Pixbuf> pixbuf = pixbuf_loader->get_pixbuf();
@@ -494,6 +494,6 @@ void DABlinGTKSlideshowWindow::UpdateSlide(const std::vector<uint8_t>& slide) {
 	image.set(pixbuf);
 	image.set_tooltip_text(
 			"Resolution: " + std::to_string(pixbuf->get_width()) + "x" + std::to_string(pixbuf->get_height()) + " pixels\n" +
-			"Size: " + std::to_string(slide.size()) + " bytes\n" +
+			"Size: " + std::to_string(slide.data.size()) + " bytes\n" +
 			"Format: " + pixbuf_loader->get_format().get_name());
 }

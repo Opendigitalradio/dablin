@@ -73,6 +73,12 @@ bool MOTTransport::IsToBeShown() {
 	return false;
 }
 
+MOT_FILE MOTTransport::GetFile() {
+	MOT_FILE result;
+	result.data = body.GetData();
+	return result;
+}
+
 
 // --- MOTManager -----------------------------------------------------------------
 MOTManager::MOTManager() {
@@ -174,11 +180,11 @@ bool MOTManager::HandleMOTDataGroup(const std::vector<uint8_t>& dg) {
 	}
 	transport.AddSeg(dg_type == 3, seg_number, last_seg, &dg[offset], seg_size);
 
-	// check if slide shall be shown
+	// check if file shall be shown
 	bool display = transport.IsToBeShown();
 //	fprintf(stderr, "dg_type: %d, seg_number: %2d%s, transport_id: %5d, size: %4zu; display: %s\n",
 //			dg_type, seg_number, last_seg ? " (LAST)" : "", transport_id, seg_size, display ? "true" : "false");
 
-	// if slide shall be shown, update it
+	// if file shall be shown, update it
 	return display;
 }

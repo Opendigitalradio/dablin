@@ -28,6 +28,16 @@
 #include "tools.h"
 
 
+// --- MOT_FILE -----------------------------------------------------------------
+struct MOT_FILE {
+	std::vector<uint8_t> data;
+
+	void clear() {
+		data.clear();
+	}
+};
+
+
 typedef std::vector<uint8_t> seg_t;
 typedef std::map<int,seg_t> segs_t;
 
@@ -57,7 +67,7 @@ public:
 
 	void AddSeg(bool dg_type_header, int seg_number, bool last_seg, const uint8_t* data, size_t len);
 	bool IsToBeShown();
-	std::vector<uint8_t> GetData() {return body.GetData();}
+	MOT_FILE GetFile();
 };
 
 
@@ -75,7 +85,7 @@ public:
 
 	void Reset();
 	bool HandleMOTDataGroup(const std::vector<uint8_t>& dg);
-	std::vector<uint8_t> GetSlide() {return transport.GetData();}
+	MOT_FILE GetFile() {return transport.GetFile();}
 };
 
 #endif /* MOT_MANAGER_H_ */

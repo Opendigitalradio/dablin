@@ -187,7 +187,7 @@ private:
 
 	std::mutex data_mutex;
 	DL_STATE dl;
-	std::vector<uint8_t> slide;
+	MOT_FILE slide;
 
 	DynamicLabelDecoder dl_decoder;
 	DGLIDecoder dgli_decoder;
@@ -200,7 +200,7 @@ public:
 	void Reset();
 
 	DL_STATE GetDynamicLabel();
-	std::vector<uint8_t> GetSlide();
+	MOT_FILE GetSlide();
 };
 
 #endif /* PAD_DECODER_H_ */

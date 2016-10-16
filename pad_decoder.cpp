@@ -60,7 +60,7 @@ DL_STATE PADDecoder::GetDynamicLabel() {
 	return dl;
 }
 
-std::vector<uint8_t> PADDecoder::GetSlide() {
+MOT_FILE PADDecoder::GetSlide() {
 	std::lock_guard<std::mutex> lock(data_mutex);
 	return slide;
 }
@@ -158,7 +158,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 					{
 						std::lock_guard<std::mutex> lock(data_mutex);
 
-						slide = mot_manager.GetSlide();
+						slide = mot_manager.GetFile();
 					}
 					observer->PADChangeSlide();
 				}
