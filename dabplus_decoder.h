@@ -73,7 +73,8 @@ public:
 class AACDecoder {
 protected:
 	SubchannelSinkObserver* observer;
-	uint8_t asc[2];
+	uint8_t asc[7];
+	size_t asc_len;
 
 	void CheckForPAD(const uint8_t *data, size_t len);
 public:

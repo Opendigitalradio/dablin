@@ -315,18 +315,43 @@ AACDecoder::AACDecoder(std::string decoder_name, SubchannelSinkObserver* observe
 	 *  xxxx  = (core) channel config
 	 *  100   = GASpecificConfig with 960 transform
 	 *
-	 * SBR: implicit signaling sufficient - libfaad2 automatically assumes SBR on sample rates <= 24 kHz
-	 * => explicit signaling works, too, but is not necessary here
+	 * SBR: explicit signaling (backwards-compatible), adding:
+	 *  01010110111 = sync extension for SBR
+	 *  00101       = AudioObjectType 5 (SBR)
+	 *  1           = SBR present flag
+	 *  xxxx        = extension sample rate index
 	 *
-	 * PS:  implicit signaling sufficient - libfaad2 therefore always uses stereo output (if PS support was enabled)
-	 * => explicit signaling not possible, as libfaad2 does not support AudioObjectType 29 (PS)
+	 * PS:  explicit signaling (backwards-compatible), adding:
+	 *  10101001000 = sync extension for PS
+	 *  1           = PS present flag
+	 *
+	 * Note:
+	 * libfaad2 does not support non backwards-compatible PS signaling (AOT 29);
+	 * it detects PS only by implicit signaling.
 	 */
 
 	int core_sr_index = sf_format.dac_rate ? (sf_format.sbr_flag ? 6 : 3) : (sf_format.sbr_flag ? 8 : 5);	// 24/48/16/32 kHz
 	int core_ch_config = sf_format.aac_channel_mode ? 2 : 1;
+	int extension_sr_index = sf_format.dac_rate ? 3 : 5;	// 48/32 kHz
 
-	asc[0] = 0b00010 << 3 | core_sr_index >> 1;
-	asc[1] = (core_sr_index & 0x01) << 7 | core_ch_config << 3 | 0b100;
+	// AAC LC
+	asc_len = 0;
+	asc[asc_len++] = 0b00010 << 3 | core_sr_index >> 1;
+	asc[asc_len++] = (core_sr_index & 0x01) << 7 | core_ch_config << 3 | 0b100;
+
+	if(sf_format.sbr_flag) {
+		// add SBR
+		asc[asc_len++] = 0x56;
+		asc[asc_len++] = 0xE5;
+		asc[asc_len++] = 0x80 | (extension_sr_index << 3);
+
+		if(sf_format.ps_flag) {
+			// add PS
+			asc[asc_len - 1] |= 0x05;
+			asc[asc_len++] = 0x48;
+			asc[asc_len++] = 0x80;
+		}
+	}
 }
 
 
@@ -356,7 +381,7 @@ AACDecoderFAAD2::AACDecoderFAAD2(SubchannelSinkObserver* observer, SuperframeFor
 	// init decoder
 	unsigned long output_sr;
 	unsigned char output_ch;
-	long int init_result = NeAACDecInit2(handle, asc, sizeof(asc), &output_sr, &output_ch);
+	long int init_result = NeAACDecInit2(handle, asc, asc_len, &output_sr, &output_ch);
 	if(init_result != 0) {
 		std::stringstream ss;
 		ss << "AACDecoderFAAD2: error while NeAACDecInit2: " << NeAACDecGetErrorMessage(-init_result);
@@ -403,7 +428,7 @@ AACDecoderFDKAAC::AACDecoderFDKAAC(SubchannelSinkObserver* observer, SuperframeF
 
 
 	uint8_t* asc_array[1] {asc};
-	const unsigned int asc_sizeof_array[1] {sizeof(asc)};
+	const unsigned int asc_sizeof_array[1] {(unsigned int) asc_len};
 	AAC_DECODER_ERROR init_result = aacDecoder_ConfigRaw(handle, asc_array, asc_sizeof_array);
 	if(init_result != AAC_DEC_OK) {
 		std::stringstream ss;
