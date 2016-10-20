@@ -21,7 +21,7 @@
 
 // usually externally derived from git
 #ifndef DABLIN_VERSION
-#define DABLIN_VERSION "1.0.0"
+#define DABLIN_VERSION "1.1.0"
 #endif
 
 static void banner(FILE *f) {
