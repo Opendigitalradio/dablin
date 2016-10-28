@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 	banner(stderr);
 
 	int myargc = 1;
-	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(myargc, argv);
+	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(myargc, argv, "org.opendigitalradio.dablin_gtk");
 
 	dablin = new DABlinGTK(options);
 	int result = app->run(*dablin);
@@ -469,7 +469,7 @@ DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
 
 void DABlinGTKSlideshowWindow::TryToShow() {
 	// if already visible or no slide, abort
-	if(is_visible() || image.get_storage_type() == Gtk::ImageType::IMAGE_EMPTY)
+	if(get_visible() || image.get_storage_type() == Gtk::ImageType::IMAGE_EMPTY)
 		return;
 
 	// arrange to the right of parent
