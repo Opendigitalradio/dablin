@@ -25,6 +25,8 @@ ETISource::ETISource(std::string filename, ETISourceObserver *observer) {
 	this->observer = observer;
 
 	input_file = NULL;
+	eti_frame_count = 0;
+	eti_frame_total = 0;
 
 	do_exit = false;
 }
@@ -45,25 +47,50 @@ void ETISource::PrintSource() {
 	fprintf(stderr, "ETISource: reading from '%s'\n", filename.c_str());
 }
 
-int ETISource::Main() {
-	int file_no;
-
-	if(!input_file) {
-		if(filename.empty()) {
-			input_file = stdin;
-			filename = "stdin";
-		} else {
-			input_file = fopen(filename.c_str(), "rb");
-			if(!input_file) {
-				perror("ETISource: error opening input file");
-				return 1;
-			}
+bool ETISource::OpenFile() {
+	if(filename.empty()) {
+		input_file = stdin;
+		filename = "stdin";
+	} else {
+		input_file = fopen(filename.c_str(), "rb");
+		if(!input_file) {
+			perror("ETISource: error opening input file");
+			return false;
 		}
 	}
 
-	file_no = fileno(input_file);
+	// if file size available, calc total frame count
+	if(fseeko(input_file, 0, SEEK_END)) {
+		// ignore non-seekable files (like usually stdin)
+		if(errno != ESPIPE) {
+			perror("ETISource: error seeking to end");
+			return false;
+		}
+	} else {
+		off_t len = ftello(input_file);
+		if(len == -1) {
+			perror("ETISource: error getting file size");
+			return false;
+		}
+		if(fseeko(input_file, 0, SEEK_SET)) {
+			perror("ETISource: error seeking to begin");
+			return false;
+		}
+		eti_frame_total = (len / sizeof(eti_frame)) - 1;
+	}
+
+	return true;
+}
+
+int ETISource::Main() {
+	if(!input_file) {
+		if(!OpenFile())
+			return 1;
+	}
+
 	PrintSource();
 
+	int file_no = fileno(input_file);
 
 	// set non-blocking mode
 	int old_flags = fcntl(file_no, F_GETFL);
@@ -114,7 +141,8 @@ int ETISource::Main() {
 		if(filled < sizeof(eti_frame))
 			continue;
 
-		observer->ETIProcessFrame(eti_frame);
+		observer->ETIProcessFrame(eti_frame, eti_frame_count, eti_frame_total);
+		eti_frame_count++;
 		filled = 0;
 	}
 

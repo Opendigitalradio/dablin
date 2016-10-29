@@ -19,6 +19,7 @@
 #ifndef DABLIN_GTK_H_
 #define DABLIN_GTK_H_
 
+#include <mutex>
 #include <signal.h>
 #include <thread>
 
@@ -109,7 +110,12 @@ private:
 	FICDecoder *fic_decoder;
 	PADDecoder *pad_decoder;
 
-	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);};
+	std::mutex progress_mutex;
+	double progress_value;
+
+	Glib::Dispatcher progress_update;
+	void ETIProcessFrame(const uint8_t *data, size_t count, size_t total);
+	void ETIUpdateProgressEmitted();
 
 	Glib::Dispatcher format_change;
 	void ETIChangeFormat() {format_change.emit();}
@@ -143,6 +149,8 @@ private:
 
 	Gtk::Frame frame_label_dl;
 	Gtk::Label label_dl;
+
+	Gtk::ProgressBar progress_position;
 
 
 	void InitWidgets();

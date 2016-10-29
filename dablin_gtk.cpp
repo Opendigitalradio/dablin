@@ -148,9 +148,11 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	this->options = options;
 
 	initial_channel_appended = false;
+	progress_value = 0;
 
 	slideshow_window.set_transient_for(*this);
 
+	progress_update.connect(sigc::mem_fun(*this, &DABlinGTK::ETIUpdateProgressEmitted));
 	format_change.connect(sigc::mem_fun(*this, &DABlinGTK::ETIChangeFormatEmitted));
 	fic_data_change_ensemble.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeEnsembleEmitted));
 	fic_data_change_services.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServicesEmitted));
@@ -175,7 +177,6 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	InitWidgets();
 
 	set_border_width(2 * WIDGET_SPACE);
-	show_all_children();
 
 	// combobox first must be visible
 	if(combo_channels_liststore->iter_is_valid(initial_channel_it))
@@ -272,6 +273,10 @@ void DABlinGTK::InitWidgets() {
 	top_grid.attach_next_to(tglbtn_mute, frame_label_format, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(tglbtn_slideshow, tglbtn_mute, Gtk::POS_BOTTOM, 1, 1);
 	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 5, 1);
+	top_grid.attach_next_to(progress_position, frame_label_dl, Gtk::POS_BOTTOM, 5, 1);
+
+	show_all_children();
+	progress_position.hide();	// invisible until progress updated
 }
 
 void DABlinGTK::AddChannels() {
@@ -341,6 +346,32 @@ void DABlinGTK::on_tglbtn_slideshow() {
 		slideshow_window.TryToShow();
 	else
 		slideshow_window.hide();
+}
+
+void DABlinGTK::ETIProcessFrame(const uint8_t *data, size_t count, size_t total) {
+	// if present, update progress every 504ms (= 21 * 24ms) or at file end
+	if(total && (count % 21 == 0 || count == total)) {
+		{
+			std::lock_guard<std::mutex> lock(progress_mutex);
+
+			progress_value = (double) count / (double) total;
+		}
+
+		progress_update.emit();
+	}
+
+	eti_player->ProcessFrame(data);
+}
+
+void DABlinGTK::ETIUpdateProgressEmitted() {
+//	fprintf(stderr, "### ETIUpdateProgressEmitted\n");
+
+	if(!progress_position.get_visible())
+		progress_position.show();
+
+	std::lock_guard<std::mutex> lock(progress_mutex);
+
+	progress_position.set_fraction(progress_value);
 }
 
 void DABlinGTK::ETIChangeFormatEmitted() {

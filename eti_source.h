@@ -38,7 +38,7 @@ class ETISourceObserver {
 public:
 	virtual ~ETISourceObserver() {};
 
-	virtual void ETIProcessFrame(const uint8_t *data) {};
+	virtual void ETIProcessFrame(const uint8_t *data, size_t count, size_t total) {};
 };
 
 
@@ -54,7 +54,10 @@ protected:
 	FILE *input_file;
 
 	uint8_t eti_frame[6144];
+	size_t eti_frame_count;
+	size_t eti_frame_total;
 
+	bool OpenFile();
 	virtual void PrintSource();
 public:
 	ETISource(std::string filename, ETISourceObserver *observer);
