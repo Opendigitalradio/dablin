@@ -28,7 +28,7 @@ static void break_handler(int param) {
 
 
 static void usage(const char* exe) {
-	banner(stderr);
+	fprint_dablin_banner(stderr);
 	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
 	fprintf(stderr, "  -h            Show this help\n");
 	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
 #endif
 
 
-	banner(stderr);
+	fprint_dablin_banner(stderr);
 
 	int myargc = 1;
 	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(myargc, argv, "org.opendigitalradio.dablin_gtk");
@@ -171,7 +171,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	fic_decoder = new FICDecoder(this);
 	pad_decoder = new PADDecoder(this);
 
-	set_title("DABlin");
+	set_title("DABlin v" + std::string(DABLIN_VERSION));
 	set_default_icon_name("media-playback-start");
 
 	InitWidgets();

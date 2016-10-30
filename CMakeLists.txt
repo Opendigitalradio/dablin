@@ -140,6 +140,7 @@ list(APPEND dablin_sources
     fic_decoder.cpp
     pcm_output.cpp
     tools.cpp
+    version.cpp
     )
 
 list(APPEND dablin_cli_sources

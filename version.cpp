@@ -16,17 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef VERSION_H_
-#define VERSION_H_
+#include "version.h"
 
-#include <cstdio>
-
-// usually externally derived from git
-#ifndef DABLIN_VERSION
-#define DABLIN_VERSION "1.1.0"
-#endif
-
-
-void fprint_dablin_banner(FILE *f);
-
-#endif /* VERSION_H_ */
+void fprint_dablin_banner(FILE *f) {
+	fprintf(f, "DABlin v%s - capital DAB experience\n", DABLIN_VERSION);
+	fprintf(f, "Plays a DAB/DAB+ audio service from a frame-aligned ETI-NI stream.\n");
+	fprintf(f, "  https://github.com/Opendigitalradio/dablin\n");
+	fprintf(f, "\n");
+}

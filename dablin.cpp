@@ -28,7 +28,7 @@ static void break_handler(int param) {
 
 
 static void usage(const char* exe) {
-	banner(stderr);
+	fprint_dablin_banner(stderr);
 	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
 	fprintf(stderr, "  -h            Show this help\n");
 	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
 	}
 
 
-	banner(stderr);
+	fprint_dablin_banner(stderr);
 
 	dablin = new DABlinText(options);
 	int result = dablin->Main();
