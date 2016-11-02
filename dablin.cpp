@@ -139,6 +139,9 @@ int main(int argc, char **argv) {
 DABlinText::DABlinText(DABlinTextOptions options) {
 	this->options = options;
 
+	// set XTerm window title to version string
+	fprintf(stderr, "\x1B]0;" "DABlin v" DABLIN_VERSION "\a");
+
 	eti_player = new ETIPlayer(options.pcm_output, this);
 
 	if(options.dab2eti_binary.empty())
@@ -161,7 +164,13 @@ void DABlinText::FICChangeServices() {
 
 	services_t new_services = fic_decoder->GetNewServices();
 
-	for(services_t::const_iterator it = new_services.cbegin(); it != new_services.cend(); it++)
-		if(it->sid == options.initial_sid)
+	for(services_t::const_iterator it = new_services.cbegin(); it != new_services.cend(); it++) {
+		if(it->sid == options.initial_sid) {
 			eti_player->SetAudioSubchannel(it->service.subchid, it->service.dab_plus);
+
+			// set XTerm window title to service name
+			std::string label = FICDecoder::ConvertTextToUTF8(it->label.label, 16, it->label.charset);
+			fprintf(stderr, "\x1B]0;" "%s - DABlin" "\a", label.c_str());
+		}
+	}
 }
