@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 	fprint_dablin_banner(stderr);
 
 	int myargc = 1;
-	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(myargc, argv, "org.opendigitalradio.dablin_gtk");
+	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(myargc, argv, "");
 
 	dablin = new DABlinGTK(options);
 	int result = app->run(*dablin);
