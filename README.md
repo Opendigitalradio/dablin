@@ -9,6 +9,7 @@ and MOT Slideshow (if present).
 
 ![Screenshot of the GTK version](http://www.basicmaster.de/dab/DABlin.png)
 
+
 ## Requirements
 
 A recent GCC (with C++11 support) and GNU Make are required. Furthermore
@@ -50,6 +51,7 @@ After installing the lib, you have to:
 * insert `-D USE_FDK-AAC=1` after the `cmake` call (when using CMake)
 
 ### Audio output
+
 The SDL2 library is used for audio output, but you can instead choose to
 output the decoded audio in plain PCM for further processing (e.g. for
 forwarding to a streaming server).
@@ -65,6 +67,15 @@ Services with surround sound are only decoded from their Mono/Stereo
 core, as unfortunately there is no FOSS AAC decoder which supports the
 required Spatial Audio Coding (SAC) extension of MPEG Surround at the
 moment.
+
+
+## Precompiled packages
+
+Some users kindly provide precompiled DABlin packages on their own:
+
+* [openSUSE](https://build.opensuse.org/package/show/home:mnhauke:ODR-mmbTools/dablin) (by Martin Hauke)
+* [CentOS](https://build.opensuse.org/package/show/home:radiorabe:dab/dablin) (by [Radio Bern RaBe 95.6](http://rabe.ch)); [more info](https://github.com/radiorabe/centos-rpm-dablin)
+
 
 ## Compilation
 
@@ -91,6 +102,7 @@ make
 sudo make install
 ```
 
+
 ## Usage
 
 You can either use the console version `dablin` or the GTK GUI version
@@ -102,8 +114,8 @@ You just have to specify the regarding Service ID (SID). The GUI version
 does not necessarily need this - in that case initially no service is
 played until one is chosen.
 
-If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/linuxstb/dabtools)
-and transfer the ETI live stream via pipe, e.g.:
+If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/basicmaster/dabtools)
+(optimized fork) and transfer the ETI live stream via pipe, e.g.:
 ```
 dab2eti 216928000 | dablin_gtk
 ```
@@ -165,7 +177,7 @@ first slide has been received completely and without errors.
 Currently the following limitations apply:
 * slideshows in a separate subchannel are not supported (just X-PAD)
 * for MOT the hardcoded (default) X-PAD Application Types 12/13 are used
-* the MOT header is not parsed/checked (e.g. for TriggerTime)
+* the MOT header extension is not parsed/checked (e.g. for TriggerTime)
 
 
 ## License
