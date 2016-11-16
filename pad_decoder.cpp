@@ -77,11 +77,16 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 	if(fpad_type == 0b00) {
 		if(ci_flag) {
 			switch(xpad_ind) {
-			case 0b01:	// short X-PAD
-				xpad_cis_len = 1;
-				xpad_cis.push_back(XPAD_CI(3, xpad_data[0] & 0x1F));
-				break;
-			case 0b10:	// variable size X-PAD
+			case 0b01: {	// short X-PAD
+				int type = xpad_data[0] & 0x1F;
+
+				// skip end marker
+				if(type != 0x00) {
+					xpad_cis_len = 1;
+					xpad_cis.push_back(XPAD_CI(3, type));
+				}
+				break; }
+			case 0b10:		// variable size X-PAD
 				xpad_cis_len = 0;
 				for(size_t i = 0; i < 4; i++) {
 					uint8_t ci_raw = xpad_data[i];
@@ -97,8 +102,8 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 			}
 		} else {
 			switch(xpad_ind) {
-			case 0b01:	// short X-PAD
-			case 0b10:	// variable size X-PAD
+			case 0b01:		// short X-PAD
+			case 0b10:		// variable size X-PAD
 				// if there is a last CI, append it
 				if(last_xpad_ci.type != -1) {
 					xpad_cis_len = 0;
