@@ -320,7 +320,7 @@ void DABlinGTK::SetService(SERVICE service) {
 		char sid_string[7];
 		snprintf(sid_string, sizeof(sid_string), "0x%4X", service.sid);
 
-		Glib::ustring label = FICDecoder::ConvertTextToUTF8(service.label.label, 16, service.label.charset);
+		Glib::ustring label = FICDecoder::ConvertLabelToUTF8(service.label);
 		set_title(label + " - DABlin");
 		frame_combo_services.set_tooltip_text(
 				"Short label: \"" + DeriveShortLabel(label, service.label.short_label_mask) + "\"\n"
@@ -390,7 +390,7 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 	char eid_string[7];
 	snprintf(eid_string, sizeof(eid_string), "0x%4X", eid);
 
-	Glib::ustring label = FICDecoder::ConvertTextToUTF8(raw_label.label, 16, raw_label.charset);
+	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(raw_label);
 	label_ensemble.set_label(label);
 	frame_label_ensemble.set_tooltip_text(
 			"Short label: \"" + DeriveShortLabel(label, raw_label.short_label_mask) + "\"\n"
@@ -403,7 +403,7 @@ void DABlinGTK::FICChangeServicesEmitted() {
 	services_t new_services = fic_decoder->GetNewServices();
 
 	for(services_t::const_iterator it = new_services.cbegin(); it != new_services.cend(); it++) {
-		Glib::ustring label = FICDecoder::ConvertTextToUTF8(it->label.label, 16, it->label.charset);
+		Glib::ustring label = FICDecoder::ConvertLabelToUTF8(it->label);
 
 //		std::stringstream ss;
 //		ss << "'" << label << "' - Subchannel " << it->service.subchid << " " << (it->service.dab_plus ? "(DAB+)" : "(DAB)");

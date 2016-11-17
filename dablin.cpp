@@ -169,7 +169,7 @@ void DABlinText::FICChangeServices() {
 			eti_player->SetAudioSubchannel(it->service.subchid, it->service.dab_plus);
 
 			// set XTerm window title to service name
-			std::string label = FICDecoder::ConvertTextToUTF8(it->label.label, 16, it->label.charset);
+			std::string label = FICDecoder::ConvertLabelToUTF8(it->label);
 			fprintf(stderr, "\x1B]0;" "%s - DABlin" "\a", label.c_str());
 		}
 	}

@@ -308,6 +308,9 @@ void FICDecoder::CheckService(uint16_t sid) {
 	observer->FICChangeServices();
 }
 
+std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {
+	return ConvertTextToUTF8(label.label, sizeof(label.label), label.charset);
+}
 
 std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int charset) {
 	std::string result;

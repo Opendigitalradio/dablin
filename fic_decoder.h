@@ -132,6 +132,7 @@ public:
 	services_t GetNewServices();
 
 	static std::string ConvertTextToUTF8(const uint8_t *data, size_t len, int charset);
+	static std::string ConvertLabelToUTF8(const FIC_LABEL& label);
 };
 
 
