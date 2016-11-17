@@ -160,7 +160,7 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len, FIG0_HEADER &hea
 
 							audio_services[sid_prog] = service;
 
-							fprintf(stderr, "FICDecoder: found new audio service: SID 0x%04X, subchannel %2d, %s\n", sid_prog, subchid, dab_plus ? "DAB+" : "DAB");
+							fprintf(stderr, "FICDecoder: found new audio service: SId 0x%04X, subchannel %2d, %s\n", sid_prog, subchid, dab_plus ? "DAB+" : "DAB");
 
 							CheckService(sid_prog);
 						}
@@ -238,8 +238,8 @@ void FICDecoder::ProcessFIG1_0(uint16_t id, FIC_LABEL *label) {
 		delete ensemble_label;
 		ensemble_label = label;
 
-		std::string label_str((char*) ensemble_label->label, 16);
-		fprintf(stderr, "FICDecoder: found new ensemble ID/label: 0x%04X '%s'\n", id, label_str.c_str());
+		std::string label_str = ConvertLabelToUTF8(*label);
+		fprintf(stderr, "FICDecoder: found new ensemble label: EId 0x%04X, '%s'\n", id, label_str.c_str());
 
 		observer->FICChangeEnsemble();
 	} else {
@@ -251,8 +251,8 @@ void FICDecoder::ProcessFIG1_1(uint16_t id, FIC_LABEL *label) {
 	if(labels.find(id) == labels.end()) {
 		labels[id] = *label;
 
-		std::string label_str((char*) label->label, 16);
-		fprintf(stderr, "FICDecoder: found new service ID/label: 0x%04X '%s'\n", id, label_str.c_str());
+		std::string label_str = ConvertLabelToUTF8(*label);
+		fprintf(stderr, "FICDecoder: found new programme service label: SId 0x%04X, '%s'\n", id, label_str.c_str());
 
 		CheckService(id);
 	}
