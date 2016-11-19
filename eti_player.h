@@ -44,7 +44,7 @@ public:
 
 	virtual void ETIChangeFormat() {};
 	virtual void ETIProcessFIC(const uint8_t *data, size_t len) {};
-	virtual void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad) {};
+	virtual void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, uint16_t fpad) {};
 	virtual void ETIResetPAD() {};
 };
 
@@ -73,7 +73,7 @@ private:
 	void StartAudio(int samplerate, int channels, bool float32) {out->StartAudio(samplerate, channels, float32);}
 	void PutAudio(const uint8_t *data, size_t len) {out->PutAudio(data, len);}
 	void ProcessFIC(const uint8_t *data, size_t len);
-	void ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, const uint8_t *fpad_data);
+	void ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t *fpad_data);
 public:
 	ETIPlayer(bool pcm_output, ETIPlayerObserver *observer);
 	~ETIPlayer();

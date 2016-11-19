@@ -147,7 +147,7 @@ size_t MP2Decoder::GetFrame(uint8_t **data) {
 	// TODO: check CRC!?
 
 	// forwarding the whole frame (except CRC + F-PAD) as X-PAD, as we don't know the X-PAD len here
-	observer->ProcessPAD(body_data, body_bytes - FPAD_LEN - crc_len, body_data + body_bytes - FPAD_LEN);
+	observer->ProcessPAD(body_data, body_bytes - FPAD_LEN - crc_len, false, body_data + body_bytes - FPAD_LEN);
 
 	size_t frame_len;
 	mpg_result = mpg123_framebyframe_decode(handle, NULL, data, &frame_len);

@@ -174,7 +174,7 @@ void ETIPlayer::ProcessFIC(const uint8_t *data, size_t len) {
 		observer->ETIProcessFIC(data, len);
 }
 
-void ETIPlayer::ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, const uint8_t *fpad_data) {
+void ETIPlayer::ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t *fpad_data) {
 //	fprintf(stderr, "Received %zu bytes X-PAD\n", xpad_len);
 
 	if(!observer)
@@ -187,5 +187,5 @@ void ETIPlayer::ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, const uint
 
 	uint16_t fpad_value = fpad_data[0] << 8 | fpad_data[1];
 
-	observer->ETIProcessPAD(xpad, used_xpad_len, fpad_value);
+	observer->ETIProcessPAD(xpad, used_xpad_len, exact_xpad_len, fpad_value);
 }

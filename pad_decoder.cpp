@@ -65,7 +65,7 @@ MOT_FILE PADDecoder::GetSlide() {
 	return slide;
 }
 
-void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad) {
+void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, uint16_t fpad) {
 	xpad_cis_t xpad_cis;
 	size_t xpad_cis_len = -1;
 
@@ -73,11 +73,17 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 	int xpad_ind = (fpad & 0x3000) >> 12;
 	bool ci_flag = fpad & 0x0002;
 
+	XPAD_CI prev_xpad_ci = last_xpad_ci;
+	last_xpad_ci.Reset();
+
 	// build CI list
 	if(fpad_type == 0b00) {
 		if(ci_flag) {
 			switch(xpad_ind) {
 			case 0b01: {	// short X-PAD
+				if(xpad_len < 1)
+					return;
+
 				int type = xpad_data[0] & 0x1F;
 
 				// skip end marker
@@ -89,6 +95,9 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 			case 0b10:		// variable size X-PAD
 				xpad_cis_len = 0;
 				for(size_t i = 0; i < 4; i++) {
+					if(xpad_len < i + 1)
+						return;
+
 					uint8_t ci_raw = xpad_data[i];
 					xpad_cis_len++;
 
@@ -104,31 +113,30 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpa
 			switch(xpad_ind) {
 			case 0b01:		// short X-PAD
 			case 0b10:		// variable size X-PAD
-				// if there is a last CI, append it
-				if(last_xpad_ci.type != -1) {
+				// if there is a previous CI, append it
+				if(prev_xpad_ci.type != -1) {
 					xpad_cis_len = 0;
-					xpad_cis.push_back(last_xpad_ci);
+					xpad_cis.push_back(prev_xpad_ci);
 				}
 				break;
 			}
 		}
 	}
 
-	// reset last CI
-	last_xpad_ci.Reset();
-
-
-	// process CIs
 //	fprintf(stderr, "PADDecoder: -----\n");
 	if(xpad_cis.empty())
 		return;
 
+	// abort, if the announced X-PAD len mismatches/exceeds the available X-PAD len
+	size_t announced_xpad_len = xpad_cis_len;
+	for(xpad_cis_t::const_iterator it = xpad_cis.cbegin(); it != xpad_cis.cend(); it++)
+		announced_xpad_len += it->len;
+	if(exact_xpad_len ? (announced_xpad_len != xpad_len) : (announced_xpad_len > xpad_len))
+		return;
+
+	// process CIs
 	size_t xpad_offset = xpad_cis_len;
 	for(xpad_cis_t::const_iterator it = xpad_cis.cbegin(); it != xpad_cis.cend(); it++) {
-		// abort, if Data Subfield out of X-PAD
-		if(xpad_offset + it->len > xpad_len)
-			return;
-
 		// len only valid for the *immediate* next data group after the DGLI!
 		size_t dgli_len = dgli_decoder.GetDGLILen();
 

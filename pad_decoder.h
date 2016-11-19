@@ -196,7 +196,7 @@ private:
 public:
 	PADDecoder(PADDecoderObserver *observer) : observer(observer) {}
 
-	void Process(const uint8_t *xpad_data, size_t xpad_len, uint16_t fpad);
+	void Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, uint16_t fpad);
 	void Reset();
 
 	DL_STATE GetDynamicLabel();
