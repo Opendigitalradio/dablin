@@ -4,10 +4,18 @@ DABlin plays a DAB/DAB+ audio service - either from a received live
 transmission or from a stored ensemble recording (frame-aligned ETI-NI).
 Both DAB (MP2) and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are
 supported.
+
 The GTK version in addition supports the data applications Dynamic Label
 and MOT Slideshow (if present).
 
-![Screenshot of the GTK version](http://www.basicmaster.de/dab/DABlin.png)
+
+## Screenshots
+
+### GTK version
+![Screenshot of the GTK version](https://basicmaster.de/dab/DABlin.png)
+
+### Console version
+![Screenshot of the console version](https://basicmaster.de/dab/DABlin_console.png)
 
 
 ## Requirements
@@ -159,7 +167,7 @@ one byte was incorrectable.
 
 Audio Units (AUs) with invalid CRC are mentioned with short format
 messages like `(AU #2)` in red color, indicating that the CRC check on
-AU No. 2 failed.
+AU No. 2 failed and hence the AU was dismissed.
 
 
 ## TODO
