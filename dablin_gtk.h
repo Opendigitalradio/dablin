@@ -99,6 +99,7 @@ private:
 
 	Gtk::ListStore::iterator initial_channel_it;
 	bool initial_channel_appended;
+	unsigned long int progress_next_ms;
 
 	DABlinGTKSlideshowWindow slideshow_window;
 
@@ -112,6 +113,7 @@ private:
 
 	std::mutex progress_mutex;
 	double progress_value;
+	std::string progress_string;
 
 	Glib::Dispatcher progress_update;
 	void ETIProcessFrame(const uint8_t *data, size_t count, size_t total);
@@ -183,6 +185,7 @@ private:
 	void PADChangeSlideEmitted();
 
 	Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
+	static std::string FramecountToTimecode(size_t value);
 public:
 	DABlinGTK(DABlinGTKOptions options);
 	~DABlinGTK();
