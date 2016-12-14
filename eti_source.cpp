@@ -157,13 +157,11 @@ DAB2ETISource::DAB2ETISource(std::string binary, uint32_t freq, int gain, ETISou
 	// it doesn't matter whether there is a prefixed path or not
 	binary_name = binary.substr(binary.find_last_of('/') + 1);
 
-	std::stringstream ss;
-	ss << binary << " " << (freq * 1000);
-	if (gain != -10000) {
-		ss << " " << gain;
-	}
+	std::string cmdline = binary + " " + std::to_string(freq * 1000);
+	if (gain != DAB2ETI_AUTO_GAIN)
+		cmdline += " " + std::to_string(gain);
 	
-	input_file = popen(ss.str().c_str(), "r");
+	input_file = popen(cmdline.c_str(), "r");
 	if(!input_file)
 		perror("ETISource: error starting dab2eti");
 }

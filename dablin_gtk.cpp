@@ -382,16 +382,15 @@ std::string DABlinGTK::FramecountToTimecode(size_t value) {
 	int s = tc_s;
 
 	// generate output
-	std::stringstream ss;
 	char digits[3];
 
-	ss << h;
+	std::string result = std::to_string(h);
 	snprintf(digits, sizeof(digits), "%02d", m);
-	ss << ":" << digits;
+	result += ":" + std::string(digits);
 	snprintf(digits, sizeof(digits), "%02d", s);
-	ss << ":" << digits;
+	result += ":" + std::string(digits);
 
-	return ss.str();
+	return result;
 }
 
 void DABlinGTK::ETIUpdateProgressEmitted() {

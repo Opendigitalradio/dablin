@@ -36,7 +36,7 @@ struct DABlinTextOptions {
 	std::string initial_channel;
 	bool pcm_output;
 	int  gain;
-DABlinTextOptions() : initial_sid(-1), pcm_output(false), gain(-10000) {}
+DABlinTextOptions() : initial_sid(-1), pcm_output(false), gain(DAB2ETI_AUTO_GAIN) {}
 };
 
 

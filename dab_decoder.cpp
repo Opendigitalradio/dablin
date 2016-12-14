@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015 Stefan Pöschel
+    Copyright (C) 2015-2016 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,11 +26,8 @@ MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer) : SubchannelSink(observ
 
 	// init
 	mpg_result = mpg123_init();
-	if(mpg_result != MPG123_OK) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_init: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_init: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	// ensure features
 	if(!mpg123_feature(MPG123_FEATURE_OUTPUT_32BIT))
@@ -39,51 +36,33 @@ MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer) : SubchannelSink(observ
 		throw std::runtime_error("MP2Decoder: no Layer II decode support!");
 
 	handle = mpg123_new(NULL, &mpg_result);
-	if(!handle) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_new: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(!handle)
+		throw std::runtime_error("MP2Decoder: error while mpg123_new: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	fprintf(stderr, "MP2Decoder: using decoder '%s'.\n", mpg123_current_decoder(handle));
 
 
 	// set allowed formats
 	mpg_result = mpg123_format_none(handle);
-	if(mpg_result != MPG123_OK) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_format_none: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_format_none: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	mpg_result = mpg123_format(handle, 48000, MPG123_MONO | MPG123_STEREO, MPG123_ENC_FLOAT_32);
-	if(mpg_result != MPG123_OK) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_format #1: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_format #1: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	mpg_result = mpg123_format(handle, 24000, MPG123_MONO | MPG123_STEREO, MPG123_ENC_FLOAT_32);
-	if(mpg_result != MPG123_OK) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_format #2: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_format #2: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	// disable resync limit
 	mpg_result = mpg123_param(handle, MPG123_RESYNC_LIMIT, -1, 0);
-	if(mpg_result != MPG123_OK) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_param: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_param: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	mpg_result = mpg123_open_feed(handle);
-	if(mpg_result != MPG123_OK) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_open_feed: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_open_feed: " + std::string(mpg123_plain_strerror(mpg_result)));
 }
 
 MP2Decoder::~MP2Decoder() {
@@ -99,11 +78,8 @@ MP2Decoder::~MP2Decoder() {
 
 void MP2Decoder::Feed(const uint8_t *data, size_t len) {
 	int mpg_result = mpg123_feed(handle, data, len);
-	if(mpg_result != MPG123_OK) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_feed: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_feed: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	// forward decoded frames
 	uint8_t *frame_data;
@@ -126,9 +102,7 @@ size_t MP2Decoder::GetFrame(uint8_t **data) {
 	case MPG123_OK:
 		break;
 	default:
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_framebyframe_next: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
+		throw std::runtime_error("MP2Decoder: error while mpg123_framebyframe_next: " + std::string(mpg123_plain_strerror(mpg_result)));
 	}
 
 	if(crc_len == -1)
@@ -138,11 +112,8 @@ size_t MP2Decoder::GetFrame(uint8_t **data) {
 	uint8_t *body_data;
 	size_t body_bytes;
 	mpg_result = mpg123_framedata(handle, NULL, &body_data, &body_bytes);
-	if(mpg_result != MPG123_OK) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_framedata: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_framedata: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	// TODO: check CRC!?
 
@@ -151,11 +122,8 @@ size_t MP2Decoder::GetFrame(uint8_t **data) {
 
 	size_t frame_len;
 	mpg_result = mpg123_framebyframe_decode(handle, NULL, data, &frame_len);
-	if(mpg_result != MPG123_OK) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_framebyframe_decode: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_framebyframe_decode: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	return frame_len;
 }
@@ -164,11 +132,8 @@ size_t MP2Decoder::GetFrame(uint8_t **data) {
 void MP2Decoder::ProcessFormat() {
 	mpg123_frameinfo info;
 	int mpg_result = mpg123_info(handle, &info);
-	if(mpg_result != MPG123_OK) {
-		std::stringstream ss;
-		ss << "MP2Decoder: error while mpg123_info: " << mpg123_plain_strerror(mpg_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_info: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	crc_len = (info.version == MPG123_1_0 && info.bitrate < (info.mode == MPG123_M_MONO ? 56 : 112)) ? 2 : 4;
 

@@ -382,11 +382,8 @@ AACDecoderFAAD2::AACDecoderFAAD2(SubchannelSinkObserver* observer, SuperframeFor
 	unsigned long output_sr;
 	unsigned char output_ch;
 	long int init_result = NeAACDecInit2(handle, asc, asc_len, &output_sr, &output_ch);
-	if(init_result != 0) {
-		std::stringstream ss;
-		ss << "AACDecoderFAAD2: error while NeAACDecInit2: " << NeAACDecGetErrorMessage(-init_result);
-		throw std::runtime_error(ss.str());
-	}
+	if(init_result != 0)
+		throw std::runtime_error("AACDecoderFAAD2: error while NeAACDecInit2: " + std::string(NeAACDecGetErrorMessage(-init_result)));
 
 	observer->StartAudio(output_sr, output_ch, true);
 }
@@ -420,21 +417,15 @@ AACDecoderFDKAAC::AACDecoderFDKAAC(SubchannelSinkObserver* observer, SuperframeF
 
 //	// down/upmix to stereo
 //	AAC_DECODER_ERROR init_result = aacDecoder_SetParam(handle, AAC_PCM_OUTPUT_CHANNELS, 2);
-//	if(init_result != AAC_DEC_OK) {
-//		std::stringstream ss;
-//		ss << "AACDecoderFDKAAC: error while setting parameter AAC_PCM_OUTPUT_CHANNELS: " << init_result;
-//		throw std::runtime_error(ss.str());
-//	}
+//	if(init_result != AAC_DEC_OK)
+//		throw std::runtime_error("AACDecoderFDKAAC: error while setting parameter AAC_PCM_OUTPUT_CHANNELS: " + std::to_string(init_result));
 
 
 	uint8_t* asc_array[1] {asc};
 	const unsigned int asc_sizeof_array[1] {(unsigned int) asc_len};
 	AAC_DECODER_ERROR init_result = aacDecoder_ConfigRaw(handle, asc_array, asc_sizeof_array);
-	if(init_result != AAC_DEC_OK) {
-		std::stringstream ss;
-		ss << "AACDecoderFDKAAC: error while aacDecoder_ConfigRaw: " << init_result;
-		throw std::runtime_error(ss.str());
-	}
+	if(init_result != AAC_DEC_OK)
+		throw std::runtime_error("AACDecoderFDKAAC: error while aacDecoder_ConfigRaw: " + std::to_string(init_result));
 
 	int channels = sf_format.aac_channel_mode || sf_format.ps_flag ? 2 : 1;
 	output_frame_len = 960 * 2 * channels * (sf_format.sbr_flag ? 2 : 1);
@@ -455,22 +446,16 @@ void AACDecoderFDKAAC::DecodeFrame(uint8_t *data, size_t len) {
 
 	// fill internal input buffer
 	AAC_DECODER_ERROR result = aacDecoder_Fill(handle, input_buffer, input_buffer_size, &bytes_valid);
-	if(result != AAC_DEC_OK) {
-		std::stringstream ss;
-		ss << "AACDecoderFDKAAC: error while aacDecoder_Fill: " << result;
-		throw std::runtime_error(ss.str());
-	}
+	if(result != AAC_DEC_OK)
+		throw std::runtime_error("AACDecoderFDKAAC: error while aacDecoder_Fill: " + std::to_string(result));
 	if(bytes_valid)
 		throw std::runtime_error("AACDecoderFDKAAC: aacDecoder_Fill did not consume all bytes");
 
 
 	// decode audio
 	result = aacDecoder_DecodeFrame(handle, (short int*) output_frame, output_frame_len, 0);
-	if(result != AAC_DEC_OK) {
-		std::stringstream ss;
-		ss << "AACDecoderFDKAAC: error while aacDecoder_DecodeFrame: " << result;
-		throw std::runtime_error(ss.str());
-	}
+	if(result != AAC_DEC_OK)
+		throw std::runtime_error("AACDecoderFDKAAC: error while aacDecoder_DecodeFrame: " + std::to_string(result));
 
 	observer->PutAudio(output_frame, output_frame_len);
 }

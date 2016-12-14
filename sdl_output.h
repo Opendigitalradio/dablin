@@ -20,7 +20,6 @@
 #define SDL_OUTPUT_H_
 
 #include <stdexcept>
-#include <sstream>
 #include <cstdint>
 #include <mutex>
 

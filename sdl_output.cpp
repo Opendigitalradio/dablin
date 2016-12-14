@@ -56,11 +56,8 @@ SDLOutput::SDLOutput() : AudioOutput() {
 	audio_mute = false;
 
 	// init SDL
-	if(SDL_Init(SDL_INIT_AUDIO)) {
-		std::stringstream ss;
-		ss << "SDLOutput: error while SDL_Init: " << SDL_GetError();
-		throw std::runtime_error(ss.str());
-	}
+	if(SDL_Init(SDL_INIT_AUDIO))
+		throw std::runtime_error("SDLOutput: error while SDL_Init: " + std::string(SDL_GetError()));
 
 	SDL_version sdl_version;
 	SDL_GetVersion(&sdl_version);
@@ -121,11 +118,8 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 	desired.userdata = &cb_data;
 
 	audio_device = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
-	if(!audio_device) {
-		std::stringstream ss;
-		ss << "SDLOutput: error while SDL_OpenAudioDevice: " << SDL_GetError();
-		throw std::runtime_error(ss.str());
-	}
+	if(!audio_device)
+		throw std::runtime_error("SDLOutput: error while SDL_OpenAudioDevice: " + std::string(SDL_GetError()));
 	fprintf(stderr, "SDLOutput: audio opened; driver name: %s, freq: %d, channels: %d, size: %d, samples: %d, silence: 0x%02X, output: %s\n",
 			SDL_GetCurrentAudioDriver(),
 			obtained.freq,

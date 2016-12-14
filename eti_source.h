@@ -22,12 +22,13 @@
 // support 2GB+ files on 32bit systems
 #define _FILE_OFFSET_BITS 64
 
+#define DAB2ETI_AUTO_GAIN -10000
+
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
 #include <mutex>
 #include <string>
-#include <sstream>
 #include <thread>
 #include <unistd.h>
 #include <fcntl.h>
