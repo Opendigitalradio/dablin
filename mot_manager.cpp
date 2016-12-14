@@ -64,17 +64,17 @@ void MOTTransport::AddSeg(bool dg_type_header, int seg_number, bool last_seg, co
 	(dg_type_header ? header : body).AddSeg(seg_number, last_seg, data, len);
 }
 
-bool MOTTransport::ParseCheckHeader(int& content_type, int& content_sub_type) {
+bool MOTTransport::ParseCheckHeader(MOT_FILE& file) {
 	std::vector<uint8_t> data = header.GetData();
 
-	// parse/check Header Core
+	// parse/check header core
 	if(data.size() < 7)
 		return false;
 
 	size_t body_size = (data[0] << 20) | (data[1] << 12) | (data[2] << 4) | (data[3] >> 4);
 	size_t header_size = ((data[3] & 0x0F) << 9) | (data[4] << 1) | (data[5] >> 7);
-	content_type = (data[5] & 0x7F) >> 1;
-	content_sub_type = ((data[5] & 0x01) << 8) | data[6];
+	file.content_type = (data[5] & 0x7F) >> 1;
+	file.content_sub_type = ((data[5] & 0x01) << 8) | data[6];
 
 //	fprintf(stderr, "body_size: %5zu, header_size: %3zu, content_type: 0x%02X, content_sub_type: 0x%03X\n",
 //			body_size, header_size, content_type, content_sub_type);
@@ -84,7 +84,62 @@ bool MOTTransport::ParseCheckHeader(int& content_type, int& content_sub_type) {
 	if(body_size != body.GetSize())
 		return false;
 
-	// TODO: parse/check header extension
+	// parse/check header extension
+	for(size_t offset = 7; offset < data.size();) {
+		int pli = data[offset] >> 6;
+		int param_id = data[offset] & 0x3F;
+		offset++;
+
+		// get parameter len
+		size_t data_len;
+		switch(pli) {
+		case 0b00:
+			data_len = 0;
+			break;
+		case 0b01:
+			data_len = 1;
+			break;
+		case 0b10:
+			data_len = 4;
+			break;
+		case 0b11:
+			if(offset >= data.size())
+				return false;
+			bool ext = data[offset] & 0x80;
+			data_len = data[offset] & 0x7F;
+			offset++;
+
+			if(ext) {
+				if(offset >= data.size())
+					return false;
+				data_len = (data_len << 8) + data[offset];
+				offset++;
+			}
+			break;
+		}
+
+		if(offset + data_len - 1 >= data.size())
+			return false;
+
+		// process parameter (TODO: process TriggerTime)
+		switch(param_id) {
+		case 0x0C:	// ContentName
+			if(data_len == 0)
+				return false;
+			file.content_name = FICDecoder::ConvertTextToUTF8(&data[offset + 1], data_len - 1, data[offset] >> 4);
+//			fprintf(stderr, "ContentName: '%s'\n", file.content_name.c_str());
+			break;
+		case 0x26:	// CategoryTitle
+			file.category_title = std::string((char*) &data[offset], data_len);	// already UTF-8
+//			fprintf(stderr, "CategoryTitle: '%s'\n", file.category_title.c_str());
+			break;
+		case 0x27:	// ClickThroughURL
+			file.click_through_url = std::string((char*) &data[offset], data_len);	// already UTF-8
+//			fprintf(stderr, "ClickThroughURL: '%s'\n", file.click_through_url.c_str());
+			break;
+		}
+		offset += data_len;
+	}
 
 	return true;
 }
@@ -99,15 +154,13 @@ bool MOTTransport::IsToBeShown() {
 		return false;
 
 	// parse/check MOT header
-	int content_type;
-	int content_sub_type;
-	if(!ParseCheckHeader(content_type, content_sub_type))
+	MOT_FILE header_file;
+	if(!ParseCheckHeader(header_file))
 		return false;
 
-	// prepare result file
+	// update result file
+	result_file = header_file;
 	result_file.data = body.GetData();
-	result_file.content_type = content_type;
-	result_file.content_sub_type = content_sub_type;
 
 	shown = true;
 	return true;

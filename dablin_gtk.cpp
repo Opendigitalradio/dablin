@@ -527,7 +527,10 @@ DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
 	set_resizable(false);
 	set_deletable(false);
 
-	add(image);
+	add(top_grid);
+
+	top_grid.attach(image, 0, 0, 1, 1);
+	top_grid.attach_next_to(link_button, image, Gtk::POS_BOTTOM, 1, 1);
 
 	show_all_children();
 }
@@ -569,10 +572,33 @@ void DABlinGTKSlideshowWindow::UpdateSlide(const MOT_FILE& slide) {
 	if(!pixbuf)
 		return;
 
-	// update slide
+	// update title
+	std::string title = "Slideshow";
+	if(!slide.category_title.empty())
+		title = slide.category_title + " - " + title;
+	set_title(title);
+
+	// update image
 	image.set(pixbuf);
 	image.set_tooltip_text(
 			"Resolution: " + std::to_string(pixbuf->get_width()) + "x" + std::to_string(pixbuf->get_height()) + " pixels\n" +
 			"Size: " + std::to_string(slide.data.size()) + " bytes\n" +
-			"Format: " + type_display);
+			"Format: " + type_display + "\n" +
+			"Content name: " + slide.content_name);
+
+	// update ClickThroughURL link
+	if(!slide.click_through_url.empty()) {
+		link_button.set_label(slide.click_through_url);
+		link_button.set_tooltip_text(slide.click_through_url);
+		link_button.set_uri(slide.click_through_url);
+
+		// ensure that the label (created/replaced by set_label) does not extend the slide
+		Gtk::Label* l = (Gtk::Label*) link_button.get_child();
+		l->set_max_width_chars(1);
+		l->set_ellipsize(Pango::ELLIPSIZE_END);
+
+		link_button.show();
+	} else {
+		link_button.hide();
+	}
 }

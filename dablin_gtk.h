@@ -39,7 +39,9 @@
 // --- DABlinGTKSlideshowWindow -----------------------------------------------------------------
 class DABlinGTKSlideshowWindow : public Gtk::Window {
 private:
+	Gtk::Grid top_grid;
 	Gtk::Image image;
+	Gtk::LinkButton link_button;
 public:
 	DABlinGTKSlideshowWindow();
 

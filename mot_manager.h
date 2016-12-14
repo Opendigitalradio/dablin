@@ -25,6 +25,7 @@
 #include <map>
 #include <vector>
 
+#include "fic_decoder.h"
 #include "tools.h"
 
 
@@ -32,8 +33,14 @@
 struct MOT_FILE {
 	std::vector<uint8_t> data;
 
+	// from header core
 	int content_type;
 	int content_sub_type;
+
+	// from header extension
+	std::string content_name;
+	std::string category_title;
+	std::string click_through_url;
 
 	MOT_FILE() {Reset();}
 	void Reset() {
@@ -72,7 +79,7 @@ private:
 
 	MOT_FILE result_file;
 
-	bool ParseCheckHeader(int& content_type, int& content_sub_type);
+	bool ParseCheckHeader(MOT_FILE& file);
 public:
 	MOTTransport(): shown(false) {}
 
