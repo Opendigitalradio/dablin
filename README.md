@@ -1,12 +1,12 @@
-# DABlin - capital DAB experience
+# DABlin – capital DAB experience
 
-DABlin plays a DAB/DAB+ audio service - either from a received live
+DABlin plays a DAB/DAB+ audio service – either from a received live
 transmission or from a stored ensemble recording (frame-aligned ETI-NI).
 Both DAB (MP2) and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are
 supported.
 
-The GTK version in addition supports the data applications Dynamic Label
-and MOT Slideshow (if present).
+The GTK GUI version in addition supports the data applications Dynamic Label
+and MOT Slideshow (if present in the input stream).
 
 
 ## Screenshots
@@ -20,43 +20,86 @@ and MOT Slideshow (if present).
 
 ## Requirements
 
-A recent GCC (with C++11 support) and GNU Make are required. Furthermore
-CMake, if used for compilation (see below).
+A recent GCC (with C++11 support) and GNU Make are required. Use of CMake for
+compilation is supported (see below).
 
-The following libraries are needed in addition:
+The following libraries are required:
 
 * ka9q-fec (tested with https://github.com/Opendigitalradio/ka9q-fec)
 * mpg123
 * FAAD2
 * SDL2
 
-On e.g. Ubuntu 14.04 you can install them (except ka9q-fec) via:
+On Debian or Ubuntu, mpg123, FAAD2, and SDL2 are packaged and all the required
+files can be installed using aptitude or apt-get, for example:
+
 ```
 sudo apt-get install libmpg123-dev libfaad-dev libsdl2-dev
 ```
 
+For the GTK GUI, the gtkmm library is needed. On Debian and Ubuntu the needed
+files can be installed using package management, for example:
 
-For the GTK GUI, you furthermore need:
-* gtkmm
-
-Package installation on e.g. Ubuntu 14.04:
 ```
 sudo apt-get install libgtkmm-3.0-dev
 ```
 
+On Fedora, mpg123, SDL2, and gtkmm are all packaged and can be installed thus:
+
+```
+sudo dnf install mpg123-devel SDL2-devel gtkmm30-devel
+```
+
+FAAD2 is not packaged in the main Fedora repository, but it is available in
+[RPM Fusion repository](https://rpmfusion.org/). Once you have added RPM Fusion
+to the repositories, FAAD2 may be install by:
+
+```
+sudo dnf install faad2-devel
+```
+
+If you do not wish to, or cannot, add the RPM Fusion repositories, you will have
+to download FAAD2, perhaps from [here](http://www.audiocoding.com/faad2.html), and build
+and install manually.
+
+For the moment at least, the ka9q-fec dependency has to be installed manually since no
+distribution packages it. Something along the lines of:
+
+```
+git clone https://github.com/Opendigitalradio/ka9q-fec ka9q-fec
+cd  ka9q-fec
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+```
 
 ### Alternative DAB+ decoder
 
-Instead using FAAD2, DAB+ channels can be decoded with [FDK-AAC](https://github.com/mstorsjo/fdk-aac).
+Instead of using FAAD2, DAB+ channels can be decoded with [FDK-AAC](https://github.com/mstorsjo/fdk-aac).
 You can also use the modified version [fdk-aac-dabplus](https://github.com/Opendigitalradio/fdk-aac-dabplus) of
 OpenDigitalradio itself, if already installed.
+
+On Debian and Ubuntu, you can install FDK-AAC with:
+
+```
+sudo apt-get install libfdk-aac-dev
+```
+
+On Fedora, RPM Fusion is again needed and, if used, you can:
+
+```
+sudo dnf install fdk-aac-devel
+```
 
 When the alternative AAC decoder is used, the FAAD2 library mentioned
 above is no longer required.
 
-After installing the lib, you have to:
-* insert `USE_FDK-AAC=1` after the `make` call (when using Make) OR
-* insert `-D USE_FDK-AAC=1` after the `cmake` call (when using CMake)
+After installing the library, to use FDK-AAC instead of FAAD2, you have to:
+
+* have `USE_FDK-AAC=1` as part of the `make` command line – when using Make alone; or
+* have `-DUSE_FDK-AAC=1` as part of the `cmake` command – when using CMake.
 
 ### Audio output
 
@@ -66,8 +109,10 @@ forwarding to a streaming server).
 
 In case you only want PCM output, you can disable SDL output and
 therefore omit the SDL2 library prerequisite. You then also have to:
-* insert `DISABLE_SDL=1` after the `make` call (when using Make) OR
-* insert `-D DISABLE_SDL=1` after the `cmake` call (when using CMake)
+
+* have `DISABLE_SDL=1` as part of the `make` command line – when using Make alone; or
+* have `-DDISABLE_SDL=1` as part of the `cmake` command – when using CMake.
+
 
 ### Surround sound
 
@@ -87,12 +132,14 @@ Some users kindly provide precompiled DABlin packages on their own:
 
 ## Compilation
 
-The console version will be built in any case while the GTK GUI is built
-only if `gtkmm` is available.
+If the gtkmm library is available both the console and GTK GUI executables will
+be built. If the gtkmm library is not available only the console executable will
+be built.
 
 ### Using Make
 
 To compile and install DABlin, just type:
+
 ```
 make
 sudo make install
@@ -100,8 +147,9 @@ sudo make install
 
 ### Using CMake
 
-You can use e.g. the following command sequence in order to compile and
+You can use, for example, the following command sequence in order to compile and
 install DABlin:
+
 ```
 mkdir build
 cd build
@@ -113,8 +161,11 @@ sudo make install
 
 ## Usage
 
-You can either use the console version `dablin` or the GTK GUI version
+The console executable is called `dablin`, the GTK GUI executable
 `dablin_gtk`. Use `-h` to get an overview of all available options.
+
+(Currently no desktop files are installed so it is not easy to start DABlin
+direct from GNOME Shell. For no, at least, start DABlin from a console.)
 
 DABlin processes frame-aligned DAB ETI-NI recordings. If no filename is
 specified, `stdin` is used for input.
@@ -124,11 +175,13 @@ played until one is chosen.
 
 If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/basicmaster/dabtools)
 (optimized fork) and transfer the ETI live stream via pipe, e.g.:
+
 ```
 dab2eti 216928000 | dablin_gtk
 ```
 
 You can also replay an existing ETI-NI recording, e.g.:
+
 ```
 dablin -s 0xd911 mux.eti
 ```
@@ -159,7 +212,7 @@ During (re-)synchronisation status messages are output. Also dropped
 Superframes or AU are mentioned.
 
 If the Reed Solomon FEC was used to correct bytes of a Superframe, this
-is mentioned by messages of the format `(3+)` in cyan color. This 
+is mentioned by messages of the format `(3+)` in cyan color. This
 shorter format is used as those messages occure several times with
 borderline reception. The digit refers to the number of corrected bytes
 within the Superframe while a plus (if present) indicates that at least
@@ -178,19 +231,22 @@ Aided Data (PAD) features.
 
 ### Slideshow
 
-The GTK version supports the MOT Slideshow if used by the current
-service. The slide window is initially hidden but appears as soon as the
+The GTK version supports the MOT Slideshow if used by the input
+stream. The slide window is initially hidden but appears as soon as the
 first slide has been received completely and without errors.
 
 Currently the following limitations apply:
-* slideshows in a separate subchannel are not supported (just X-PAD)
-* for MOT the hardcoded (default) X-PAD Application Types 12/13 are used
-* the TriggerTime field is not processed
+
+* slideshows in a separate subchannel are not supported (just X-PAD);
+* for MOT the hardcoded (default) X-PAD Application Types 12/13 are used;
+* the TriggerTime field is not processed.
 
 
 ## License
 
+This software is licenced under the GNU General Public License Version 3.
 (please see the file COPYING for further details)
+![GPLv3 Image](https://www.gnu.org/graphics/gplv3-88x31.png)
 
 DABlin - capital DAB experience
 Copyright (C) 2015-2016 Stefan Pöschel
