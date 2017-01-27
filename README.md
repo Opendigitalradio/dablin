@@ -6,19 +6,21 @@ Both DAB (MP2) and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are
 supported.
 
 The GTK GUI version in addition supports the data applications Dynamic Label
-and MOT Slideshow (if present in the input stream).
+and MOT Slideshow (if used by the selected service).
 
 
 ## Screenshots
 
-### GTK version
-![Screenshot of the GTK version](https://basicmaster.de/dab/DABlin.png)
+### GTK GUI version
+![Screenshot of the GTK GUI version](https://basicmaster.de/dab/DABlin.png)
 
 ### Console version
 ![Screenshot of the console version](https://basicmaster.de/dab/DABlin_console.png)
 
 
 ## Requirements
+
+### General
 
 A recent GCC (with C++11 support) and GNU Make are required. Use of CMake for
 compilation is supported (see below).
@@ -30,18 +32,15 @@ The following libraries are required:
 * FAAD2
 * SDL2
 
-On Debian or Ubuntu, mpg123, FAAD2, and SDL2 are packaged and all the required
-files can be installed using aptitude or apt-get, for example:
+The GTK GUI version in addition requires:
+
+* gtkmm
+
+On Debian or Ubuntu, mpg123, FAAD2, SDL2 and gtkmm are packaged and all the required files
+can be installed using aptitude or apt-get, for example:
 
 ```
-sudo apt-get install libmpg123-dev libfaad-dev libsdl2-dev
-```
-
-For the GTK GUI, the gtkmm library is needed. On Debian and Ubuntu the needed
-files can be installed using package management, for example:
-
-```
-sudo apt-get install libgtkmm-3.0-dev
+sudo apt-get install libmpg123-dev libfaad-dev libsdl2-dev libgtkmm-3.0-dev
 ```
 
 On Fedora, mpg123, SDL2, and gtkmm are all packaged and can be installed thus:
@@ -52,7 +51,7 @@ sudo dnf install mpg123-devel SDL2-devel gtkmm30-devel
 
 FAAD2 is not packaged in the main Fedora repository, but it is available in
 [RPM Fusion repository](https://rpmfusion.org/). Once you have added RPM Fusion
-to the repositories, FAAD2 may be install by:
+to the repositories, FAAD2 may be installed by:
 
 ```
 sudo dnf install faad2-devel
@@ -67,7 +66,7 @@ distribution packages it. Something along the lines of:
 
 ```
 git clone https://github.com/Opendigitalradio/ka9q-fec ka9q-fec
-cd  ka9q-fec
+cd ka9q-fec
 mkdir build
 cd build
 cmake ..
@@ -165,7 +164,7 @@ The console executable is called `dablin`, the GTK GUI executable
 `dablin_gtk`. Use `-h` to get an overview of all available options.
 
 (Currently no desktop files are installed so it is not easy to start DABlin
-direct from GNOME Shell. For no, at least, start DABlin from a console.)
+directly from GNOME Shell. For now, at least, start DABlin from a console.)
 
 DABlin processes frame-aligned DAB ETI-NI recordings. If no filename is
 specified, `stdin` is used for input.
@@ -193,7 +192,7 @@ to specify the path to the `dab2eti` binary and the desired channel.
 dablin -d ~/bin/dab2eti -c 11D -s 0xd911
 ```
 
-In case of the GTK version the desired channel may not be specified. To
+In case of the GTK GUI version the desired channel may not be specified. To
 avoid the huge channel list containing all possible DAB channels, one
 can also state the desired channels (separated by comma) which shall be
 displayed within the channel list.
@@ -231,8 +230,8 @@ Aided Data (PAD) features.
 
 ### Slideshow
 
-The GTK version supports the MOT Slideshow if used by the input
-stream. The slide window is initially hidden but appears as soon as the
+The GTK GUI version supports the MOT Slideshow if used by the selected
+service. The slide window is initially hidden but appears as soon as the
 first slide has been received completely and without errors.
 
 Currently the following limitations apply:
@@ -244,8 +243,8 @@ Currently the following limitations apply:
 
 ## License
 
-This software is licenced under the GNU General Public License Version 3.
-(please see the file COPYING for further details)
+This software is licensed under the GNU General Public License Version 3
+(please see the file COPYING for further details).
 ![GPLv3 Image](https://www.gnu.org/graphics/gplv3-88x31.png)
 
 DABlin - capital DAB experience
