@@ -172,8 +172,8 @@ You just have to specify the regarding Service ID (SID). The GUI version
 does not necessarily need this - in that case initially no service is
 played until one is chosen.
 
-If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/basicmaster/dabtools)
-(optimized fork) and transfer the ETI live stream via pipe, e.g.:
+If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/Opendigitalradio/dabtools)
+(ODR maintained fork) and transfer the ETI live stream via pipe, e.g.:
 
 ```
 dab2eti 216928000 | dablin_gtk
