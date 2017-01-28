@@ -22,12 +22,13 @@ script:
     sudo make install
     popd
   - |
-    mkdir build_faad2
-    cd build_faad2
+    mkdir build_faad
+    pushd build_faad
     cmake ..
     make
-  - |
+    popd
     mkdir build_fdkaac
-    cd build_fdkaac
+    pushd build_fdkaac
     cmake -DUSE_FDK-AAC=1 ..
     make
+    popd
