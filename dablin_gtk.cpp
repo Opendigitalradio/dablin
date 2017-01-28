@@ -183,6 +183,9 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	if(combo_channels_liststore->iter_is_valid(initial_channel_it))
 		combo_channels.set_active(initial_channel_it);
 	initial_channel_appended = true;
+
+	ConnectKeyPressEventHandler(*this);
+	ConnectKeyPressEventHandler(slideshow_window);
 }
 
 DABlinGTK::~DABlinGTK() {
@@ -349,6 +352,25 @@ void DABlinGTK::on_tglbtn_slideshow() {
 		slideshow_window.TryToShow();
 	else
 		slideshow_window.hide();
+}
+
+void DABlinGTK::ConnectKeyPressEventHandler(Gtk::Widget& widget) {
+	widget.signal_key_press_event().connect(sigc::mem_fun(*this, &DABlinGTK::HandleKeyPressEvent));
+	widget.add_events(Gdk::KEY_PRESS_MASK);
+}
+
+bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
+	// consider only events without Shift/Control/Alt
+	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::CONTROL_MASK | Gdk::MOD1_MASK)) == 0) {
+		switch(key_event->keyval) {
+		case GDK_KEY_m:
+		case GDK_KEY_M:
+			// toggle mute
+			tglbtn_mute.clicked();
+			return true;
+		}
+	}
+	return false;
 }
 
 void DABlinGTK::ETIProcessFrame(const uint8_t *data, size_t count, size_t total) {

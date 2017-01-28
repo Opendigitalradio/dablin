@@ -204,6 +204,9 @@ Using `dab2eti` the E4000 tuner is recommended as auto gain is supported
 with it. If you want/have to use a gain value you can specify it using
 `-g`.
 
+In addition to the respective button, the GTK GUI version also allows the
+keyboard shortcut `m` to toggle muting the audio.
+
 
 ## Status output
 
