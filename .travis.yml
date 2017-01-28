@@ -1,10 +1,23 @@
 language: c++
-sudo: required
-dist: xenial
-
-compiler:
-  - gcc
-  - clang
+dist: trusty
+matrix:
+  include:
+  - #dist: trusty
+    compiler: gcc
+    os: linux
+    sudo: required
+  - #dist: trusty
+    compiler: clang
+    os: linux
+    sudo: required
+  - dist: xenial
+    compiler: gcc
+    os: linux
+    sudo: required
+  - dist: xenial
+    compiler: clang
+    os: linux
+    sudo: required
 
 before_script:
   - sudo apt-get update -qq
