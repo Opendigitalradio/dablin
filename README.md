@@ -172,8 +172,8 @@ You just have to specify the regarding Service ID (SID). The GUI version
 does not necessarily need this - in that case initially no service is
 played until one is chosen.
 
-If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/basicmaster/dabtools)
-(optimized fork) and transfer the ETI live stream via pipe, e.g.:
+If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/Opendigitalradio/dabtools)
+(ODR maintained fork) and transfer the ETI live stream via pipe, e.g.:
 
 ```
 dab2eti 216928000 | dablin_gtk
@@ -203,6 +203,9 @@ dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 Using `dab2eti` the E4000 tuner is recommended as auto gain is supported
 with it. If you want/have to use a gain value you can specify it using
 `-g`.
+
+In addition to the respective button, the GTK GUI version also allows the
+keyboard shortcut `m` to toggle muting the audio.
 
 
 ## Status output

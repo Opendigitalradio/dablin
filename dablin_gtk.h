@@ -168,6 +168,9 @@ private:
 	void on_combo_channels();
 	void on_combo_services();
 
+	void ConnectKeyPressEventHandler(Gtk::Widget& widget);
+	bool HandleKeyPressEvent(GdkEventKey* key_event);
+
 	// FIC data change
 	Glib::Dispatcher fic_data_change_ensemble;
 	void FICChangeEnsemble() {fic_data_change_ensemble.emit();}
