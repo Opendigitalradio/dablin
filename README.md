@@ -22,8 +22,7 @@ and MOT Slideshow (if used by the selected service).
 
 ### General
 
-A recent GCC (with C++11 support) and GNU Make are required. Use of CMake for
-compilation is supported (see below).
+A recent GCC (with C++11 support) and CMake are required.
 
 The following libraries are required:
 
@@ -95,10 +94,8 @@ sudo dnf install fdk-aac-devel
 When the alternative AAC decoder is used, the FAAD2 library mentioned
 above is no longer required.
 
-After installing the library, to use FDK-AAC instead of FAAD2, you have to:
-
-* have `USE_FDK-AAC=1` as part of the `make` command line – when using Make alone; or
-* have `-DUSE_FDK-AAC=1` as part of the `cmake` command – when using CMake.
+After installing the library, to use FDK-AAC instead of FAAD2, you have to
+have `-DUSE_FDK-AAC=1` as part of the `cmake` command.
 
 ### Audio output
 
@@ -107,10 +104,8 @@ output the decoded audio in plain PCM for further processing (e.g. for
 forwarding to a streaming server).
 
 In case you only want PCM output, you can disable SDL output and
-therefore omit the SDL2 library prerequisite. You then also have to:
-
-* have `DISABLE_SDL=1` as part of the `make` command line – when using Make alone; or
-* have `-DDISABLE_SDL=1` as part of the `cmake` command – when using CMake.
+therefore omit the SDL2 library prerequisite. You then also have to
+have `-DDISABLE_SDL=1` as part of the `cmake` command.
 
 
 ### Surround sound
@@ -134,17 +129,6 @@ Some users kindly provide precompiled DABlin packages on their own:
 If the gtkmm library is available both the console and GTK GUI executables will
 be built. If the gtkmm library is not available only the console executable will
 be built.
-
-### Using Make
-
-To compile and install DABlin, just type:
-
-```
-make
-sudo make install
-```
-
-### Using CMake
 
 You can use, for example, the following command sequence in order to compile and
 install DABlin:
@@ -251,7 +235,7 @@ This software is licensed under the GNU General Public License Version 3
 ![GPLv3 Image](https://www.gnu.org/graphics/gplv3-88x31.png)
 
 DABlin - capital DAB experience
-Copyright (C) 2015-2016 Stefan Pöschel
+Copyright (C) 2015-2017 Stefan Pöschel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
