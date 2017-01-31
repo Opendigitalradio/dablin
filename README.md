@@ -26,7 +26,6 @@ A recent GCC (with C++11 support) and CMake are required.
 
 The following libraries are required:
 
-* ka9q-fec (tested with https://github.com/Opendigitalradio/ka9q-fec)
 * mpg123
 * FAAD2
 * SDL2
@@ -60,18 +59,6 @@ If you do not wish to, or cannot, add the RPM Fusion repositories, you will have
 to download FAAD2, perhaps from [here](http://www.audiocoding.com/faad2.html), and build
 and install manually.
 
-For the moment at least, the ka9q-fec dependency has to be installed manually since no
-distribution packages it. Something along the lines of:
-
-```
-git clone https://github.com/Opendigitalradio/ka9q-fec ka9q-fec
-cd ka9q-fec
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
-```
 
 ### Alternative DAB+ decoder
 
