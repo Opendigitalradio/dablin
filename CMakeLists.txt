@@ -14,6 +14,15 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
+enable_testing()
+
+
+########################################################################
+# Build the FEC library before setting up DABlin application builds.
+########################################################################
+
+add_subdirectory(fec)
+
 
 ########################################################################
 # Version information
@@ -38,8 +47,6 @@ endif()
 # Compiler specific setup
 ########################################################################
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(CMAKE_COMPILER_IS_CLANGXX 1)
 endif()
@@ -57,7 +64,6 @@ endif()
 ########################################################################
 
 find_package(PkgConfig)
-# Threads
 find_package(Threads REQUIRED)
 
 # SDL2
@@ -80,15 +86,6 @@ if(NOT MPG123_FOUND)
 else()
     include_directories(${MPG123_INCLUDE_DIRS})
 endif()
-
-# libfec
-find_package(FEC)
-if(NOT FEC_FOUND)
-    message(FATAL_ERROR "libfec required to compile dablin\n")
-else()
-    include_directories(${FEC_INCLUDE_DIRS})
-endif()
-
 
 # gtkmm 3.0
 pkg_check_modules(GTKMM gtkmm-3.0)
@@ -129,7 +126,7 @@ endif()
 
 
 ########################################################################
-# Setup apps
+# Setup DAblin application build
 ########################################################################
 
 add_subdirectory(src)

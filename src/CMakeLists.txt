@@ -1,3 +1,7 @@
+########################################################################
+# Setup apps
+########################################################################
+
 list(APPEND dablin_sources
     dabplus_decoder.cpp
     eti_source.cpp
@@ -20,15 +24,16 @@ set(dablin_gtk_sources
     )
 
 set(common_link_list
-    ${CMAKE_THREAD_LIBS_INIT} ${MPG123_LIBRARIES} ${SDL2_LIBRARIES} ${AAC_LIB} ${FEC_LIBRARIES}
+    fec
+    ${CMAKE_THREAD_LIBS_INIT} ${MPG123_LIBRARIES} ${SDL2_LIBRARIES} ${AAC_LIB}
     )
 
-set_source_files_properties(
-    ${dablin_sources}
-    ${dablin_cli_sources}
-    ${dablin_gtk_sources}
-    PROPERTIES LANGUAGE "CXX"
-    )
+include_directories(../fec)
+
+
+########################################################################
+# Build the applications and add install rules.
+########################################################################
 
 # dablin
 add_executable(dablin ${dablin_sources} ${dablin_cli_sources})
