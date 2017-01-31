@@ -126,7 +126,7 @@ endif()
 
 
 ########################################################################
-# Setup DAblin application build
+# Setup DABlin application build
 ########################################################################
 
 add_subdirectory(src)

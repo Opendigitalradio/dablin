@@ -221,6 +221,8 @@ This software is licensed under the GNU General Public License Version 3
 (please see the file COPYING for further details).
 ![GPLv3 Image](https://www.gnu.org/graphics/gplv3-88x31.png)
 
+*Please note that the included FEC lib by KA9Q has a separate license!*
+
 DABlin - capital DAB experience
 Copyright (C) 2015-2017 Stefan Pöschel
 
