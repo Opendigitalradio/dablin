@@ -324,7 +324,7 @@ void DABlinGTK::SetService(SERVICE service) {
 
 	if(service.sid != SERVICE::no_service.sid) {
 		char sid_string[7];
-		snprintf(sid_string, sizeof(sid_string), "0x%4X", service.sid);
+		snprintf(sid_string, sizeof(sid_string), "0x%04X", service.sid);
 
 		Glib::ustring label = FICDecoder::ConvertLabelToUTF8(service.label);
 		set_title(label + " - DABlin");
@@ -443,7 +443,7 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 	fic_decoder->GetEnsembleData(&eid, &raw_label);
 
 	char eid_string[7];
-	snprintf(eid_string, sizeof(eid_string), "0x%4X", eid);
+	snprintf(eid_string, sizeof(eid_string), "0x%04X", eid);
 
 	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(raw_label);
 	label_ensemble.set_label(label);
