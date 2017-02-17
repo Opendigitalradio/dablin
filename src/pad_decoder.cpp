@@ -183,6 +183,11 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 						show_slide = false;
 					}
 
+					// check TriggerTime
+					if(!new_slide.trigger_time_now)
+						show_slide = false;
+
+
 					if(show_slide) {
 						{
 							std::lock_guard<std::mutex> lock(data_mutex);

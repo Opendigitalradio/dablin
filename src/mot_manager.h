@@ -41,12 +41,14 @@ struct MOT_FILE {
 	std::string content_name;
 	std::string category_title;
 	std::string click_through_url;
+	bool trigger_time_now;
 
 	MOT_FILE() {Reset();}
 	void Reset() {
 		data.clear();
 		content_type = -1;
 		content_sub_type = -1;
+		trigger_time_now = false;
 	}
 };
 

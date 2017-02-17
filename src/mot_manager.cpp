@@ -121,8 +121,15 @@ bool MOTTransport::ParseCheckHeader(MOT_FILE& file) {
 		if(offset + data_len - 1 >= data.size())
 			return false;
 
-		// process parameter (TODO: process TriggerTime)
+		// process parameter
 		switch(param_id) {
+		case 0x05:	// TriggerTime
+			if(data_len < 4)
+				return false;
+			// TODO: not only distinguish between Now or not
+			file.trigger_time_now = !(data[offset] & 0x80);
+//			fprintf(stderr, "TriggerTime: %s\n", file.tr	igger_time_now ? "Now" : "(not Now)");
+			break;
 		case 0x0C:	// ContentName
 			if(data_len == 0)
 				return false;
