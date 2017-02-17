@@ -26,6 +26,9 @@
 #include <sstream>
 
 #include "mpg123.h"
+#if MPG123_API_VERSION < 36
+#	error "At least version 1.14.0 (API version 36) of mpg123 is required!"
+#endif
 
 #include "subchannel_sink.h"
 

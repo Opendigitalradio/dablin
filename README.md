@@ -26,7 +26,7 @@ A recent GCC (with C++11 support) and CMake are required.
 
 The following libraries are required:
 
-* mpg123
+* mpg123 (1.14.0 or higher)
 * FAAD2
 * SDL2
 
