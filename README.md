@@ -196,6 +196,22 @@ messages like `(AU #2)` in red color, indicating that the CRC check on
 AU No. 2 failed and hence the AU was dismissed.
 
 
+## Standards
+
+DABlin implements (at least partly) the following DAB standards:
+
+### General
+* ETSI EN 300 401 (DAB system)
+* ETSI TS 101 756 (Registered tables)
+* ETSI TS 103 466 (DAB audio)
+* ETSI TS 102 563 (DAB+ audio)
+* ETSI ETS 300 799 (ETI)
+
+### Data applications
+* ETSI EN 301 234 (MOT)
+* ETSI TS 101 499 (MOT Slideshow)
+
+
 ## TODO
 
 At the moment, DABlin is kind of a rudimentary tool for the playback of
@@ -212,7 +228,7 @@ Currently the following limitations apply:
 
 * slideshows in a separate subchannel are not supported (just X-PAD);
 * for MOT the hardcoded (default) X-PAD Application Types 12/13 are used;
-* the TriggerTime field is not processed.
+* the TriggerTime field is not processed (except the value Now)
 
 
 ## License
