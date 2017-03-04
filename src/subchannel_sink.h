@@ -29,7 +29,7 @@ class SubchannelSinkObserver {
 public:
 	virtual ~SubchannelSinkObserver() {};
 
-	virtual void FormatChange(std::string format) = 0;
+	virtual void FormatChange(const std::string& format) = 0;
 	virtual void StartAudio(int samplerate, int channels, bool float32) = 0;
 	virtual void PutAudio(const uint8_t *data, size_t len) = 0;
 	virtual void ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t *fpad_data) = 0;

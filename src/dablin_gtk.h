@@ -114,16 +114,17 @@ private:
 	FICDecoder *fic_decoder;
 	PADDecoder *pad_decoder;
 
+	Glib::Dispatcher progress_update;
 	std::mutex progress_mutex;
 	double progress_value;
 	std::string progress_string;
-
-	Glib::Dispatcher progress_update;
 	void ETIProcessFrame(const uint8_t *data, size_t count, size_t total);
 	void ETIUpdateProgressEmitted();
 
 	Glib::Dispatcher format_change;
-	void ETIChangeFormat() {format_change.emit();}
+	std::mutex format_change_mutex;
+	std::string format_change_data;
+	void ETIChangeFormat(const std::string& format);
 	void ETIChangeFormatEmitted();
 
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}

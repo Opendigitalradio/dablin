@@ -429,10 +429,19 @@ void DABlinGTK::ETIUpdateProgressEmitted() {
 		progress_position.show();
 }
 
+void DABlinGTK::ETIChangeFormat(const std::string& format) {
+	{
+		std::lock_guard<std::mutex> lock(format_change_mutex);
+		format_change_data = format;
+	}
+	format_change.emit();
+}
+
 void DABlinGTK::ETIChangeFormatEmitted() {
 //	fprintf(stderr, "### ETIChangeFormatEmitted\n");
 
-	label_format.set_label(eti_player->GetFormat());
+	std::lock_guard<std::mutex> lock(format_change_mutex);
+	label_format.set_label(format_change_data);
 }
 
 void DABlinGTK::FICChangeEnsemble(const ENSEMBLE& ensemble) {

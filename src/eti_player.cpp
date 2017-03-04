@@ -153,19 +153,11 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 	dec->Feed(eti_frame + subch_offset, subch_bytes);
 }
 
-void ETIPlayer::FormatChange(std::string format) {
-	std::lock_guard<std::mutex> lock(status_mutex);
-	this->format = format;
-
+void ETIPlayer::FormatChange(const std::string& format) {
 	fprintf(stderr, "ETIPlayer: format: %s\n", format.c_str());
 
 	if(observer)
-		observer->ETIChangeFormat();
-}
-
-std::string ETIPlayer::GetFormat() {
-	std::lock_guard<std::mutex> lock(status_mutex);
-	return format;
+		observer->ETIChangeFormat(format);
 }
 
 void ETIPlayer::ProcessFIC(const uint8_t *data, size_t len) {
