@@ -149,16 +149,15 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 
 	initial_channel_appended = false;
 	progress_next_ms = 0;
-	progress_value = 0;
 
 	slideshow_window.set_transient_for(*this);
 
-	progress_update.connect(sigc::mem_fun(*this, &DABlinGTK::ETIUpdateProgressEmitted));
-	format_change.connect(sigc::mem_fun(*this, &DABlinGTK::ETIChangeFormatEmitted));
-	fic_data_change_ensemble.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeEnsembleEmitted));
-	fic_data_change_service.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServiceEmitted));
-	pad_data_change_dynamic_label.connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
-	pad_data_change_slide.connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
+	eti_update_progress.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::ETIUpdateProgressEmitted));
+	eti_change_format.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::ETIChangeFormatEmitted));
+	fic_change_ensemble.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeEnsembleEmitted));
+	fic_change_service.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServiceEmitted));
+	pad_change_dynamic_label.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
+	pad_change_slide.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
 
 	eti_player = new ETIPlayer(options.pcm_output, this);
 
@@ -376,14 +375,11 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 void DABlinGTK::ETIProcessFrame(const uint8_t *data, size_t count, size_t total) {
 	// if present, update progress every 500ms or at file end
 	if(total && (count * 24 >= progress_next_ms || count == total)) {
-		{
-			std::lock_guard<std::mutex> lock(progress_mutex);
+		ETI_PROGRESS progress;
+		progress.value = (double) count / (double) total;
+		progress.text = FramecountToTimecode(count) + " / " + FramecountToTimecode(total);
+		eti_update_progress.PushAndEmit(progress);
 
-			progress_value = (double) count / (double) total;
-			progress_string = FramecountToTimecode(count) + " / " + FramecountToTimecode(total);
-		}
-
-		progress_update.emit();
 		progress_next_ms += 500;
 	}
 
@@ -418,48 +414,24 @@ std::string DABlinGTK::FramecountToTimecode(size_t value) {
 void DABlinGTK::ETIUpdateProgressEmitted() {
 //	fprintf(stderr, "### ETIUpdateProgressEmitted\n");
 
-	{
-		std::lock_guard<std::mutex> lock(progress_mutex);
+	ETI_PROGRESS progress = eti_update_progress.Pop();
 
-		progress_position.set_fraction(progress_value);
-		progress_position.set_text(progress_string);
-	}
-
+	progress_position.set_fraction(progress.value);
+	progress_position.set_text(progress.text);
 	if(!progress_position.get_visible())
 		progress_position.show();
-}
-
-void DABlinGTK::ETIChangeFormat(const std::string& format) {
-	{
-		std::lock_guard<std::mutex> lock(format_change_mutex);
-		format_change_data = format;
-	}
-	format_change.emit();
 }
 
 void DABlinGTK::ETIChangeFormatEmitted() {
 //	fprintf(stderr, "### ETIChangeFormatEmitted\n");
 
-	std::lock_guard<std::mutex> lock(format_change_mutex);
-	label_format.set_label(format_change_data);
-}
-
-void DABlinGTK::FICChangeEnsemble(const ENSEMBLE& ensemble) {
-	{
-		std::lock_guard<std::mutex> lock(fic_data_change_ensemble_mutex);
-		fic_data_change_ensemble_data = ensemble;
-	}
-	fic_data_change_ensemble.emit();
+	label_format.set_label(eti_change_format.Pop());
 }
 
 void DABlinGTK::FICChangeEnsembleEmitted() {
 //	fprintf(stderr, "### FICChangeEnsembleEmitted\n");
 
-	ENSEMBLE new_ensemble;
-	{
-		std::lock_guard<std::mutex> lock(fic_data_change_ensemble_mutex);
-		new_ensemble = fic_data_change_ensemble_data;
-	}
+	ENSEMBLE new_ensemble = fic_change_ensemble.Pop();
 
 	char eid_string[7];
 	snprintf(eid_string, sizeof(eid_string), "0x%04X", new_ensemble.eid);
@@ -471,24 +443,10 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 			"EId: " + eid_string);
 }
 
-void DABlinGTK::FICChangeService(const SERVICE& service) {
-	{
-		std::lock_guard<std::mutex> lock(fic_data_change_service_mutex);
-		fic_data_change_service_data.push(service);
-	}
-	fic_data_change_service.emit();
-}
-
 void DABlinGTK::FICChangeServiceEmitted() {
 //	fprintf(stderr, "### FICChangeServiceEmitted\n");
 
-	SERVICE new_service;
-	{
-		std::lock_guard<std::mutex> lock(fic_data_change_service_mutex);
-
-		new_service = fic_data_change_service_data.front();
-		fic_data_change_service_data.pop();
-	}
+	SERVICE new_service = fic_change_service.Pop();
 
 	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(new_service.label);
 
@@ -542,46 +500,19 @@ void DABlinGTK::on_combo_services() {
 	}
 }
 
-void DABlinGTK::PADChangeDynamicLabel(const DL_STATE& dl) {
-	{
-		std::lock_guard<std::mutex> lock(pad_data_change_dynamic_label_mutex);
-		pad_data_change_dynamic_label_data = dl;
-	}
-	pad_data_change_dynamic_label.emit();
-}
-
 void DABlinGTK::PADChangeDynamicLabelEmitted() {
 //	fprintf(stderr, "### PADChangeDynamicLabelEmitted\n");
 
-	DL_STATE dl;
-	{
-		std::lock_guard<std::mutex> lock(pad_data_change_dynamic_label_mutex);
-		dl = pad_data_change_dynamic_label_data;
-	}
-
+	DL_STATE dl = pad_change_dynamic_label.Pop();
 	Glib::ustring label = FICDecoder::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset);
 	frame_label_dl.set_sensitive(true);
 	label_dl.set_label(label);
 }
 
-void DABlinGTK::PADChangeSlide(const MOT_FILE& slide) {
-	{
-		std::lock_guard<std::mutex> lock(pad_data_change_slide_mutex);
-		pad_data_change_slide_data = slide;
-	}
-	pad_data_change_slide.emit();
-}
-
 void DABlinGTK::PADChangeSlideEmitted() {
 //	fprintf(stderr, "### PADChangeSlideEmitted\n");
 
-	MOT_FILE slide;
-	{
-		std::lock_guard<std::mutex> lock(pad_data_change_slide_mutex);
-		slide = pad_data_change_slide_data;
-	}
-
-	slideshow_window.UpdateSlide(slide);
+	slideshow_window.UpdateSlide(pad_change_slide.Pop());
 	if(tglbtn_slideshow.get_active())
 		slideshow_window.TryToShow();
 }

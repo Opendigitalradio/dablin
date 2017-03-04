@@ -95,6 +95,40 @@ DABlinGTKOptions() : initial_sid(-1), pcm_output(false), gain(DAB2ETI_AUTO_GAIN)
 };
 
 
+// --- GTKDispatcherQueue -----------------------------------------------------------------
+template<typename T>
+class GTKDispatcherQueue {
+private:
+	Glib::Dispatcher dispatcher;
+	std::mutex mutex;
+	std::queue<T> values;
+public:
+	Glib::Dispatcher& GetDispatcher() {return dispatcher;}
+
+	void PushAndEmit(T value) {
+		{
+			std::lock_guard<std::mutex> lock(mutex);
+			values.push(value);
+		}
+		dispatcher.emit();
+	}
+
+	T Pop() {
+		std::lock_guard<std::mutex> lock(mutex);
+
+		T value = values.front();
+		values.pop();
+		return value;
+	}
+};
+
+
+struct ETI_PROGRESS {
+	double value;
+	std::string text;
+};
+
+
 // --- DABlinGTK -----------------------------------------------------------------
 class DABlinGTK : public Gtk::Window, ETISourceObserver, ETIPlayerObserver, FICDecoderObserver, PADDecoderObserver {
 private:
@@ -114,23 +148,20 @@ private:
 	FICDecoder *fic_decoder;
 	PADDecoder *pad_decoder;
 
-	Glib::Dispatcher progress_update;
-	std::mutex progress_mutex;
-	double progress_value;
-	std::string progress_string;
+	// ETI data change
+	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;
 	void ETIProcessFrame(const uint8_t *data, size_t count, size_t total);
 	void ETIUpdateProgressEmitted();
 
-	Glib::Dispatcher format_change;
-	std::mutex format_change_mutex;
-	std::string format_change_data;
-	void ETIChangeFormat(const std::string& format);
+	GTKDispatcherQueue<std::string> eti_change_format;
+	void ETIChangeFormat(const std::string& format) {eti_change_format.PushAndEmit(format);}
 	void ETIChangeFormatEmitted();
 
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
 	void ETIResetFIC() {fic_decoder->Reset();};
 	void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, uint16_t fpad) {pad_decoder->Process(xpad_data, xpad_len, exact_xpad_len, fpad);}
 	void ETIResetPAD() {pad_decoder->Reset();}
+
 
 	Gtk::Grid top_grid;
 
@@ -174,29 +205,21 @@ private:
 	bool HandleKeyPressEvent(GdkEventKey* key_event);
 
 	// FIC data change
-	Glib::Dispatcher fic_data_change_ensemble;
-	std::mutex fic_data_change_ensemble_mutex;
-	ENSEMBLE fic_data_change_ensemble_data;
-	void FICChangeEnsemble(const ENSEMBLE& ensemble);
+	GTKDispatcherQueue<ENSEMBLE> fic_change_ensemble;
+	void FICChangeEnsemble(const ENSEMBLE& ensemble) {fic_change_ensemble.PushAndEmit(ensemble);}
 	void FICChangeEnsembleEmitted();
 
-	Glib::Dispatcher fic_data_change_service;
-	std::mutex fic_data_change_service_mutex;
-	std::queue<SERVICE> fic_data_change_service_data;
-	void FICChangeService(const SERVICE& service);
+	GTKDispatcherQueue<SERVICE> fic_change_service;
+	void FICChangeService(const SERVICE& service) {fic_change_service.PushAndEmit(service);}
 	void FICChangeServiceEmitted();
 
 	// PAD data change
-	Glib::Dispatcher pad_data_change_dynamic_label;
-	std::mutex pad_data_change_dynamic_label_mutex;
-	DL_STATE pad_data_change_dynamic_label_data;
-	void PADChangeDynamicLabel(const DL_STATE& dl);
+	GTKDispatcherQueue<DL_STATE> pad_change_dynamic_label;
+	void PADChangeDynamicLabel(const DL_STATE& dl) {pad_change_dynamic_label.PushAndEmit(dl);}
 	void PADChangeDynamicLabelEmitted();
 
-	Glib::Dispatcher pad_data_change_slide;
-	std::mutex pad_data_change_slide_mutex;
-	MOT_FILE pad_data_change_slide_data;
-	void PADChangeSlide(const MOT_FILE& slide);
+	GTKDispatcherQueue<MOT_FILE> pad_change_slide;
+	void PADChangeSlide(const MOT_FILE& slide) {pad_change_slide.PushAndEmit(slide);}
 	void PADChangeSlideEmitted();
 
 	Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
