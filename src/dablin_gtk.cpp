@@ -542,20 +542,46 @@ void DABlinGTK::on_combo_services() {
 	}
 }
 
+void DABlinGTK::PADChangeDynamicLabel(const DL_STATE& dl) {
+	{
+		std::lock_guard<std::mutex> lock(pad_data_change_dynamic_label_mutex);
+		pad_data_change_dynamic_label_data = dl;
+	}
+	pad_data_change_dynamic_label.emit();
+}
+
 void DABlinGTK::PADChangeDynamicLabelEmitted() {
 //	fprintf(stderr, "### PADChangeDynamicLabelEmitted\n");
 
-	DL_STATE dl = pad_decoder->GetDynamicLabel();
+	DL_STATE dl;
+	{
+		std::lock_guard<std::mutex> lock(pad_data_change_dynamic_label_mutex);
+		dl = pad_data_change_dynamic_label_data;
+	}
 
 	Glib::ustring label = FICDecoder::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset);
 	frame_label_dl.set_sensitive(true);
 	label_dl.set_label(label);
 }
 
+void DABlinGTK::PADChangeSlide(const MOT_FILE& slide) {
+	{
+		std::lock_guard<std::mutex> lock(pad_data_change_slide_mutex);
+		pad_data_change_slide_data = slide;
+	}
+	pad_data_change_slide.emit();
+}
+
 void DABlinGTK::PADChangeSlideEmitted() {
 //	fprintf(stderr, "### PADChangeSlideEmitted\n");
 
-	slideshow_window.UpdateSlide(pad_decoder->GetSlide());
+	MOT_FILE slide;
+	{
+		std::lock_guard<std::mutex> lock(pad_data_change_slide_mutex);
+		slide = pad_data_change_slide_data;
+	}
+
+	slideshow_window.UpdateSlide(slide);
 	if(tglbtn_slideshow.get_active())
 		slideshow_window.TryToShow();
 }

@@ -42,27 +42,11 @@ int XPAD_CI::GetContinuedLastCIType(int last_ci_type) {
 // --- PADDecoder -----------------------------------------------------------------
 void PADDecoder::Reset() {
 	last_xpad_ci.Reset();
-	{
-		std::lock_guard<std::mutex> lock(data_mutex);
-
-		dl.Reset();
-		slide.Reset();
-	}
 
 	dl_decoder.Reset();
 	dgli_decoder.Reset();
 	mot_decoder.Reset();
 	mot_manager.Reset();
-}
-
-DL_STATE PADDecoder::GetDynamicLabel() {
-	std::lock_guard<std::mutex> lock(data_mutex);
-	return dl;
-}
-
-MOT_FILE PADDecoder::GetSlide() {
-	std::lock_guard<std::mutex> lock(data_mutex);
-	return slide;
 }
 
 void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, uint16_t fpad) {
@@ -149,14 +133,8 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 		case 2:		// Dynamic Label segment (start)
 		case 3:		// Dynamic Label segment (continuation)
 			// if new label available, append it
-			if(dl_decoder.ProcessDataSubfield(it->type == 2, xpad_data + xpad_offset, it->len)) {
-				{
-					std::lock_guard<std::mutex> lock(data_mutex);
-
-					dl = dl_decoder.GetLabel();
-				}
-				observer->PADChangeDynamicLabel();
-			}
+			if(dl_decoder.ProcessDataSubfield(it->type == 2, xpad_data + xpad_offset, it->len))
+				observer->PADChangeDynamicLabel(dl_decoder.GetLabel());
 			break;
 
 		// TODO: don't use hardcoded X-PAD Application Types for MOT
@@ -188,14 +166,8 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 						show_slide = false;
 
 
-					if(show_slide) {
-						{
-							std::lock_guard<std::mutex> lock(data_mutex);
-
-							slide = new_slide;
-						}
-						observer->PADChangeSlide();
-					}
+					if(show_slide)
+						observer->PADChangeSlide(new_slide);
 				}
 			}
 			break;

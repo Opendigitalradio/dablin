@@ -173,8 +173,8 @@ class PADDecoderObserver {
 public:
 	virtual ~PADDecoderObserver() {};
 
-	virtual void PADChangeDynamicLabel() {};
-	virtual void PADChangeSlide() {};
+	virtual void PADChangeDynamicLabel(const DL_STATE& dl) {};
+	virtual void PADChangeSlide(const MOT_FILE& slide) {};
 };
 
 
@@ -185,10 +185,6 @@ private:
 
 	XPAD_CI last_xpad_ci;
 
-	std::mutex data_mutex;
-	DL_STATE dl;
-	MOT_FILE slide;
-
 	DynamicLabelDecoder dl_decoder;
 	DGLIDecoder dgli_decoder;
 	MOTDecoder mot_decoder;
@@ -198,9 +194,6 @@ public:
 
 	void Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, uint16_t fpad);
 	void Reset();
-
-	DL_STATE GetDynamicLabel();
-	MOT_FILE GetSlide();
 };
 
 #endif /* PAD_DECODER_H_ */

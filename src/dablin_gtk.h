@@ -188,11 +188,15 @@ private:
 
 	// PAD data change
 	Glib::Dispatcher pad_data_change_dynamic_label;
-	void PADChangeDynamicLabel() {pad_data_change_dynamic_label.emit();}
+	std::mutex pad_data_change_dynamic_label_mutex;
+	DL_STATE pad_data_change_dynamic_label_data;
+	void PADChangeDynamicLabel(const DL_STATE& dl);
 	void PADChangeDynamicLabelEmitted();
 
 	Glib::Dispatcher pad_data_change_slide;
-	void PADChangeSlide() {pad_data_change_slide.emit();}
+	std::mutex pad_data_change_slide_mutex;
+	MOT_FILE pad_data_change_slide_data;
+	void PADChangeSlide(const MOT_FILE& slide);
 	void PADChangeSlideEmitted();
 
 	Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
