@@ -24,25 +24,15 @@ const SERVICE SERVICE::no_service(-1);
 // --- FICDecoder -----------------------------------------------------------------
 FICDecoder::FICDecoder(FICDecoderObserver *observer) {
 	this->observer = observer;
-	ensemble_label = NULL;
 	Reset();
 }
 
 void FICDecoder::Reset() {
+	ensemble = ENSEMBLE();
+
 	audio_services.clear();
 	labels.clear();
 	known_services.clear();
-
-	{
-		std::lock_guard<std::mutex> lock(data_mutex);
-
-		ensemble_id = 0;
-		if(ensemble_label) {
-			delete ensemble_label;
-			ensemble_label = NULL;
-		}
-		new_services.clear();
-	}
 }
 
 void FICDecoder::Process(const uint8_t *data, size_t len) {
@@ -115,7 +105,7 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 
 
 
-void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len, FIG0_HEADER &header) {
+void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len, const FIG0_HEADER& header) {
 	// FIG 0/2 - Basic service and service component definition
 
 	// ignore next config
@@ -211,11 +201,10 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 
 	// parse data
 	uint16_t id = data[0] << 8 | data[1];
-	FIC_LABEL *label = new FIC_LABEL;
-	label->charset = header.charset;
-	memcpy(label->label, data + 2, 16);
-	label->short_label_mask = data[18] << 8 | data[19];
-//	fprintf(stderr, "FICDecoder: label: '%s'\n", label.c_str());
+	FIC_LABEL label;
+	label.charset = header.charset;
+	memcpy(label.label, data + 2, 16);
+	label.short_label_mask = data[18] << 8 | data[19];
 
 
 	// handle extension
@@ -229,55 +218,27 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	}
 }
 
-void FICDecoder::ProcessFIG1_0(uint16_t id, FIC_LABEL *label) {
-	std::lock_guard<std::mutex> lock(data_mutex);
+void FICDecoder::ProcessFIG1_0(uint16_t id, const FIC_LABEL& label) {
+	if(ensemble.eid != id || ensemble.label != label) {
+		ensemble.eid = id;
+		ensemble.label = label;
 
-	if(id != ensemble_id || !ensemble_label || *ensemble_label != *label) {
-		ensemble_id = id;
-
-		delete ensemble_label;
-		ensemble_label = label;
-
-		std::string label_str = ConvertLabelToUTF8(*label);
+		std::string label_str = ConvertLabelToUTF8(label);
 		fprintf(stderr, "FICDecoder: found new ensemble label: EId 0x%04X, '%s'\n", id, label_str.c_str());
 
-		observer->FICChangeEnsemble();
-	} else {
-		delete label;
+		observer->FICChangeEnsemble(ensemble);
 	}
 }
 
-void FICDecoder::ProcessFIG1_1(uint16_t id, FIC_LABEL *label) {
+void FICDecoder::ProcessFIG1_1(uint16_t id, const FIC_LABEL& label) {
 	if(labels.find(id) == labels.end()) {
-		labels[id] = *label;
+		labels[id] = label;
 
-		std::string label_str = ConvertLabelToUTF8(*label);
+		std::string label_str = ConvertLabelToUTF8(label);
 		fprintf(stderr, "FICDecoder: found new programme service label: SId 0x%04X, '%s'\n", id, label_str.c_str());
 
 		CheckService(id);
 	}
-	delete label;
-}
-
-
-void FICDecoder::GetEnsembleData(uint16_t *id, FIC_LABEL *label) {
-	std::lock_guard<std::mutex> lock(data_mutex);
-
-	if(!ensemble_label)
-		return;
-
-	if(id)
-		*id = ensemble_id;
-	if(label)
-		memcpy(label, ensemble_label, sizeof(FIC_LABEL));
-}
-
-services_t FICDecoder::GetNewServices() {
-	std::lock_guard<std::mutex> lock(data_mutex);
-
-	services_t result = new_services;
-	new_services.clear();
-	return result;
 }
 
 void FICDecoder::CheckService(uint16_t sid) {
@@ -300,12 +261,7 @@ void FICDecoder::CheckService(uint16_t sid) {
 	new_service.service = services_it->second;
 	new_service.label = labels_it->second;
 
-	{
-		std::lock_guard<std::mutex> lock(data_mutex);
-		new_services.insert(new_service);
-	}
-
-	observer->FICChangeServices();
+	observer->FICChangeService(new_service);
 }
 
 std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {

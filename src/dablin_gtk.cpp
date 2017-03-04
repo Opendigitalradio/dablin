@@ -156,7 +156,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	progress_update.connect(sigc::mem_fun(*this, &DABlinGTK::ETIUpdateProgressEmitted));
 	format_change.connect(sigc::mem_fun(*this, &DABlinGTK::ETIChangeFormatEmitted));
 	fic_data_change_ensemble.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeEnsembleEmitted));
-	fic_data_change_services.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServicesEmitted));
+	fic_data_change_service.connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServiceEmitted));
 	pad_data_change_dynamic_label.connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 	pad_data_change_slide.connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
 
@@ -435,43 +435,65 @@ void DABlinGTK::ETIChangeFormatEmitted() {
 	label_format.set_label(eti_player->GetFormat());
 }
 
+void DABlinGTK::FICChangeEnsemble(const ENSEMBLE& ensemble) {
+	{
+		std::lock_guard<std::mutex> lock(fic_data_change_ensemble_mutex);
+		fic_data_change_ensemble_data = ensemble;
+	}
+	fic_data_change_ensemble.emit();
+}
+
 void DABlinGTK::FICChangeEnsembleEmitted() {
 //	fprintf(stderr, "### FICChangeEnsembleEmitted\n");
 
-	uint16_t eid;
-	FIC_LABEL raw_label;
-	fic_decoder->GetEnsembleData(&eid, &raw_label);
+	ENSEMBLE new_ensemble;
+	{
+		std::lock_guard<std::mutex> lock(fic_data_change_ensemble_mutex);
+		new_ensemble = fic_data_change_ensemble_data;
+	}
 
 	char eid_string[7];
-	snprintf(eid_string, sizeof(eid_string), "0x%04X", eid);
+	snprintf(eid_string, sizeof(eid_string), "0x%04X", new_ensemble.eid);
 
-	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(raw_label);
+	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(new_ensemble.label);
 	label_ensemble.set_label(label);
 	frame_label_ensemble.set_tooltip_text(
-			"Short label: \"" + DeriveShortLabel(label, raw_label.short_label_mask) + "\"\n"
+			"Short label: \"" + DeriveShortLabel(label, new_ensemble.label.short_label_mask) + "\"\n"
 			"EId: " + eid_string);
 }
 
-void DABlinGTK::FICChangeServicesEmitted() {
-//	fprintf(stderr, "### FICChangeServicesEmitted\n");
-
-	services_t new_services = fic_decoder->GetNewServices();
-
-	for(services_t::const_iterator it = new_services.cbegin(); it != new_services.cend(); it++) {
-		Glib::ustring label = FICDecoder::ConvertLabelToUTF8(it->label);
-
-//		std::stringstream ss;
-//		ss << "'" << label << "' - Subchannel " << it->service.subchid << " " << (it->service.dab_plus ? "(DAB+)" : "(DAB)");
-
-		Gtk::ListStore::iterator row_it = combo_services_liststore->append();
-		Gtk::TreeModel::Row row = *row_it;
-		row[combo_services_cols.col_sort] = (it->service.subchid << 16) | it->sid;
-		row[combo_services_cols.col_string] = label;
-		row[combo_services_cols.col_service] = *it;
-
-		if(it->sid == options.initial_sid)
-			combo_services.set_active(row_it);
+void DABlinGTK::FICChangeService(const SERVICE& service) {
+	{
+		std::lock_guard<std::mutex> lock(fic_data_change_service_mutex);
+		fic_data_change_service_data.push(service);
 	}
+	fic_data_change_service.emit();
+}
+
+void DABlinGTK::FICChangeServiceEmitted() {
+//	fprintf(stderr, "### FICChangeServiceEmitted\n");
+
+	SERVICE new_service;
+	{
+		std::lock_guard<std::mutex> lock(fic_data_change_service_mutex);
+
+		new_service = fic_data_change_service_data.front();
+		fic_data_change_service_data.pop();
+	}
+
+	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(new_service.label);
+
+//	std::stringstream ss;
+//	ss << "'" << label << "' - Subchannel " << new_service.service.subchid << " " << (new_service.service.dab_plus ? "(DAB+)" : "(DAB)");
+
+	Gtk::ListStore::iterator row_it = combo_services_liststore->append();
+	Gtk::TreeModel::Row row = *row_it;
+	row[combo_services_cols.col_sort] = (new_service.service.subchid << 16) | new_service.sid;
+	row[combo_services_cols.col_string] = label;
+	row[combo_services_cols.col_service] = new_service;
+
+	if(new_service.sid == options.initial_sid)
+		combo_services.set_active(row_it);
 }
 
 void DABlinGTK::on_combo_channels() {

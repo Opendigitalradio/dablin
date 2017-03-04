@@ -20,6 +20,7 @@
 #define DABLIN_GTK_H_
 
 #include <mutex>
+#include <queue>
 #include <signal.h>
 #include <thread>
 
@@ -173,12 +174,16 @@ private:
 
 	// FIC data change
 	Glib::Dispatcher fic_data_change_ensemble;
-	void FICChangeEnsemble() {fic_data_change_ensemble.emit();}
+	std::mutex fic_data_change_ensemble_mutex;
+	ENSEMBLE fic_data_change_ensemble_data;
+	void FICChangeEnsemble(const ENSEMBLE& ensemble);
 	void FICChangeEnsembleEmitted();
 
-	Glib::Dispatcher fic_data_change_services;
-	void FICChangeServices() {fic_data_change_services.emit();}
-	void FICChangeServicesEmitted();
+	Glib::Dispatcher fic_data_change_service;
+	std::mutex fic_data_change_service_mutex;
+	std::queue<SERVICE> fic_data_change_service_data;
+	void FICChangeService(const SERVICE& service);
+	void FICChangeServiceEmitted();
 
 	// PAD data change
 	Glib::Dispatcher pad_data_change_dynamic_label;

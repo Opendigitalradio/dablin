@@ -51,7 +51,7 @@ private:
 
 	void ETIProcessFrame(const uint8_t *data, size_t count, size_t total) {eti_player->ProcessFrame(data);};
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
-	void FICChangeServices();
+	void FICChangeService(const SERVICE& service);
 public:
 	DABlinText(DABlinTextOptions options);
 	~DABlinText();

@@ -159,18 +159,14 @@ DABlinText::~DABlinText() {
 	delete fic_decoder;
 }
 
-void DABlinText::FICChangeServices() {
-//	fprintf(stderr, "### FICChangeServices\n");
+void DABlinText::FICChangeService(const SERVICE& service) {
+//	fprintf(stderr, "### FICChangeService\n");
 
-	services_t new_services = fic_decoder->GetNewServices();
+	if(service.sid == options.initial_sid) {
+		eti_player->SetAudioSubchannel(service.service.subchid, service.service.dab_plus);
 
-	for(services_t::const_iterator it = new_services.cbegin(); it != new_services.cend(); it++) {
-		if(it->sid == options.initial_sid) {
-			eti_player->SetAudioSubchannel(it->service.subchid, it->service.dab_plus);
-
-			// set XTerm window title to service name
-			std::string label = FICDecoder::ConvertLabelToUTF8(it->label);
-			fprintf(stderr, "\x1B]0;" "%s - DABlin" "\a", label.c_str());
-		}
+		// set XTerm window title to service name
+		std::string label = FICDecoder::ConvertLabelToUTF8(service.label);
+		fprintf(stderr, "\x1B]0;" "%s - DABlin" "\a", label.c_str());
 	}
 }
