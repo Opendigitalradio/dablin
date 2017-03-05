@@ -46,11 +46,6 @@ struct FIG1_HEADER {
 	FIG1_HEADER(uint8_t data) : charset(data >> 4), oe(data & 0x08), extension(data & 0x07) {}
 };
 
-struct AUDIO_SERVICE {
-	int subchid;
-	bool dab_plus;
-};
-
 struct FIC_LABEL {
 	int charset;
 	uint8_t label[16];

@@ -25,8 +25,7 @@ ETIPlayer::ETIPlayer(bool pcm_output, ETIPlayerObserver *observer) {
 
 	next_frame_time = std::chrono::steady_clock::now();
 
-	subchannel_now = subchannel_next = ETI_PLAYER_NO_SUBCHANNEL;
-	dab_plus_now = dab_plus_next = false;
+	service_now = service_next = AUDIO_SERVICE::no_audio_service;
 
 	dec = NULL;
 
@@ -43,16 +42,15 @@ ETIPlayer::~ETIPlayer() {
 	delete out;
 }
 
-void ETIPlayer::SetAudioSubchannel(int subchannel, bool dab_plus) {
+void ETIPlayer::SetAudioService(const AUDIO_SERVICE& service) {
 	std::lock_guard<std::mutex> lock(status_mutex);
 
-	if(subchannel == ETI_PLAYER_NO_SUBCHANNEL)
+	if(service == AUDIO_SERVICE::no_audio_service)
 		fprintf(stderr, "ETIPlayer: playing no subchannel\n");
 	else
-		fprintf(stderr, "ETIPlayer: playing subchannel %d (%s)\n", subchannel, dab_plus ? "DAB+" : "DAB");
+		fprintf(stderr, "ETIPlayer: playing subchannel %d (%s)\n", service.subchid, service.dab_plus ? "DAB+" : "DAB");
 
-	subchannel_next = subchannel;
-	dab_plus_next = dab_plus;
+	service_next = service;
 }
 
 void ETIPlayer::ProcessFrame(const uint8_t *data) {
@@ -60,7 +58,7 @@ void ETIPlayer::ProcessFrame(const uint8_t *data) {
 	{
 		std::lock_guard<std::mutex> lock(status_mutex);
 
-		if(subchannel_now != subchannel_next || dab_plus_now != dab_plus_next) {
+		if(service_now != service_next) {
 			// cleanup
 			if(dec) {
 //					out->StopAudio();
@@ -68,14 +66,13 @@ void ETIPlayer::ProcessFrame(const uint8_t *data) {
 				dec = NULL;
 			}
 
-			subchannel_now = subchannel_next;
-			dab_plus_now = dab_plus_next;
+			service_now = service_next;
 
 			observer->ETIResetPAD();
 
 			// append
-			if(subchannel_now != ETI_PLAYER_NO_SUBCHANNEL) {
-				if(dab_plus_now)
+			if(service_now != AUDIO_SERVICE::no_audio_service) {
+				if(service_now.dab_plus)
 					dec = new SuperframeFilter(this);
 				else
 					dec = new MP2Decoder(this);
@@ -128,14 +125,14 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 	}
 
 	// abort here, if ATM no subchannel selected
-	if(subchannel_now == ETI_PLAYER_NO_SUBCHANNEL)
+	if(service_now == AUDIO_SERVICE::no_audio_service)
 		return;
 
 	for(int i = 0; i < nst; i++) {
 		int scid = (eti_frame[8 + i*4] & 0xFC) >> 2;
 		int stl = (eti_frame[8 + i*4 + 2] & 0x03) << 8 | eti_frame[8 + i*4 + 3];
 
-		if(scid == subchannel_now) {
+		if(scid == service_now.subchid) {
 			subch_bytes = stl * 8;
 			break;
 		} else {
@@ -143,7 +140,7 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 		}
 	}
 	if(subch_bytes == 0) {
-		fprintf(stderr, "ETIPlayer: ignored ETI frame without subch %d\n", subchannel_now);
+		fprintf(stderr, "ETIPlayer: ignored ETI frame without subch %d\n", service_now.subchid);
 		return;
 	}
 

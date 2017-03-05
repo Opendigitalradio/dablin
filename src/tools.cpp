@@ -174,3 +174,6 @@ const dab_channels_t dab_channels {
 	{ "LO", 1476928},
 	{ "LP", 1478640},
 };
+
+
+const AUDIO_SERVICE AUDIO_SERVICE::no_audio_service;

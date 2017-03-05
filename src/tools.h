@@ -66,4 +66,21 @@ public:
 typedef std::map<std::string,uint32_t> dab_channels_t;
 extern const dab_channels_t dab_channels;
 
+
+struct AUDIO_SERVICE {
+	int subchid;
+	bool dab_plus;
+
+	static const AUDIO_SERVICE no_audio_service;
+
+	AUDIO_SERVICE() : subchid(-1), dab_plus(false) {}
+
+	bool operator==(const AUDIO_SERVICE & audio_service) const {
+		return subchid == audio_service.subchid && dab_plus == audio_service.dab_plus;
+	}
+	bool operator!=(const AUDIO_SERVICE & audio_service) const {
+		return !(*this == audio_service);
+	}
+};
+
 #endif /* TOOLS_H_ */

@@ -29,13 +29,12 @@
 #include "dab_decoder.h"
 #include "dabplus_decoder.h"
 #include "pcm_output.h"
+#include "tools.h"
 
 #ifndef DABLIN_DISABLE_SDL
 #include "sdl_output.h"
 #endif
 
-
-#define ETI_PLAYER_NO_SUBCHANNEL -1
 
 // --- ETIPlayerObserver -----------------------------------------------------------------
 class ETIPlayerObserver {
@@ -57,10 +56,8 @@ private:
 	std::chrono::steady_clock::time_point next_frame_time;
 
 	std::mutex status_mutex;
-	int subchannel_now;
-	bool dab_plus_now;
-	int subchannel_next;
-	bool dab_plus_next;
+	AUDIO_SERVICE service_now;
+	AUDIO_SERVICE service_next;
 
 	uint8_t xpad[256];	// limit never reached by longest possible X-PAD
 	SubchannelSink *dec;
@@ -79,7 +76,7 @@ public:
 
 	void ProcessFrame(const uint8_t *data);
 
-	void SetAudioSubchannel(int subchannel, bool dab_plus);
+	void SetAudioService(const AUDIO_SERVICE& service);
 	void SetAudioMute(bool audio_mute) {out->SetAudioMute(audio_mute);}
 };
 

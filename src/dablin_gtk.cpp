@@ -332,12 +332,12 @@ void DABlinGTK::SetService(SERVICE service) {
 				"SId: " + sid_string + "\n"
 				"SubChId: " + std::to_string(service.service.subchid));
 
-		eti_player->SetAudioSubchannel(service.service.subchid, service.service.dab_plus);
+		eti_player->SetAudioService(service.service);
 	} else {
 		set_title("DABlin");
 		frame_combo_services.set_tooltip_text("");
 
-		eti_player->SetAudioSubchannel(ETI_PLAYER_NO_SUBCHANNEL, false);
+		eti_player->SetAudioService(AUDIO_SERVICE::no_audio_service);
 	}
 }
 
