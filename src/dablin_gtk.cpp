@@ -312,15 +312,8 @@ void DABlinGTK::AddChannel(dab_channels_t::const_iterator &it) {
 		initial_channel_it = row_it;
 }
 
-void DABlinGTK::SetService(SERVICE service) {
-	label_format.set_label("");
-
-	frame_label_dl.set_sensitive(false);
-	label_dl.set_label("");
-
-	slideshow_window.hide();
-	slideshow_window.ClearSlide();
-
+void DABlinGTK::SetService(const SERVICE& service) {
+	AUDIO_SERVICE new_audio_service;
 	if(service.sid != SERVICE::no_service.sid) {
 		char sid_string[7];
 		snprintf(sid_string, sizeof(sid_string), "0x%04X", service.sid);
@@ -332,12 +325,25 @@ void DABlinGTK::SetService(SERVICE service) {
 				"SId: " + sid_string + "\n"
 				"SubChId: " + std::to_string(service.service.subchid));
 
-		eti_player->SetAudioService(service.service);
+		new_audio_service = service.service;
 	} else {
 		set_title("DABlin");
 		frame_combo_services.set_tooltip_text("");
 
-		eti_player->SetAudioService(AUDIO_SERVICE::no_audio_service);
+		new_audio_service = AUDIO_SERVICE::no_audio_service;
+	}
+
+	// if the audio service changed, reset format/DL/slide + switch
+	if(!eti_player->IsSameAudioService(new_audio_service)) {
+		label_format.set_label("");
+
+		frame_label_dl.set_sensitive(false);
+		label_dl.set_label("");
+
+		slideshow_window.hide();
+		slideshow_window.ClearSlide();
+
+		eti_player->SetAudioService(new_audio_service);
 	}
 }
 

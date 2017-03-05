@@ -194,7 +194,7 @@ private:
 	void AddChannels();
 	void AddChannel(dab_channels_t::const_iterator &it);
 
-	void SetService(SERVICE service);
+	void SetService(const SERVICE& service);
 
 	void on_tglbtn_mute();
 	void on_tglbtn_slideshow();

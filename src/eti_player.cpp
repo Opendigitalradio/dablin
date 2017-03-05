@@ -42,6 +42,12 @@ ETIPlayer::~ETIPlayer() {
 	delete out;
 }
 
+bool ETIPlayer::IsSameAudioService(const AUDIO_SERVICE& service) {
+	std::lock_guard<std::mutex> lock(status_mutex);
+
+	return service_now == service;
+}
+
 void ETIPlayer::SetAudioService(const AUDIO_SERVICE& service) {
 	std::lock_guard<std::mutex> lock(status_mutex);
 

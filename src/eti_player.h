@@ -76,6 +76,7 @@ public:
 
 	void ProcessFrame(const uint8_t *data);
 
+	bool IsSameAudioService(const AUDIO_SERVICE& service);
 	void SetAudioService(const AUDIO_SERVICE& service);
 	void SetAudioMute(bool audio_mute) {out->SetAudioMute(audio_mute);}
 };
