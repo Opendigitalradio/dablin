@@ -58,12 +58,12 @@ struct FIC_LABEL {
 
 	FIC_LABEL() : charset(-1), short_label_mask(0x0000) {}
 
-    bool operator==(const FIC_LABEL & fic_label) const {
-        return charset == fic_label.charset && !memcmp(label, fic_label.label, sizeof(label)) && short_label_mask == fic_label.short_label_mask;
-    }
-    bool operator!=(const FIC_LABEL & fic_label) const {
-    	return !(*this == fic_label);
-    }
+	bool operator==(const FIC_LABEL & fic_label) const {
+		return charset == fic_label.charset && !memcmp(label, fic_label.label, sizeof(label)) && short_label_mask == fic_label.short_label_mask;
+	}
+	bool operator!=(const FIC_LABEL & fic_label) const {
+		return !(*this == fic_label);
+	}
 };
 
 struct ENSEMBLE {
