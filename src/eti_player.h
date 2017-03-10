@@ -41,9 +41,9 @@ class ETIPlayerObserver {
 public:
 	virtual ~ETIPlayerObserver() {};
 
-	virtual void ETIChangeFormat(const std::string& format) {};
-	virtual void ETIProcessFIC(const uint8_t *data, size_t len) {};
-	virtual void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, uint16_t fpad) {};
+	virtual void ETIChangeFormat(const std::string& /*format*/) {};
+	virtual void ETIProcessFIC(const uint8_t* /*data*/, size_t /*len*/) {};
+	virtual void ETIProcessPAD(const uint8_t* /*xpad_data*/, size_t /*xpad_len*/, bool /*exact_xpad_len*/, uint16_t /*fpad*/) {};
 	virtual void ETIResetPAD() {};
 };
 

@@ -91,8 +91,8 @@ class FICDecoderObserver {
 public:
 	virtual ~FICDecoderObserver() {};
 
-	virtual void FICChangeEnsemble(const ENSEMBLE& ensemble) {};
-	virtual void FICChangeService(const SERVICE& service) {};
+	virtual void FICChangeEnsemble(const ENSEMBLE& /*ensemble*/) {};
+	virtual void FICChangeService(const SERVICE& /*service*/) {};
 };
 
 

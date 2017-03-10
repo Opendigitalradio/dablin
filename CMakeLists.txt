@@ -54,6 +54,7 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
     add_compile_options(-std=c++0x)
     add_compile_options(-Wall)
+    add_compile_options(-Wextra)
 elseif(MSVC)
     # TODO
 endif()

@@ -39,7 +39,7 @@ class ETISourceObserver {
 public:
 	virtual ~ETISourceObserver() {};
 
-	virtual void ETIProcessFrame(const uint8_t *data, size_t count, size_t total) {};
+	virtual void ETIProcessFrame(const uint8_t* /*data*/, size_t /*count*/, size_t /*total*/) {};
 };
 
 

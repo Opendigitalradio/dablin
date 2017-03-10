@@ -20,7 +20,7 @@
 
 static DABlinText *dablin = NULL;
 
-static void break_handler(int param) {
+static void break_handler(int) {
 	fprintf(stderr, "...DABlin exits...\n");
 	if(dablin)
 		dablin->DoExit();

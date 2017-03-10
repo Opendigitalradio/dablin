@@ -173,8 +173,8 @@ class PADDecoderObserver {
 public:
 	virtual ~PADDecoderObserver() {};
 
-	virtual void PADChangeDynamicLabel(const DL_STATE& dl) {};
-	virtual void PADChangeSlide(const MOT_FILE& slide) {};
+	virtual void PADChangeDynamicLabel(const DL_STATE& /*dl*/) {};
+	virtual void PADChangeSlide(const MOT_FILE& /*slide*/) {};
 };
 
 
