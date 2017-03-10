@@ -47,6 +47,10 @@ int main(int argc, char **argv) {
 		perror("DABlin: error while setting SIGINT handler");
 		return 1;
 	}
+	if(signal(SIGTERM, break_handler) == SIG_ERR) {
+		perror("DABlin: error while setting SIGTERM handler");
+		return 1;
+	}
 
 	DABlinTextOptions options;
 
