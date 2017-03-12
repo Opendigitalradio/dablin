@@ -181,7 +181,7 @@ keyboard shortcut `m` to toggle muting the audio.
 
 ## Status output
 
-During (re-)synchronisation status messages are output. Also dropped
+During (re-)synchronisation status messages are shown. Also dropped
 Superframes or AU are mentioned.
 
 If the Reed Solomon FEC was used to correct bytes of a Superframe, this
@@ -190,6 +190,9 @@ shorter format is used as those messages occure several times with
 borderline reception. The digit refers to the number of corrected bytes
 within the Superframe while a plus (if present) indicates that at least
 one byte was incorrectable.
+
+When a FIB is discarded (due to failed CRC check), this is indicated by a
+`(FIB)` message in yellow color.
 
 Audio Units (AUs) with invalid CRC are mentioned with short format
 messages like `(AU #2)` in red color, indicating that the CRC check on
