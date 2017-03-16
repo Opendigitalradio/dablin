@@ -19,33 +19,15 @@
 #include "sdl_output.h"
 
 static void sdl_audio_callback(void *userdata, Uint8 *stream, int len) {
-	SDLOutputCallbackData *cb_data = (SDLOutputCallbackData*) userdata;
-
-	// audio
-	int filled = cb_data->audio_source->GetAudio(stream, len, cb_data->silence);
-	if(filled && cb_data->silence_len) {
-		fprintf(stderr, "SDLOutput: silence ended (%d bytes)\n", cb_data->silence_len);
-		cb_data->silence_len = 0;
-	}
-
-	// silence, if needed
-	if(filled < len) {
-		int bytes = len - filled;
-		memset(stream + filled, cb_data->silence, bytes);
-
-		if(cb_data->silence_len == 0)
-			fprintf(stderr, "SDLOutput: silence started...\n");
-		cb_data->silence_len += bytes;
-	}
+	AudioSource* audio_source = (AudioSource*) userdata;
+	audio_source->AudioCallback(stream, len);
 }
 
 
 // --- SDLOutput -----------------------------------------------------------------
 SDLOutput::SDLOutput() : AudioOutput() {
-	cb_data.audio_source = this;
-	cb_data.silence_len = 0;
-
 	audio_device = 0;
+	silence_len = 0;
 
 	samplerate = 0;
 	channels = 0;
@@ -115,7 +97,7 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 	desired.channels = channels;
 	desired.samples = 0;
 	desired.callback = sdl_audio_callback;
-	desired.userdata = &cb_data;
+	desired.userdata = (AudioSource*) this;
 
 	audio_device = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
 	if(!audio_device)
@@ -129,7 +111,7 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 			obtained.silence,
 			float32 ? "32bit float" : "16bit integer");
 
-	cb_data.silence = obtained.silence;
+	audio_spec = obtained;
 
 	SDL_PauseAudioDevice(audio_device, 0);
 }
@@ -162,7 +144,26 @@ void SDLOutput::SetAudioMute(bool audio_mute) {
 	this->audio_mute = audio_mute;
 }
 
-size_t SDLOutput::GetAudio(uint8_t *data, size_t len, uint8_t silence) {
+void SDLOutput::AudioCallback(Uint8* stream, int len) {
+	// audio
+	int filled = GetAudio(stream, len);
+	if(filled && silence_len) {
+		fprintf(stderr, "SDLOutput: silence ended (%d bytes)\n", silence_len);
+		silence_len = 0;
+	}
+
+	// silence, if needed
+	if(filled < len) {
+		int bytes = len - filled;
+		memset(stream + filled, audio_spec.silence, bytes);
+
+		if(silence_len == 0)
+			fprintf(stderr, "SDLOutput: silence started...\n");
+		silence_len += bytes;
+	}
+}
+
+size_t SDLOutput::GetAudio(uint8_t *data, size_t len) {
 	std::lock_guard<std::mutex> lock(audio_buffer_mutex);
 
 	if(audio_start_buffer_size && audio_buffer->Size() >= audio_start_buffer_size)
@@ -171,7 +172,7 @@ size_t SDLOutput::GetAudio(uint8_t *data, size_t len, uint8_t silence) {
 	if(audio_mute || audio_start_buffer_size) {
 		if(audio_start_buffer_size == 0)
 			audio_buffer->Read(NULL, len);
-		memset(data, silence, len);
+		memset(data, audio_spec.silence, len);
 		return len;
 	}
 

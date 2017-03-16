@@ -34,22 +34,16 @@ class AudioSource {
 public:
 	virtual ~AudioSource() {};
 
-	virtual size_t GetAudio(uint8_t *data, size_t len, uint8_t silence) = 0;
+	virtual void AudioCallback(Uint8* /*stream*/, int /*len*/) = 0;
 };
 
-
-struct SDLOutputCallbackData {
-	AudioSource *audio_source;
-
-	uint8_t silence;
-	int silence_len;
-};
 
 // --- SDLOutput -----------------------------------------------------------------
 class SDLOutput : public AudioOutput, AudioSource {
 private:
-	SDLOutputCallbackData cb_data;
 	SDL_AudioDeviceID audio_device;
+	SDL_AudioSpec audio_spec;
+	int silence_len;
 
 	int samplerate;
 	int channels;
@@ -60,7 +54,8 @@ private:
 	size_t audio_start_buffer_size;
 	bool audio_mute;
 
-	size_t GetAudio(uint8_t *data, size_t len, uint8_t silence);
+	void AudioCallback(Uint8* stream, int len);
+	size_t GetAudio(uint8_t *data, size_t len);
 	void StopAudio();
 	void SetAudioStartBufferSize();
 public:
