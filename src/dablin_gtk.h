@@ -182,6 +182,7 @@ private:
 	Gtk::Label label_format;
 
 	Gtk::ToggleButton tglbtn_mute;
+	Gtk::VolumeButton vlmbtn;
 	Gtk::ToggleButton tglbtn_slideshow;
 
 	Gtk::Frame frame_label_dl;
@@ -197,6 +198,7 @@ private:
 	void SetService(const SERVICE& service);
 
 	void on_tglbtn_mute();
+	void on_vlmbtn(double value);
 	void on_tglbtn_slideshow();
 	void on_combo_channels();
 	void on_combo_services();

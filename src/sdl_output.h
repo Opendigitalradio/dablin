@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <cstdint>
 #include <mutex>
+#include <vector>
 
 #include "SDL.h"
 
@@ -52,7 +53,9 @@ private:
 	std::mutex audio_buffer_mutex;
 	CircularBuffer *audio_buffer;
 	size_t audio_start_buffer_size;
+	std::vector<uint8_t> audio_mix_buffer;
 	bool audio_mute;
+	double audio_volume;
 
 	void AudioCallback(Uint8* stream, int len);
 	size_t GetAudio(uint8_t *data, size_t len);
@@ -65,6 +68,8 @@ public:
 	void StartAudio(int samplerate, int channels, bool float32);
 	void PutAudio(const uint8_t *data, size_t len);
 	void SetAudioMute(bool audio_mute);
+	void SetAudioVolume(double audio_volume);
+	bool HasAudioVolumeControl() {return true;}
 };
 
 #endif /* SDL_OUTPUT_H_ */

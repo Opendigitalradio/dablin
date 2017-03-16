@@ -43,6 +43,8 @@ public:
 	void StartAudio(int samplerate, int channels, bool float32);
 	void PutAudio(const uint8_t *data, size_t len);
 	void SetAudioMute(bool audio_mute);
+	void SetAudioVolume(double) {}
+	bool HasAudioVolumeControl() {return false;}
 };
 
 #endif /* PCM_OUTPUT_H_ */

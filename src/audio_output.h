@@ -27,9 +27,12 @@ class AudioOutput {
 public:
 	virtual ~AudioOutput() {}
 
-	virtual void StartAudio(int samplerate, int channels, bool float32) = 0;
-	virtual void PutAudio(const uint8_t *data, size_t len) = 0;
-	virtual void SetAudioMute(bool audio_mute) = 0;
+	virtual void StartAudio(int /*samplerate*/, int /*channels*/, bool /*float32*/) = 0;
+	virtual void PutAudio(const uint8_t* /*data*/, size_t /*len*/) = 0;
+
+	virtual void SetAudioMute(bool /*audio_mute*/) = 0;
+	virtual void SetAudioVolume(double /*audio_volume*/) = 0;
+	virtual bool HasAudioVolumeControl() = 0;
 };
 
 

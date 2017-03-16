@@ -251,6 +251,10 @@ void DABlinGTK::InitWidgets() {
 	tglbtn_mute.set_label("Mute");
 	tglbtn_mute.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_mute));
 
+	vlmbtn.set_value(1.0);
+	vlmbtn.set_sensitive(eti_player->HasAudioVolumeControl());
+	vlmbtn.signal_value_changed().connect(sigc::mem_fun(*this, &DABlinGTK::on_vlmbtn));
+
 	tglbtn_slideshow.set_label("Slideshow");
 	tglbtn_slideshow.set_active(!options.initially_disable_slideshow);
 	tglbtn_slideshow.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_slideshow));
@@ -280,9 +284,10 @@ void DABlinGTK::InitWidgets() {
 	top_grid.attach_next_to(frame_combo_services, frame_label_ensemble, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(frame_label_format, frame_combo_services, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(tglbtn_mute, frame_label_format, Gtk::POS_RIGHT, 1, 1);
-	top_grid.attach_next_to(tglbtn_slideshow, tglbtn_mute, Gtk::POS_BOTTOM, 1, 1);
-	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 5, 1);
-	top_grid.attach_next_to(progress_position, frame_label_dl, Gtk::POS_BOTTOM, 5, 1);
+	top_grid.attach_next_to(vlmbtn, tglbtn_mute, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach_next_to(tglbtn_slideshow, tglbtn_mute, Gtk::POS_BOTTOM, 2, 1);
+	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 6, 1);
+	top_grid.attach_next_to(progress_position, frame_label_dl, Gtk::POS_BOTTOM, 6, 1);
 
 	show_all_children();
 	progress_position.hide();	// invisible until progress updated
@@ -354,6 +359,14 @@ void DABlinGTK::SetService(const SERVICE& service) {
 
 void DABlinGTK::on_tglbtn_mute() {
 	eti_player->SetAudioMute(tglbtn_mute.get_active());
+}
+
+void DABlinGTK::on_vlmbtn(double value) {
+	eti_player->SetAudioVolume(value);
+
+	// disable mute, if needed
+	if(tglbtn_mute.get_active())
+		tglbtn_mute.clicked();
 }
 
 void DABlinGTK::on_tglbtn_slideshow() {

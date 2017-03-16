@@ -36,6 +36,8 @@ SDLOutput::SDLOutput() : AudioOutput() {
 	audio_buffer = NULL;
 	audio_start_buffer_size = 0;
 	audio_mute = false;
+	audio_volume = 1.0;
+
 
 	// init SDL
 	if(SDL_Init(SDL_INIT_AUDIO))
@@ -144,6 +146,11 @@ void SDLOutput::SetAudioMute(bool audio_mute) {
 	this->audio_mute = audio_mute;
 }
 
+void SDLOutput::SetAudioVolume(double audio_volume) {
+	std::lock_guard<std::mutex> lock(audio_buffer_mutex);
+	this->audio_volume = audio_volume;
+}
+
 void SDLOutput::AudioCallback(Uint8* stream, int len) {
 	// audio
 	int filled = GetAudio(stream, len);
@@ -169,12 +176,24 @@ size_t SDLOutput::GetAudio(uint8_t *data, size_t len) {
 	if(audio_start_buffer_size && audio_buffer->Size() >= audio_start_buffer_size)
 		audio_start_buffer_size = 0;
 
-	if(audio_mute || audio_start_buffer_size) {
+	// output silence, if needed
+	if(audio_volume == 0.0 || audio_mute || audio_start_buffer_size) {
 		if(audio_start_buffer_size == 0)
 			audio_buffer->Read(NULL, len);
 		memset(data, audio_spec.silence, len);
 		return len;
 	}
 
-	return audio_buffer->Read(data, len);
+	// output buffer, if full volume
+	if(audio_volume == 1.0)
+		return audio_buffer->Read(data, len);
+
+	// output buffer after volume adjustment
+	audio_mix_buffer.resize(len);
+	size_t got_len = audio_buffer->Read(&audio_mix_buffer[0], len);
+
+	memset(data, audio_spec.silence, got_len);
+	SDL_MixAudioFormat(data, &audio_mix_buffer[0], audio_spec.format, got_len, SDL_MIX_MAXVOLUME * audio_volume);
+
+	return got_len;
 }

@@ -79,6 +79,8 @@ public:
 	bool IsSameAudioService(const AUDIO_SERVICE& service);
 	void SetAudioService(const AUDIO_SERVICE& service);
 	void SetAudioMute(bool audio_mute) {out->SetAudioMute(audio_mute);}
+	void SetAudioVolume(double audio_volume) {out->SetAudioVolume(audio_volume);}
+	bool HasAudioVolumeControl() {return out->HasAudioVolumeControl();}
 };
 
 
