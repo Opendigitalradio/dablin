@@ -20,7 +20,7 @@
 #define SDL_OUTPUT_H_
 
 #include <stdexcept>
-#include <cstdint>
+#include <stdint.h>
 #include <mutex>
 #include <vector>
 

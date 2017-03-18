@@ -19,9 +19,9 @@
 #ifndef MOT_MANAGER_H_
 #define MOT_MANAGER_H_
 
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #include <map>
 #include <vector>
 

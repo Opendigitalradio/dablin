@@ -19,8 +19,8 @@
 #ifndef ETI_PLAYER_H_
 #define ETI_PLAYER_H_
 
-#include <cstdio>
-#include <cstdint>
+#include <stdio.h>
+#include <stdint.h>
 #include <mutex>
 #include <string>
 #include <thread>

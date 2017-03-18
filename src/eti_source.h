@@ -24,9 +24,9 @@
 
 #define DAB2ETI_AUTO_GAIN -10000
 
-#include <cstdio>
-#include <cstdint>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <mutex>
 #include <string>
 #include <thread>

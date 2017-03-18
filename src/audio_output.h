@@ -19,7 +19,7 @@
 #ifndef AUDIO_OUTPUT_H_
 #define AUDIO_OUTPUT_H_
 
-#include <cstring>
+#include <string.h>
 
 
 // --- AudioOutput -----------------------------------------------------------------

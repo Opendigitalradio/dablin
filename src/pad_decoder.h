@@ -19,8 +19,8 @@
 #ifndef PAD_DECODER_H_
 #define PAD_DECODER_H_
 
-#include <cstdint>
-#include <cstring>
+#include <stdint.h>
+#include <string.h>
 #include <list>
 #include <map>
 #include <mutex>

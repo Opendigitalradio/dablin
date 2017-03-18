@@ -20,8 +20,8 @@
 #define TOOLS_H_
 
 #include <algorithm>
-#include <cstdint>
-#include <cstring>
+#include <stdint.h>
+#include <string.h>
 #include <map>
 
 

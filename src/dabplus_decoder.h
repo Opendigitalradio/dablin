@@ -19,9 +19,9 @@
 #ifndef DABPLUS_DECODER_H_
 #define DABPLUS_DECODER_H_
 
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
+#include <stdint.h>
+#include <string.h>
+#include <stdio.h>
 #include <stdexcept>
 #include <sstream>
 

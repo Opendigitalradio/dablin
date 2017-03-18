@@ -19,9 +19,9 @@
 #ifndef DAB_DECODER_H_
 #define DAB_DECODER_H_
 
-#include <cstdio>
-#include <cstdint>
-#include <cstring>
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 #include <stdexcept>
 #include <sstream>
 

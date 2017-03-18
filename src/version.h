@@ -19,7 +19,7 @@
 #ifndef VERSION_H_
 #define VERSION_H_
 
-#include <cstdio>
+#include <stdio.h>
 
 // usually externally derived from git
 #ifndef DABLIN_VERSION

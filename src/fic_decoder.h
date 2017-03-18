@@ -19,8 +19,8 @@
 #ifndef FIC_DECODER_H_
 #define FIC_DECODER_H_
 
-#include <cstdio>
-#include <cstdint>
+#include <stdio.h>
+#include <stdint.h>
 #include <mutex>
 #include <string>
 #include <map>

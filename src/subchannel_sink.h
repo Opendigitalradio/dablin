@@ -19,7 +19,7 @@
 #ifndef SUBCHANNEL_SINK_H_
 #define SUBCHANNEL_SINK_H_
 
-#include <cstdint>
+#include <stdint.h>
 #include <string>
 
 #define FPAD_LEN 2

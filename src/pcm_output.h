@@ -20,8 +20,8 @@
 #define PCM_OUTPUT_H_
 
 #include <sstream>
-#include <cstdint>
-#include <cstdio>
+#include <stdint.h>
+#include <stdio.h>
 #include <mutex>
 
 #include "audio_output.h"
