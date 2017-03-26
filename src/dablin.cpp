@@ -34,6 +34,8 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source)\n");
 	fprintf(stderr, "  -s <sid>      ID of the service to be played\n");
+	fprintf(stderr, "  -r <subchid>  ID of the subchannel (DAB) to be played\n");
+	fprintf(stderr, "  -R <subchid>  ID of the subchannel (DAB+) to be played\n");
 	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto_gain is default)\n");
 	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
@@ -53,10 +55,11 @@ int main(int argc, char **argv) {
 	}
 
 	DABlinTextOptions options;
+	int id_param_count = 0;
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hc:d:g:s:p")) != -1) {
+	while((c = getopt(argc, argv, "hc:d:g:s:pr:R:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -69,6 +72,15 @@ int main(int argc, char **argv) {
 			break;
 		case 's':
 			options.initial_sid = strtol(optarg, NULL, 0);
+			id_param_count++;
+			break;
+		case 'r':
+			options.initial_subchid_dab = strtol(optarg, NULL, 0);
+			id_param_count++;
+			break;
+		case 'R':
+			options.initial_subchid_dab_plus = strtol(optarg, NULL, 0);
+			id_param_count++;
 			break;
 		case 'g':
 			options.gain = strtol(optarg, NULL, 0);
@@ -121,9 +133,9 @@ int main(int argc, char **argv) {
 #endif
 
 
-	// SID needed!
-	if(options.initial_sid == -1) {
-		fprintf(stderr, "A service ID must be selected!\n");
+	// exactly one SId/SubChId needed!
+	if(id_param_count != 1) {
+		fprintf(stderr, "Exactly one SId or SubChId must be specified!\n");
 		usage(argv[0]);
 	}
 
@@ -148,6 +160,20 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 
 	eti_player = new ETIPlayer(options.pcm_output, this);
 
+	// set initial subchannel, if desired
+	if(options.initial_subchid_dab != -1) {
+		eti_player->SetAudioService(AUDIO_SERVICE(options.initial_subchid_dab, false));
+
+		// set XTerm window title to subchannel number
+		fprintf(stderr, "\x1B]0;" "Subchannel %d (DAB) - DABlin" "\a", options.initial_subchid_dab);
+	}
+	if(options.initial_subchid_dab_plus != -1) {
+		eti_player->SetAudioService(AUDIO_SERVICE(options.initial_subchid_dab_plus, true));
+
+		// set XTerm window title to subchannel number
+		fprintf(stderr, "\x1B]0;" "Subchannel %d (DAB+) - DABlin" "\a", options.initial_subchid_dab_plus);
+	}
+
 	if(options.dab2eti_binary.empty())
 		eti_source = new ETISource(options.filename, this);
 	else
@@ -166,7 +192,8 @@ DABlinText::~DABlinText() {
 void DABlinText::FICChangeService(const SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
 
-	if(service.sid == options.initial_sid) {
+	// set initial service, if desired
+	if(options.initial_sid != -1 && service.sid == options.initial_sid) {
 		eti_player->SetAudioService(service.service);
 
 		// set XTerm window title to service name

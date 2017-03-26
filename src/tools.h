@@ -74,6 +74,7 @@ struct AUDIO_SERVICE {
 	static const AUDIO_SERVICE no_audio_service;
 
 	AUDIO_SERVICE() : subchid(-1), dab_plus(false) {}
+	AUDIO_SERVICE(int subchid, bool dab_plus) : subchid(subchid), dab_plus(dab_plus) {}
 
 	bool operator==(const AUDIO_SERVICE & audio_service) const {
 		return subchid == audio_service.subchid && dab_plus == audio_service.dab_plus;

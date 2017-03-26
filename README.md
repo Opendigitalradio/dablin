@@ -163,6 +163,10 @@ to specify the path to the `dab2eti` binary and the desired channel.
 dablin -d ~/bin/dab2eti -c 11D -s 0xd911
 ```
 
+With the console version, instead of the desired service it is also
+possible to directly request a specific subchannel by using `-r` (for
+DAB) or `-R` (for DAB+).
+
 In case of the GTK GUI version the desired channel may not be specified. To
 avoid the huge channel list containing all possible DAB channels, one
 can also state the desired channels (separated by comma) which shall be

@@ -32,11 +32,13 @@
 struct DABlinTextOptions {
 	std::string filename;
 	int initial_sid;
+	int initial_subchid_dab;
+	int initial_subchid_dab_plus;
 	std::string dab2eti_binary;
 	std::string initial_channel;
 	bool pcm_output;
 	int gain;
-DABlinTextOptions() : initial_sid(-1), pcm_output(false), gain(DAB2ETI_AUTO_GAIN) {}
+DABlinTextOptions() : initial_sid(-1), initial_subchid_dab(-1), initial_subchid_dab_plus(-1), pcm_output(false), gain(DAB2ETI_AUTO_GAIN) {}
 };
 
 
