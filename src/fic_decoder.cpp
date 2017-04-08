@@ -265,32 +265,44 @@ void FICDecoder::CheckService(uint16_t sid) {
 }
 
 std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {
-	return ConvertTextToUTF8(label.label, sizeof(label.label), label.charset);
+	std::string result = ConvertTextToUTF8(label.label, sizeof(label.label), label.charset);
+
+	// discard trailing spaces
+	size_t last_pos = result.find_last_not_of(' ');
+	if(last_pos != std::string::npos)
+		result.resize(last_pos + 1);
+
+	return result;
 }
 
 std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int charset) {
+	// remove undesired chars
+	std::vector<uint8_t> cleaned_data;
+	for(size_t i = 0; i < len; i++) {
+		switch(data[i]) {
+		case 0x00:	// NULL
+		case 0x0A:	// PLB
+		case 0x0B:	// EoH
+		case 0x1F:	// PWB
+			continue;
+		default:
+			cleaned_data.push_back(data[i]);
+		}
+	}
+
 	std::string result;
 
-	// ignore trailing zero bytes (despite they're not allowed)
-	while(len > 0 && data[len - 1] == 0x00)
-		len--;
-
+	// convert characters
 	switch(charset) {
 	case 0:		// EBU Latin based
-		for(size_t i = 0; i < len; i++)
-			result += ConvertCharEBUToUTF8(data[i]);
+		for(size_t i = 0; i < cleaned_data.size(); i++)
+			result += ConvertCharEBUToUTF8(cleaned_data[i]);
 		break;
 	case 15:	// UTF-8
 	default:	// on unsupported charset, forward untouched
-		result = std::string((char*) data, len);
+		result = std::string((char*) &cleaned_data[0], cleaned_data.size());
 		break;
 	}
-
-	// remove leading/trailing spaces
-	while(result.size() > 0 && result[0] == ' ')
-		result.erase(0, 1);
-	while(result.size() > 0 && result[result.size() - 1] == ' ')
-		result.erase(result.size() - 1, 1);
 
 	return result;
 }
@@ -298,7 +310,7 @@ std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int c
 const char* FICDecoder::no_char = "";
 const char* FICDecoder::ebu_values_0x00_to_0x1F[] = {
 		no_char , "\u0118", "\u012E", "\u0172", "\u0102", "\u0116", "\u010E", "\u0218", "\u021A", "\u010A", no_char , no_char , "\u0120", "\u0139" , "\u017B", "\u0143",
-		"\u0105", "\u0119", "\u012F", "\u0173", "\u0103", "\u0117", "\u010F", "\u0219", "\u021B", "\u010B", "\u0147", "\u011A", "\u0121", "\u013A", "\u017C", "\u002D"
+		"\u0105", "\u0119", "\u012F", "\u0173", "\u0103", "\u0117", "\u010F", "\u0219", "\u021B", "\u010B", "\u0147", "\u011A", "\u0121", "\u013A", "\u017C", no_char
 };
 const char* FICDecoder::ebu_values_0x7B_to_0xFF[] = {
 		/* starting some chars earlier than 0x80 -----> */                                                            "\u00AB", "\u016F", "\u00BB", "\u013D", "\u0126",
