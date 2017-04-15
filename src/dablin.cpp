@@ -189,6 +189,14 @@ DABlinText::~DABlinText() {
 	delete fic_decoder;
 }
 
+void DABlinText::ETIUpdateProgress(const ETI_PROGRESS progress) {
+	// compensate cursor movement
+	std::string format = "\x1B[34m" "%s" "\x1B[0m";
+	format.append(progress.text.length(), '\b');
+
+	fprintf(stderr, format.c_str(), progress.text.c_str());
+}
+
 void DABlinText::FICChangeService(const SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
 
