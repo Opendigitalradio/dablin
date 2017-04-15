@@ -51,7 +51,7 @@ private:
 	ETIPlayer *eti_player;
 	FICDecoder *fic_decoder;
 
-	void ETIProcessFrame(const uint8_t *data, size_t /*count*/, size_t /*total*/) {eti_player->ProcessFrame(data);};
+	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);};
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
 	void FICChangeService(const SERVICE& service);
 public:

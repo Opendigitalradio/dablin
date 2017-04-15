@@ -34,12 +34,19 @@
 #include <fcntl.h>
 
 
+struct ETI_PROGRESS {
+	double value;
+	std::string text;
+};
+
+
 // --- ETISourceObserver -----------------------------------------------------------------
 class ETISourceObserver {
 public:
 	virtual ~ETISourceObserver() {};
 
-	virtual void ETIProcessFrame(const uint8_t* /*data*/, size_t /*count*/, size_t /*total*/) {};
+	virtual void ETIProcessFrame(const uint8_t* /*data*/) {};
+	virtual void ETIUpdateProgress(const ETI_PROGRESS /*progress*/) {};
 };
 
 
@@ -57,9 +64,12 @@ protected:
 	uint8_t eti_frame[6144];
 	size_t eti_frame_count;
 	size_t eti_frame_total;
+	unsigned long int eti_progress_next_ms;
 
 	bool OpenFile();
 	virtual void PrintSource();
+
+	static std::string FramecountToTimecode(size_t value);
 public:
 	ETISource(std::string filename, ETISourceObserver *observer);
 	virtual ~ETISource();

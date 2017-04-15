@@ -152,7 +152,6 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	this->options = options;
 
 	initial_channel_appended = false;
-	progress_next_ms = 0;
 
 	slideshow_window.set_transient_for(*this);
 
@@ -393,45 +392,6 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 		}
 	}
 	return false;
-}
-
-void DABlinGTK::ETIProcessFrame(const uint8_t *data, size_t count, size_t total) {
-	// if present, update progress every 500ms or at file end
-	if(total && (count * 24 >= progress_next_ms || count == total)) {
-		ETI_PROGRESS progress;
-		progress.value = (double) count / (double) total;
-		progress.text = FramecountToTimecode(count) + " / " + FramecountToTimecode(total);
-		eti_update_progress.PushAndEmit(progress);
-
-		progress_next_ms += 500;
-	}
-
-	eti_player->ProcessFrame(data);
-}
-
-std::string DABlinGTK::FramecountToTimecode(size_t value) {
-	// frame count -> time code
-	long int tc_s = value * 24 / 1000;
-
-	// split
-	int h = tc_s / 3600;
-	tc_s -= h * 3600;
-
-	int m = tc_s / 60;
-	tc_s -= m * 60;
-
-	int s = tc_s;
-
-	// generate output
-	char digits[3];
-
-	std::string result = std::to_string(h);
-	snprintf(digits, sizeof(digits), "%02d", m);
-	result += ":" + std::string(digits);
-	snprintf(digits, sizeof(digits), "%02d", s);
-	result += ":" + std::string(digits);
-
-	return result;
 }
 
 void DABlinGTK::ETIUpdateProgressEmitted() {

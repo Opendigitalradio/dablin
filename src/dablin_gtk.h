@@ -123,12 +123,6 @@ public:
 };
 
 
-struct ETI_PROGRESS {
-	double value;
-	std::string text;
-};
-
-
 // --- DABlinGTK -----------------------------------------------------------------
 class DABlinGTK : public Gtk::Window, ETISourceObserver, ETIPlayerObserver, FICDecoderObserver, PADDecoderObserver {
 private:
@@ -136,7 +130,6 @@ private:
 
 	Gtk::ListStore::iterator initial_channel_it;
 	bool initial_channel_appended;
-	unsigned long int progress_next_ms;
 
 	DABlinGTKSlideshowWindow slideshow_window;
 
@@ -150,7 +143,8 @@ private:
 
 	// ETI data change
 	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;
-	void ETIProcessFrame(const uint8_t *data, size_t count, size_t total);
+	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);};
+	void ETIUpdateProgress(const ETI_PROGRESS progress) {eti_update_progress.PushAndEmit(progress);};
 	void ETIUpdateProgressEmitted();
 
 	GTKDispatcherQueue<std::string> eti_change_format;
@@ -225,7 +219,6 @@ private:
 	void PADChangeSlideEmitted();
 
 	Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
-	static std::string FramecountToTimecode(size_t value);
 public:
 	DABlinGTK(DABlinGTKOptions options);
 	~DABlinGTK();
