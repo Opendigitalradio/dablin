@@ -263,9 +263,9 @@ RSDecoder::~RSDecoder() {
 
 void RSDecoder::DecodeSuperframe(uint8_t *sf, size_t sf_len) {
 //	// insert errors for test
-//	sf_raw[0] ^= 0xFF;
-//	sf_raw[10] ^= 0xFF;
-//	sf_raw[20] ^= 0xFF;
+//	sf[0] ^= 0xFF;
+//	sf[10] ^= 0xFF;
+//	sf[20] ^= 0xFF;
 
 	int subch_index = sf_len / 120;
 	int total_corr_count = 0;
