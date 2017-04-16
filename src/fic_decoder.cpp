@@ -18,6 +18,8 @@
 
 #include "fic_decoder.h"
 
+#include <vector>
+
 
 const SERVICE SERVICE::no_service(-1);
 
