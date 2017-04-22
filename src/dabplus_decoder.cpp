@@ -415,19 +415,36 @@ AACDecoderFDKAAC::AACDecoderFDKAAC(SubchannelSinkObserver* observer, SuperframeF
 	if(!handle)
 		throw std::runtime_error("AACDecoderFDKAAC: error while aacDecoder_Open");
 
-//	// down/upmix to stereo
-//	AAC_DECODER_ERROR init_result = aacDecoder_SetParam(handle, AAC_PCM_OUTPUT_CHANNELS, 2);
-//	if(init_result != AAC_DEC_OK)
-//		throw std::runtime_error("AACDecoderFDKAAC: error while setting parameter AAC_PCM_OUTPUT_CHANNELS: " + std::to_string(init_result));
+	int channels = sf_format.aac_channel_mode || sf_format.ps_flag ? 2 : 1;
+	AAC_DECODER_ERROR init_result;
 
+	/* Restrict output channel count to actual input channel count.
+	 *
+	 * Just using the parameter value -1 (no up-/downmix) does not work, as with
+	 * SBR and Mono the lib assumes possibly present PS and then outputs Stereo!
+	 *
+	 * Note:
+	 * Older lib versions use a combined parameter for the output channel count.
+	 */
+#ifdef AAC_PCM_OUTPUT_CHANNELS
+	init_result = aacDecoder_SetParam(handle, AAC_PCM_OUTPUT_CHANNELS, channels);
+	if(init_result != AAC_DEC_OK)
+		throw std::runtime_error("AACDecoderFDKAAC: error while setting parameter AAC_PCM_OUTPUT_CHANNELS: " + std::to_string(init_result));
+#else
+	init_result = aacDecoder_SetParam(handle, AAC_PCM_MIN_OUTPUT_CHANNELS, channels);
+	if(init_result != AAC_DEC_OK)
+		throw std::runtime_error("AACDecoderFDKAAC: error while setting parameter AAC_PCM_MIN_OUTPUT_CHANNELS: " + std::to_string(init_result));
+	init_result = aacDecoder_SetParam(handle, AAC_PCM_MAX_OUTPUT_CHANNELS, channels);
+	if(init_result != AAC_DEC_OK)
+		throw std::runtime_error("AACDecoderFDKAAC: error while setting parameter AAC_PCM_MAX_OUTPUT_CHANNELS: " + std::to_string(init_result));
+#endif
 
 	uint8_t* asc_array[1] {asc};
 	const unsigned int asc_sizeof_array[1] {(unsigned int) asc_len};
-	AAC_DECODER_ERROR init_result = aacDecoder_ConfigRaw(handle, asc_array, asc_sizeof_array);
+	init_result = aacDecoder_ConfigRaw(handle, asc_array, asc_sizeof_array);
 	if(init_result != AAC_DEC_OK)
 		throw std::runtime_error("AACDecoderFDKAAC: error while aacDecoder_ConfigRaw: " + std::to_string(init_result));
 
-	int channels = sf_format.aac_channel_mode || sf_format.ps_flag ? 2 : 1;
 	output_frame_len = 960 * 2 * channels * (sf_format.sbr_flag ? 2 : 1);
 	output_frame = new uint8_t[output_frame_len];
 
