@@ -453,7 +453,7 @@ void AACDecoderFDKAAC::DecodeFrame(uint8_t *data, size_t len) {
 
 
 	// decode audio
-	result = aacDecoder_DecodeFrame(handle, (short int*) output_frame, output_frame_len, 0);
+	result = aacDecoder_DecodeFrame(handle, (short int*) output_frame, output_frame_len / 2, 0);
 	if(result != AAC_DEC_OK)
 		throw std::runtime_error("AACDecoderFDKAAC: error while aacDecoder_DecodeFrame: " + std::to_string(result));
 
