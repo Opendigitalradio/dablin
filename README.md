@@ -63,8 +63,7 @@ and install manually.
 ### Alternative DAB+ decoder
 
 Instead of using FAAD2, DAB+ channels can be decoded with [FDK-AAC](https://github.com/mstorsjo/fdk-aac).
-You can also use the modified version [fdk-aac-dabplus](https://github.com/Opendigitalradio/fdk-aac-dabplus) of
-OpenDigitalradio itself, if already installed.
+You can also use [OpenDigitalradio's fork](https://github.com/Opendigitalradio/fdk-aac), if already installed.
 
 On Debian and Ubuntu, you can install FDK-AAC with:
 
