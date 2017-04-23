@@ -45,11 +45,16 @@ ETIPlayer::~ETIPlayer() {
 bool ETIPlayer::IsSameAudioService(const AUDIO_SERVICE& service) {
 	std::lock_guard<std::mutex> lock(status_mutex);
 
-	return service_now == service;
+	// check, if already the same present/next service (usually present == next)
+	return service_next == service;
 }
 
 void ETIPlayer::SetAudioService(const AUDIO_SERVICE& service) {
 	std::lock_guard<std::mutex> lock(status_mutex);
+
+	// abort, if already the same present/next service (usually present == next)
+	if(service_next == service)
+		return;
 
 	if(service == AUDIO_SERVICE::no_audio_service)
 		fprintf(stderr, "ETIPlayer: playing no subchannel\n");
