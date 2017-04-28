@@ -321,8 +321,7 @@ void DABlinGTK::AddChannel(dab_channels_t::const_iterator &it) {
 }
 
 void DABlinGTK::SetService(const SERVICE& service) {
-	AUDIO_SERVICE new_audio_service;
-	if(service.sid != SERVICE::no_service.sid) {
+	if(!service.IsNone()) {
 		char sid_string[7];
 		snprintf(sid_string, sizeof(sid_string), "0x%04X", service.sid);
 
@@ -332,17 +331,13 @@ void DABlinGTK::SetService(const SERVICE& service) {
 				"Short label: \"" + DeriveShortLabel(label, service.label.short_label_mask) + "\"\n"
 				"SId: " + sid_string + "\n"
 				"SubChId: " + std::to_string(service.service.subchid));
-
-		new_audio_service = service.service;
 	} else {
 		set_title("DABlin");
 		frame_combo_services.set_tooltip_text("");
-
-		new_audio_service = AUDIO_SERVICE::no_audio_service;
 	}
 
 	// if the audio service changed, reset format/DL/slide + switch
-	if(!eti_player->IsSameAudioService(new_audio_service)) {
+	if(!eti_player->IsSameAudioService(service.service)) {
 		label_format.set_label("");
 
 		frame_label_dl.set_sensitive(false);
@@ -351,7 +346,7 @@ void DABlinGTK::SetService(const SERVICE& service) {
 		slideshow_window.hide();
 		slideshow_window.ClearSlide();
 
-		eti_player->SetAudioService(new_audio_service);
+		eti_player->SetAudioService(service.service);
 	}
 }
 
@@ -473,14 +468,13 @@ void DABlinGTK::on_combo_channels() {
 }
 
 void DABlinGTK::on_combo_services() {
+	SERVICE service;	// default: none
 	Gtk::TreeModel::iterator row_it = combo_services.get_active();
 	if(combo_services_liststore->iter_is_valid(row_it)) {
 		Gtk::TreeModel::Row row = *row_it;
-		SERVICE service = row[combo_services_cols.col_service];
-		SetService(service);
-	} else {
-		SetService(SERVICE::no_service);
+		service = row[combo_services_cols.col_service];
 	}
+	SetService(service);
 }
 
 void DABlinGTK::PADChangeDynamicLabelEmitted() {

@@ -25,8 +25,6 @@ ETIPlayer::ETIPlayer(bool pcm_output, ETIPlayerObserver *observer) {
 
 	next_frame_time = std::chrono::steady_clock::now();
 
-	service_now = service_next = AUDIO_SERVICE::no_audio_service;
-
 	dec = NULL;
 
 #ifndef DABLIN_DISABLE_SDL
@@ -56,7 +54,7 @@ void ETIPlayer::SetAudioService(const AUDIO_SERVICE& service) {
 	if(service_next == service)
 		return;
 
-	if(service == AUDIO_SERVICE::no_audio_service)
+	if(service.IsNone())
 		fprintf(stderr, "ETIPlayer: playing no subchannel\n");
 	else
 		fprintf(stderr, "ETIPlayer: playing subchannel %d (%s)\n", service.subchid, service.dab_plus ? "DAB+" : "DAB");
@@ -82,7 +80,7 @@ void ETIPlayer::ProcessFrame(const uint8_t *data) {
 			observer->ETIResetPAD();
 
 			// append
-			if(service_now != AUDIO_SERVICE::no_audio_service) {
+			if(!service_now.IsNone()) {
 				if(service_now.dab_plus)
 					dec = new SuperframeFilter(this);
 				else
@@ -136,7 +134,7 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 	}
 
 	// abort here, if ATM no subchannel selected
-	if(service_now == AUDIO_SERVICE::no_audio_service)
+	if(service_now.IsNone())
 		return;
 
 	for(int i = 0; i < nst; i++) {

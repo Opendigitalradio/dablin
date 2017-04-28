@@ -52,7 +52,12 @@ struct FIC_LABEL {
 	uint8_t label[16];
 	uint16_t short_label_mask;
 
-	FIC_LABEL() : charset(-1), short_label_mask(0x0000) {}
+	static const int charset_none = -1;
+	bool IsNone() const {return charset == charset_none;}
+
+	FIC_LABEL() : charset(charset_none), short_label_mask(0x0000) {
+		memset(label, 0x00, sizeof(label));
+	}
 
 	bool operator==(const FIC_LABEL & fic_label) const {
 		return charset == fic_label.charset && !memcmp(label, fic_label.label, sizeof(label)) && short_label_mask == fic_label.short_label_mask;
@@ -63,10 +68,20 @@ struct FIC_LABEL {
 };
 
 struct ENSEMBLE {
-	uint16_t eid;
+	int eid;
 	FIC_LABEL label;
 
-	ENSEMBLE() : eid(0) {}
+	static const int eid_none = -1;
+	bool IsNone() const {return eid == eid_none;}
+
+	ENSEMBLE() : eid(eid_none) {}
+
+	bool operator==(const ENSEMBLE & ensemble) const {
+		return eid == ensemble.eid && label == ensemble.label;
+	}
+	bool operator!=(const ENSEMBLE & ensemble) const {
+		return !(*this == ensemble);
+	}
 };
 
 struct SERVICE {
@@ -74,13 +89,19 @@ struct SERVICE {
 	AUDIO_SERVICE service;
 	FIC_LABEL label;
 
-	static const SERVICE no_service;
+	static const int sid_none = -1;
+	bool IsNone() const {return sid == sid_none;}
 
-	SERVICE() : sid(0) {}
-	SERVICE(int sid) : sid(sid) {}
+	SERVICE() : sid(sid_none) {}
 
-	bool operator<(const SERVICE & complete_service) const {
-		return sid < complete_service.sid;
+	bool operator==(const SERVICE & service) const {
+		return sid == service.sid && this->service == service.service && label == service.label;
+	}
+	bool operator!=(const SERVICE & service) const {
+		return !(*this == service);
+	}
+	bool operator<(const SERVICE & service) const {
+		return sid < service.sid;
 	}
 };
 

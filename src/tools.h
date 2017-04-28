@@ -71,9 +71,10 @@ struct AUDIO_SERVICE {
 	int subchid;
 	bool dab_plus;
 
-	static const AUDIO_SERVICE no_audio_service;
+	static const int subchid_none = -1;
+	bool IsNone() const {return subchid == subchid_none;}
 
-	AUDIO_SERVICE() : subchid(-1), dab_plus(false) {}
+	AUDIO_SERVICE() : AUDIO_SERVICE(subchid_none, false) {}
 	AUDIO_SERVICE(int subchid, bool dab_plus) : subchid(subchid), dab_plus(dab_plus) {}
 
 	bool operator==(const AUDIO_SERVICE & audio_service) const {

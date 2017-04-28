@@ -19,8 +19,6 @@
 #include "fic_decoder.h"
 
 
-const SERVICE SERVICE::no_service(-1);
-
 // --- FICDecoder -----------------------------------------------------------------
 FICDecoder::FICDecoder(FICDecoderObserver *observer) {
 	this->observer = observer;
@@ -144,11 +142,7 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len, const FIG0_HEADE
 						bool dab_plus = ascty == 63;
 
 						if(audio_services.find(sid_prog) == audio_services.end()) {
-							AUDIO_SERVICE service;
-							service.subchid = subchid;
-							service.dab_plus = dab_plus;
-
-							audio_services[sid_prog] = service;
+							audio_services[sid_prog] = AUDIO_SERVICE(subchid, dab_plus);
 
 							fprintf(stderr, "FICDecoder: found new audio service: SId 0x%04X, subchannel %2d, %s\n", sid_prog, subchid, dab_plus ? "DAB+" : "DAB");
 
