@@ -240,9 +240,9 @@ void FICDecoder::CheckService(uint16_t sid) {
 	if(known_services.find(sid) != known_services.end())
 		return;
 
-	// abort, if service or label not found
-	audio_services_t::const_iterator services_it = audio_services.find(sid);
-	if(services_it == audio_services.cend())
+	// abort, if audio service or label not found
+	audio_services_t::const_iterator audio_services_it = audio_services.find(sid);
+	if(audio_services_it == audio_services.cend())
 		return;
 	labels_t::const_iterator labels_it = labels.find(sid);
 	if(labels_it == labels.cend())
@@ -252,7 +252,7 @@ void FICDecoder::CheckService(uint16_t sid) {
 
 	SERVICE new_service;
 	new_service.sid = sid;
-	new_service.service = services_it->second;
+	new_service.audio_service = audio_services_it->second;
 	new_service.label = labels_it->second;
 
 	observer->FICChangeService(new_service);

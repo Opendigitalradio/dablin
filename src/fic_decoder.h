@@ -86,7 +86,7 @@ struct ENSEMBLE {
 
 struct SERVICE {
 	int sid;
-	AUDIO_SERVICE service;
+	AUDIO_SERVICE audio_service;
 	FIC_LABEL label;
 
 	static const int sid_none = -1;
@@ -95,7 +95,7 @@ struct SERVICE {
 	SERVICE() : sid(sid_none) {}
 
 	bool operator==(const SERVICE & service) const {
-		return sid == service.sid && this->service == service.service && label == service.label;
+		return sid == service.sid && audio_service == service.audio_service && label == service.label;
 	}
 	bool operator!=(const SERVICE & service) const {
 		return !(*this == service);

@@ -330,14 +330,14 @@ void DABlinGTK::SetService(const SERVICE& service) {
 		frame_combo_services.set_tooltip_text(
 				"Short label: \"" + DeriveShortLabel(label, service.label.short_label_mask) + "\"\n"
 				"SId: " + sid_string + "\n"
-				"SubChId: " + std::to_string(service.service.subchid));
+				"SubChId: " + std::to_string(service.audio_service.subchid));
 	} else {
 		set_title("DABlin");
 		frame_combo_services.set_tooltip_text("");
 	}
 
 	// if the audio service changed, reset format/DL/slide + switch
-	if(!eti_player->IsSameAudioService(service.service)) {
+	if(!eti_player->IsSameAudioService(service.audio_service)) {
 		label_format.set_label("");
 
 		frame_label_dl.set_sensitive(false);
@@ -346,7 +346,7 @@ void DABlinGTK::SetService(const SERVICE& service) {
 		slideshow_window.hide();
 		slideshow_window.ClearSlide();
 
-		eti_player->SetAudioService(service.service);
+		eti_player->SetAudioService(service.audio_service);
 	}
 }
 
@@ -429,11 +429,11 @@ void DABlinGTK::FICChangeServiceEmitted() {
 	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(new_service.label);
 
 //	std::stringstream ss;
-//	ss << "'" << label << "' - Subchannel " << new_service.service.subchid << " " << (new_service.service.dab_plus ? "(DAB+)" : "(DAB)");
+//	ss << "'" << label << "' - Subchannel " << new_service.audio_service.subchid << " " << (new_service.audio_service.dab_plus ? "(DAB+)" : "(DAB)");
 
 	Gtk::ListStore::iterator row_it = combo_services_liststore->append();
 	Gtk::TreeModel::Row row = *row_it;
-	row[combo_services_cols.col_sort] = (new_service.service.subchid << 16) | new_service.sid;
+	row[combo_services_cols.col_sort] = (new_service.audio_service.subchid << 16) | new_service.sid;
 	row[combo_services_cols.col_string] = label;
 	row[combo_services_cols.col_service] = new_service;
 

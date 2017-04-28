@@ -202,7 +202,7 @@ void DABlinText::FICChangeService(const SERVICE& service) {
 
 	// set initial service, if desired
 	if(options.initial_sid != -1 && service.sid == options.initial_sid) {
-		eti_player->SetAudioService(service.service);
+		eti_player->SetAudioService(service.audio_service);
 
 		// set XTerm window title to service name
 		std::string label = FICDecoder::ConvertLabelToUTF8(service.label);

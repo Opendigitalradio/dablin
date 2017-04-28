@@ -56,8 +56,8 @@ private:
 	std::chrono::steady_clock::time_point next_frame_time;
 
 	std::mutex status_mutex;
-	AUDIO_SERVICE service_now;
-	AUDIO_SERVICE service_next;
+	AUDIO_SERVICE audio_service_now;
+	AUDIO_SERVICE audio_service_next;
 
 	uint8_t xpad[256];	// limit never reached by longest possible X-PAD
 	SubchannelSink *dec;
@@ -76,8 +76,8 @@ public:
 
 	void ProcessFrame(const uint8_t *data);
 
-	bool IsSameAudioService(const AUDIO_SERVICE& service);
-	void SetAudioService(const AUDIO_SERVICE& service);
+	bool IsSameAudioService(const AUDIO_SERVICE& audio_service);
+	void SetAudioService(const AUDIO_SERVICE& audio_service);
 	void SetAudioMute(bool audio_mute) {out->SetAudioMute(audio_mute);}
 	void SetAudioVolume(double audio_volume) {out->SetAudioVolume(audio_volume);}
 	bool HasAudioVolumeControl() {return out->HasAudioVolumeControl();}
