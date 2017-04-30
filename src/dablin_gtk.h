@@ -19,6 +19,7 @@
 #ifndef DABLIN_GTK_H_
 #define DABLIN_GTK_H_
 
+#include <algorithm>
 #include <mutex>
 #include <queue>
 #include <signal.h>

@@ -441,13 +441,29 @@ void DABlinGTK::FICChangeServiceEmitted() {
 //	std::stringstream ss;
 //	ss << "'" << label << "' - Subchannel " << new_service.audio_service.subchid << " " << (new_service.audio_service.dab_plus ? "(DAB+)" : "(DAB)");
 
-	Gtk::ListStore::iterator row_it = combo_services_liststore->append();
+	// get row (add new one, if needed)
+	Gtk::ListStore::Children children = combo_services_liststore->children();
+	Gtk::ListStore::iterator row_it = std::find_if(
+			children.begin(), children.end(),
+			[&](const Gtk::TreeModel::Row& row)->bool {return ((SERVICE) row[combo_services_cols.col_service]).sid == new_service.sid;}
+	);
+	bool add_new_row = row_it == children.end();
+	if(add_new_row)
+		row_it = combo_services_liststore->append();
+
 	Gtk::TreeModel::Row row = *row_it;
 	row[combo_services_cols.col_string] = label;
 	row[combo_services_cols.col_service] = new_service;
 
-	if(new_service.sid == options.initial_sid)
-		combo_services.set_active(row_it);
+	if(add_new_row) {
+		// set (initial) service
+		if(new_service.sid == options.initial_sid)
+			combo_services.set_active(row_it);
+	} else {
+		// set (updated) service
+		if(combo_services.get_active() == row_it)
+			SetService(new_service);
+	}
 }
 
 void DABlinGTK::on_combo_channels() {

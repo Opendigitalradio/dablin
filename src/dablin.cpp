@@ -200,12 +200,15 @@ void DABlinText::ETIUpdateProgress(const ETI_PROGRESS progress) {
 void DABlinText::FICChangeService(const SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
 
-	// set initial service, if desired
-	if(options.initial_sid != -1 && service.sid == options.initial_sid) {
+	// abort, if no/not initial service
+	if(options.initial_sid == -1 || service.sid != options.initial_sid)
+		return;
+
+	// if the audio service changed, switch
+	if(!eti_player->IsSameAudioService(service.audio_service))
 		eti_player->SetAudioService(service.audio_service);
 
-		// set XTerm window title to service name
-		std::string label = FICDecoder::ConvertLabelToUTF8(service.label);
-		fprintf(stderr, "\x1B]0;" "%s - DABlin" "\a", label.c_str());
-	}
+	// set XTerm window title to service name
+	std::string label = FICDecoder::ConvertLabelToUTF8(service.label);
+	fprintf(stderr, "\x1B]0;" "%s - DABlin" "\a", label.c_str());
 }
