@@ -203,6 +203,15 @@ DABlinGTK::~DABlinGTK() {
 	delete fic_decoder;
 }
 
+int DABlinGTK::ComboServicesSlotCompare(const Gtk::TreeModel::iterator& a, const Gtk::TreeModel::iterator& b) {
+	const SERVICE& service_a = (SERVICE) (*a)[combo_services_cols.col_service];
+	const SERVICE& service_b = (SERVICE) (*b)[combo_services_cols.col_service];
+
+	if(service_a == service_b)
+		return 0;
+	return service_a < service_b ? -1 : 1;
+}
+
 void DABlinGTK::InitWidgets() {
 	// init widgets
 	frame_combo_channels.set_label("Channel");
@@ -233,7 +242,8 @@ void DABlinGTK::InitWidgets() {
 	frame_combo_services.add(combo_services);
 
 	combo_services_liststore = Gtk::ListStore::create(combo_services_cols);
-	combo_services_liststore->set_sort_column(combo_services_cols.col_sort, Gtk::SORT_ASCENDING);
+	combo_services_liststore->set_default_sort_func(sigc::mem_fun(*this, &DABlinGTK::ComboServicesSlotCompare));
+	combo_services_liststore->set_sort_column(Gtk::TreeSortable::DEFAULT_SORT_COLUMN_ID, Gtk::SORT_ASCENDING);
 
 	combo_services.signal_changed().connect(sigc::mem_fun(*this, &DABlinGTK::on_combo_services));
 	combo_services.set_model(combo_services_liststore);
@@ -433,7 +443,6 @@ void DABlinGTK::FICChangeServiceEmitted() {
 
 	Gtk::ListStore::iterator row_it = combo_services_liststore->append();
 	Gtk::TreeModel::Row row = *row_it;
-	row[combo_services_cols.col_sort] = (new_service.audio_service.subchid << 16) | new_service.sid;
 	row[combo_services_cols.col_string] = label;
 	row[combo_services_cols.col_service] = new_service;
 

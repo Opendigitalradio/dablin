@@ -68,12 +68,10 @@ public:
 // --- DABlinGTKServiceColumns -----------------------------------------------------------------
 class DABlinGTKServiceColumns : public Gtk::TreeModelColumnRecord {
 public:
-	Gtk::TreeModelColumn<uint32_t> col_sort;
 	Gtk::TreeModelColumn<Glib::ustring> col_string;
 	Gtk::TreeModelColumn<SERVICE> col_service;
 
 	DABlinGTKServiceColumns() {
-		add(col_sort);
 		add(col_string);
 		add(col_service);
 	}
@@ -171,6 +169,7 @@ private:
 	DABlinGTKServiceColumns combo_services_cols;
 	Glib::RefPtr<Gtk::ListStore> combo_services_liststore;
 	Gtk::ComboBox combo_services;
+	int ComboServicesSlotCompare(const Gtk::TreeModel::iterator& a, const Gtk::TreeModel::iterator& b);
 
 	Gtk::Frame frame_label_format;
 	Gtk::Label label_format;

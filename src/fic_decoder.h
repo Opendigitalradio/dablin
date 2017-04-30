@@ -101,7 +101,7 @@ struct SERVICE {
 		return !(*this == service);
 	}
 	bool operator<(const SERVICE & service) const {
-		return sid < service.sid;
+		return ((audio_service.subchid << 16) | sid) < ((service.audio_service.subchid << 16) | service.sid);
 	}
 };
 
