@@ -105,8 +105,7 @@ struct SERVICE {
 	}
 };
 
-typedef std::map<uint16_t, AUDIO_SERVICE> audio_services_t;
-typedef std::map<uint16_t, FIC_LABEL> labels_t;
+typedef std::map<uint16_t, SERVICE> services_t;
 
 // --- FICDecoderObserver -----------------------------------------------------------------
 class FICDecoderObserver {
@@ -132,20 +131,18 @@ private:
 	void ProcessFIG1_0(uint16_t id, const FIC_LABEL& label);
 	void ProcessFIG1_1(uint16_t id, const FIC_LABEL& label);
 
-	void CheckService(uint16_t sid);
+	SERVICE& GetService(uint16_t sid);
+	void UpdateService(SERVICE& service);
 
 	ENSEMBLE ensemble;
-
-	audio_services_t audio_services;
-	labels_t labels;
-	std::set<uint16_t> known_services;
+	services_t services;
 
 	static const char* no_char;
 	static const char* ebu_values_0x00_to_0x1F[];
 	static const char* ebu_values_0x7B_to_0xFF[];
 	static std::string ConvertCharEBUToUTF8(const uint8_t value);
 public:
-	FICDecoder(FICDecoderObserver *observer);
+	FICDecoder(FICDecoderObserver *observer) : observer(observer) {}
 
 	void Process(const uint8_t *data, size_t len);
 	void Reset();

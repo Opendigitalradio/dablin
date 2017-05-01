@@ -20,17 +20,9 @@
 
 
 // --- FICDecoder -----------------------------------------------------------------
-FICDecoder::FICDecoder(FICDecoderObserver *observer) {
-	this->observer = observer;
-	Reset();
-}
-
 void FICDecoder::Reset() {
 	ensemble = ENSEMBLE();
-
-	audio_services.clear();
-	labels.clear();
-	known_services.clear();
+	services.clear();
 }
 
 void FICDecoder::Process(const uint8_t *data, size_t len) {
@@ -141,12 +133,15 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len, const FIG0_HEADE
 					case 63:	// DAB+
 						bool dab_plus = ascty == 63;
 
-						if(audio_services.find(sid_prog) == audio_services.end()) {
-							audio_services[sid_prog] = AUDIO_SERVICE(subchid, dab_plus);
+						AUDIO_SERVICE audio_service(subchid, dab_plus);
 
-							fprintf(stderr, "FICDecoder: found new audio service: SId 0x%04X, subchannel %2d, %s\n", sid_prog, subchid, dab_plus ? "DAB+" : "DAB");
+						SERVICE& service = GetService(sid_prog);
+						if(service.audio_service != audio_service) {
+							service.audio_service = audio_service;
 
-							CheckService(sid_prog);
+							fprintf(stderr, "FICDecoder: SId 0x%04X: audio service (subchannel %2d, %s)\n", sid_prog, subchid, dab_plus ? "DAB+" : "DAB");
+
+							UpdateService(service);
 						}
 
 						break;
@@ -218,44 +213,39 @@ void FICDecoder::ProcessFIG1_0(uint16_t id, const FIC_LABEL& label) {
 		ensemble.label = label;
 
 		std::string label_str = ConvertLabelToUTF8(label);
-		fprintf(stderr, "FICDecoder: found new ensemble label: EId 0x%04X, '%s'\n", id, label_str.c_str());
+		fprintf(stderr, "FICDecoder: EId 0x%04X: ensemble label '%s'\n", id, label_str.c_str());
 
 		observer->FICChangeEnsemble(ensemble);
 	}
 }
 
 void FICDecoder::ProcessFIG1_1(uint16_t id, const FIC_LABEL& label) {
-	if(labels.find(id) == labels.end()) {
-		labels[id] = label;
+	SERVICE& service = GetService(id);
+	if(service.label != label) {
+		service.label = label;
 
 		std::string label_str = ConvertLabelToUTF8(label);
-		fprintf(stderr, "FICDecoder: found new programme service label: SId 0x%04X, '%s'\n", id, label_str.c_str());
+		fprintf(stderr, "FICDecoder: SId 0x%04X: programme service label '%s'\n", id, label_str.c_str());
 
-		CheckService(id);
+		UpdateService(service);
 	}
 }
 
-void FICDecoder::CheckService(uint16_t sid) {
-	// abort, if already known
-	if(known_services.find(sid) != known_services.end())
+SERVICE& FICDecoder::GetService(uint16_t sid) {
+	SERVICE& result = services[sid];	// created, if not yet existing
+
+	// if new service, set SID
+	if(result.IsNone())
+		result.sid = sid;
+	return result;
+}
+
+void FICDecoder::UpdateService(SERVICE& service) {
+	// abort update, if audio service or label not yet present
+	if(service.audio_service.IsNone() || service.label.IsNone())
 		return;
 
-	// abort, if audio service or label not found
-	audio_services_t::const_iterator audio_services_it = audio_services.find(sid);
-	if(audio_services_it == audio_services.cend())
-		return;
-	labels_t::const_iterator labels_it = labels.find(sid);
-	if(labels_it == labels.cend())
-		return;
-
-	known_services.insert(sid);
-
-	SERVICE new_service;
-	new_service.sid = sid;
-	new_service.audio_service = audio_services_it->second;
-	new_service.label = labels_it->second;
-
-	observer->FICChangeService(new_service);
+	observer->FICChangeService(service);
 }
 
 std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {
