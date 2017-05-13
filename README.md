@@ -201,6 +201,10 @@ Audio Units (AUs) with invalid CRC are mentioned with short format
 messages like `(AU #2)` in red color, indicating that the CRC check on
 AU No. 2 failed and hence the AU was dismissed.
 
+When the decoding of an AU nevertheless fails, this is indicated by an
+`(AAC)` message in magenta color. However in that case the AAC decoder
+may output audio samples anyway.
+
 
 ## Standards
 
