@@ -30,17 +30,50 @@ class CalcCRC {
 private:
 	bool initial_invert;
 	bool final_invert;
+	uint16_t gen_polynom;
+
 	uint16_t crc_lut[256];
+	void FillLUT();
 public:
 	CalcCRC(bool initial_invert, bool final_invert, uint16_t gen_polynom);
 	virtual ~CalcCRC() {}
+
+	// simple API
 	uint16_t Calc(const uint8_t *data, size_t len);
+
+	// modular API
+	void Initialize(uint16_t& crc);
+	void ProcessByte(uint16_t& crc, const uint8_t data);
+	void ProcessBit(uint16_t& crc, const bool data);
+	void ProcessBits(uint16_t& crc, const uint8_t *data, size_t len);
+	void Finalize(uint16_t& crc);
 
 	static CalcCRC CalcCRC_CRC16_CCITT;
 	static CalcCRC CalcCRC_FIRE_CODE;
 
 	static size_t CRCLen;
 };
+
+inline void CalcCRC::Initialize(uint16_t& crc) {
+	crc = initial_invert ? 0xFFFF : 0x0000;
+}
+
+inline void CalcCRC::ProcessByte(uint16_t& crc, const uint8_t data) {
+	// use LUT
+	crc = (crc << 8) ^ crc_lut[(crc >> 8) ^ data];
+}
+
+inline void CalcCRC::ProcessBit(uint16_t& crc, const bool data) {
+	if(data ^ (bool) (crc & 0x8000))
+		crc = (crc << 1) ^ gen_polynom;
+	else
+		crc = crc << 1;
+}
+
+inline void CalcCRC::Finalize(uint16_t& crc) {
+	if(final_invert)
+		crc = ~crc;
+}
 
 
 // --- CircularBuffer -----------------------------------------------------------------

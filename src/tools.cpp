@@ -28,8 +28,12 @@ size_t CalcCRC::CRCLen = 2;
 CalcCRC::CalcCRC(bool initial_invert, bool final_invert, uint16_t gen_polynom) {
 	this->initial_invert = initial_invert;
 	this->final_invert = final_invert;
+	this->gen_polynom = gen_polynom;
 
-	// fill LUT
+	FillLUT();
+}
+
+void CalcCRC::FillLUT() {
 	for(int value = 0; value < 256; value++) {
 		uint16_t crc = value << 8;
 
@@ -45,12 +49,26 @@ CalcCRC::CalcCRC(bool initial_invert, bool final_invert, uint16_t gen_polynom) {
 }
 
 uint16_t CalcCRC::Calc(const uint8_t *data, size_t len) {
-	uint16_t crc = initial_invert ? 0xFFFF : 0x0000;
+	uint16_t crc;
+	Initialize(crc);
 
 	for(size_t offset = 0; offset < len; offset++)
-		crc = (crc << 8) ^ crc_lut[(crc >> 8) ^ data[offset]];
+		ProcessByte(crc, data[offset]);
 
-	return final_invert ? (crc ^ 0xFFFF) : crc;
+	Finalize(crc);
+	return crc;
+}
+
+void CalcCRC::ProcessBits(uint16_t& crc, const uint8_t *data, size_t len) {
+	// byte-aligned start only
+
+	size_t bytes = len / 8;
+	size_t bits = len % 8;
+
+	for(size_t offset = 0; offset < bytes; offset++)
+		ProcessByte(crc, data[offset]);
+	for(size_t bit = 0; bit < bits; bit++)
+		ProcessBit(crc, data[bytes] & (0x80 >> bit));
 }
 
 
