@@ -31,6 +31,7 @@
 #endif
 
 #include "subchannel_sink.h"
+#include "tools.h"
 
 
 // --- MP2Decoder -----------------------------------------------------------------
@@ -38,10 +39,17 @@ class MP2Decoder : public SubchannelSink {
 private:
 	mpg123_handle *handle;
 
-	int crc_len;
+	int scf_crc_len;
 
 	void ProcessFormat();
-	size_t GetFrame(uint8_t **data);
+	size_t DecodeFrame(uint8_t **data);
+	bool CheckCRC(const unsigned long& header, const uint8_t *body_data, const size_t& body_bytes);
+
+	static const int table_nbal_48a[];
+	static const int table_nbal_48b[];
+	static const int table_nbal_24[];
+	static const int* tables_nbal[];
+	static const int sblimits[];
 public:
 	MP2Decoder(SubchannelSinkObserver* observer);
 	~MP2Decoder();

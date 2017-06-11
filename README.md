@@ -197,6 +197,9 @@ one byte was incorrectable.
 When a FIB is discarded (due to failed CRC check), this is indicated by a
 `(FIB)` message in yellow color.
 
+MP2 frames with invalid CRC (MP2's CRC only - not DAB's ScF-CRC) are
+discarded, which is indicated by a `(CRC)` message in red color.
+
 Audio Units (AUs) with invalid CRC are mentioned with short format
 messages like `(AU #2)` in red color, indicating that the CRC check on
 AU No. 2 failed and hence the AU was dismissed.

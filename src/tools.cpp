@@ -21,6 +21,7 @@
 
 // --- CalcCRC -----------------------------------------------------------------
 CalcCRC CalcCRC::CalcCRC_CRC16_CCITT(true, true, 0x1021);	// 0001 0000 0010 0001 (16, 12, 5, 0)
+CalcCRC CalcCRC::CalcCRC_CRC16_IBM(true, false, 0x8005);	// 1000 0000 0000 0101 (16, 15, 2, 0)
 CalcCRC CalcCRC::CalcCRC_FIRE_CODE(false, false, 0x782F);	// 0111 1000 0010 1111 (16, 14, 13, 12, 11, 5, 3, 2, 1, 0)
 
 size_t CalcCRC::CRCLen = 2;
@@ -117,6 +118,35 @@ size_t CircularBuffer::Read(uint8_t *data, size_t bytes) {
 	index_start = (index_start + real_bytes) % capacity;
 	size -= real_bytes;
 	return real_bytes;
+}
+
+
+// --- BitReader -----------------------------------------------------------------
+bool BitReader::GetBits(int& result, size_t count) {
+	int result_value = 0;
+
+	while(count) {
+		if(data_bytes == 0)
+			return false;
+
+		size_t copy_bits = std::min(count, 8 - data_bits);
+
+		result_value <<= copy_bits;
+		result_value |= (*data & (0xFF >> data_bits)) >> (8 - data_bits - copy_bits);
+
+		data_bits += copy_bits;
+		count -= copy_bits;
+
+		// switch to next byte
+		if(data_bits == 8) {
+			data++;
+			data_bytes--;
+			data_bits = 0;
+		}
+	}
+
+	result = result_value;
+	return true;
 }
 
 

@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2016 Stefan Pöschel
+    Copyright (C) 2015-2017 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,8 +19,37 @@
 #include "dab_decoder.h"
 
 // --- MP2Decoder -----------------------------------------------------------------
+// from ETSI TS 103 466, table 4 (= ISO/IEC 11172-3, table B.2a):
+const int MP2Decoder::table_nbal_48a[] = {
+		4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+		3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+		2, 2, 2, 2
+};
+// from ETSI TS 103 466, table 5 (= ISO/IEC 11172-3, table B.2c):
+const int MP2Decoder::table_nbal_48b[] = {
+		4, 4,
+		3, 3, 3, 3, 3, 3
+};
+// from ETSI TS 103 466, table 6 (= ISO/IEC 13818-3, table B.1):
+const int MP2Decoder::table_nbal_24[] = {
+		4, 4, 4, 4,
+		3, 3, 3, 3, 3, 3, 3,
+		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+};
+const int* MP2Decoder::tables_nbal[] = {
+		table_nbal_48a,
+		table_nbal_48b,
+		table_nbal_24
+};
+const int MP2Decoder::sblimits[] = {
+		sizeof(table_nbal_48a) / sizeof(int),
+		sizeof(table_nbal_48b) / sizeof(int),
+		sizeof(table_nbal_24) / sizeof(int),
+};
+
+
 MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer) : SubchannelSink(observer) {
-	crc_len = -1;
+	scf_crc_len = -1;
 
 	int mpg_result;
 
@@ -81,44 +110,51 @@ void MP2Decoder::Feed(const uint8_t *data, size_t len) {
 	if(mpg_result != MPG123_OK)
 		throw std::runtime_error("MP2Decoder: error while mpg123_feed: " + std::string(mpg123_plain_strerror(mpg_result)));
 
-	// forward decoded frames
-	uint8_t *frame_data;
-	size_t frame_len;
-	while((frame_len = GetFrame(&frame_data)) > 0)
-		observer->PutAudio(frame_data, frame_len);
+	do {
+		// go to next frame
+		mpg_result = mpg123_framebyframe_next(handle);
+		switch(mpg_result) {
+		case MPG123_NEED_MORE:
+			break;	// loop left below
+		case MPG123_NEW_FORMAT:
+			ProcessFormat();
+			// no break, as MPG123_NEW_FORMAT implies MPG123_OK
+		case MPG123_OK: {
+			// forward decoded frame, if applicable
+			uint8_t *frame_data;
+			size_t frame_len = DecodeFrame(&frame_data);
+			if(frame_len)
+				observer->PutAudio(frame_data, frame_len);
+			break; }
+		default:
+			throw std::runtime_error("MP2Decoder: error while mpg123_framebyframe_next: " + std::string(mpg123_plain_strerror(mpg_result)));
+		}
+	} while (mpg_result != MPG123_NEED_MORE);
 }
 
-size_t MP2Decoder::GetFrame(uint8_t **data) {
+size_t MP2Decoder::DecodeFrame(uint8_t **data) {
 	int mpg_result;
 
-	// go to next frame
-	mpg_result = mpg123_framebyframe_next(handle);
-	switch(mpg_result) {
-	case MPG123_NEED_MORE:
-		return 0;
-	case MPG123_NEW_FORMAT:
-		ProcessFormat();
-		// no break, as MPG123_NEW_FORMAT implies MPG123_OK
-	case MPG123_OK:
-		break;
-	default:
-		throw std::runtime_error("MP2Decoder: error while mpg123_framebyframe_next: " + std::string(mpg123_plain_strerror(mpg_result)));
-	}
-
-	if(crc_len == -1)
-		throw std::runtime_error("MP2Decoder: CRC len not yet set at PAD extraction!");
+	if(scf_crc_len == -1)
+		throw std::runtime_error("MP2Decoder: ScF-CRC len not yet set at PAD extraction!");
 
 	// derive PAD data from frame
+	unsigned long header;
 	uint8_t *body_data;
 	size_t body_bytes;
-	mpg_result = mpg123_framedata(handle, NULL, &body_data, &body_bytes);
+	mpg_result = mpg123_framedata(handle, &header, &body_data, &body_bytes);
 	if(mpg_result != MPG123_OK)
 		throw std::runtime_error("MP2Decoder: error while mpg123_framedata: " + std::string(mpg123_plain_strerror(mpg_result)));
 
-	// TODO: check CRC!?
+	// forwarding the whole frame (except ScF-CRC + F-PAD) as X-PAD, as we don't know the X-PAD len here
+	observer->ProcessPAD(body_data, body_bytes - FPAD_LEN - scf_crc_len, false, body_data + body_bytes - FPAD_LEN);
 
-	// forwarding the whole frame (except CRC + F-PAD) as X-PAD, as we don't know the X-PAD len here
-	observer->ProcessPAD(body_data, body_bytes - FPAD_LEN - crc_len, false, body_data + body_bytes - FPAD_LEN);
+	// check CRC (MP2's CRC only - not DAB's ScF-CRC)
+	if(!CheckCRC(header, body_data, body_bytes)) {
+		fprintf(stderr, "\x1B[31m" "(CRC)" "\x1B[0m" " ");
+		// no PAD reset, as not covered by CRC
+		return 0;
+	}
 
 	size_t frame_len;
 	mpg_result = mpg123_framebyframe_decode(handle, NULL, data, &frame_len);
@@ -128,6 +164,64 @@ size_t MP2Decoder::GetFrame(uint8_t **data) {
 	return frame_len;
 }
 
+bool MP2Decoder::CheckCRC(const unsigned long& header, const uint8_t *body_data, const size_t& body_bytes) {
+	mpg123_frameinfo info;
+	int mpg_result = mpg123_info(handle, &info);
+	if(mpg_result != MPG123_OK)
+		throw std::runtime_error("MP2Decoder: error while mpg123_info: " + std::string(mpg123_plain_strerror(mpg_result)));
+
+	// abort, if no CRC present (though required by DAB)
+	if(!(info.flags & MPG123_CRC))
+		return false;
+
+	// select matching nbal table
+	int nch = info.mode == MPG123_M_MONO ? 1 : 2;
+	int table_index = info.version == MPG123_1_0 ? ((info.bitrate / nch) >= 56 ? 0 : 1) : 2;
+	const int* table_nbal = tables_nbal[table_index];
+
+	// count body bits covered by CRC (= allocation + ScFSI)
+	BitReader br(body_data + CalcCRC::CRCLen, body_bytes - CalcCRC::CRCLen);
+	size_t body_crc_len = 0;
+	int sblimit = sblimits[table_index];
+	int bound = info.mode == MPG123_M_JOINT ? (info.mode_ext + 1) * 4 : sblimit;
+	for(int sb = 0; sb < bound; sb++) {
+		for(int ch = 0; ch < nch; ch++) {
+			int nbal = table_nbal[sb];
+			body_crc_len += nbal;
+
+			int index;
+			if(!br.GetBits(index, nbal))
+				return false;
+
+			if(index)
+				body_crc_len += 2;
+		}
+	}
+	for(int sb = bound; sb < sblimit; sb++) {
+		int nbal = table_nbal[sb];
+		body_crc_len += nbal;
+
+		int index;
+		if(!br.GetBits(index, nbal))
+			return false;
+
+		for(int ch = 0; ch < nch; ch++) {
+			if(index)
+				body_crc_len += 2;
+		}
+	}
+
+	// calc CRC
+	uint16_t crc_stored = (body_data[0] << 8) + body_data[1];
+	uint16_t crc_calced;
+	CalcCRC::CalcCRC_CRC16_IBM.Initialize(crc_calced);
+	CalcCRC::CalcCRC_CRC16_IBM.ProcessByte(crc_calced, (header & 0x0000FF00) >> 8);
+	CalcCRC::CalcCRC_CRC16_IBM.ProcessByte(crc_calced, header & 0x000000FF);
+	CalcCRC::CalcCRC_CRC16_IBM.ProcessBits(crc_calced, body_data + CalcCRC::CRCLen, body_crc_len);
+	CalcCRC::CalcCRC_CRC16_IBM.Finalize(crc_calced);
+
+	return crc_stored == crc_calced;
+}
 
 void MP2Decoder::ProcessFormat() {
 	mpg123_frameinfo info;
@@ -135,7 +229,7 @@ void MP2Decoder::ProcessFormat() {
 	if(mpg_result != MPG123_OK)
 		throw std::runtime_error("MP2Decoder: error while mpg123_info: " + std::string(mpg123_plain_strerror(mpg_result)));
 
-	crc_len = (info.version == MPG123_1_0 && info.bitrate < (info.mode == MPG123_M_MONO ? 56 : 112)) ? 2 : 4;
+	scf_crc_len = (info.version == MPG123_1_0 && info.bitrate < (info.mode == MPG123_M_MONO ? 56 : 112)) ? 2 : 4;
 
 	// output format
 	const char* version = "unknown";

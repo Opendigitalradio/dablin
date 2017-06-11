@@ -49,6 +49,7 @@ public:
 	void Finalize(uint16_t& crc);
 
 	static CalcCRC CalcCRC_CRC16_CCITT;
+	static CalcCRC CalcCRC_CRC16_IBM;
 	static CalcCRC CalcCRC_FIRE_CODE;
 
 	static size_t CRCLen;
@@ -93,6 +94,18 @@ public:
 	size_t Write(const uint8_t *data, size_t bytes);
 	size_t Read(uint8_t *data, size_t bytes);
 	void Clear() {size = index_start = index_end = 0;}
+};
+
+
+// --- BitReader -----------------------------------------------------------------
+class BitReader {
+private:
+	const uint8_t *data;
+	size_t data_bytes;
+	size_t data_bits;
+public:
+	BitReader(const uint8_t *data, size_t data_bytes) : data(data), data_bytes(data_bytes), data_bits(0) {}
+	bool GetBits(int& result, size_t count);
 };
 
 
