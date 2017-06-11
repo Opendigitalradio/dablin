@@ -98,7 +98,7 @@ size_t MP2Decoder::GetFrame(uint8_t **data) {
 		return 0;
 	case MPG123_NEW_FORMAT:
 		ProcessFormat();
-		break;
+		// no break, as MPG123_NEW_FORMAT implies MPG123_OK
 	case MPG123_OK:
 		break;
 	default:
