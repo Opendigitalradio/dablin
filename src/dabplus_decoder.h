@@ -75,8 +75,6 @@ protected:
 	SubchannelSinkObserver* observer;
 	uint8_t asc[7];
 	size_t asc_len;
-
-	void CheckForPAD(const uint8_t *data, size_t len);
 public:
 	AACDecoder(std::string decoder_name, SubchannelSinkObserver* observer, SuperframeFormat sf_format);
 	virtual ~AACDecoder() {}
