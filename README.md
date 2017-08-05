@@ -22,7 +22,18 @@ and MOT Slideshow (if used by the selected service).
 
 ### General
 
-A recent GCC (with C++11 support) and CMake are required.
+Besides Git a C/C++ compiler (with C++11 support) and CMake are required to
+build DABlin.
+
+On Debian or Ubuntu, the respective packages (with GCC as C/C++ compiler) can be
+installed using aptitude or apt-get, for example:
+
+```
+sudo apt-get install git gcc g++ cmake
+```
+
+
+### Libraries
 
 The following libraries are required:
 
@@ -34,8 +45,8 @@ The GTK GUI version in addition requires:
 
 * gtkmm
 
-On Debian or Ubuntu, mpg123, FAAD2, SDL2 and gtkmm are packaged and all the required files
-can be installed using aptitude or apt-get, for example:
+On Debian or Ubuntu, mpg123, FAAD2, SDL2 and gtkmm are packaged and installed
+with:
 
 ```
 sudo apt-get install libmpg123-dev libfaad-dev libsdl2-dev libgtkmm-3.0-dev
@@ -115,6 +126,13 @@ Some users kindly provide precompiled DABlin packages on their own:
 If the gtkmm library is available both the console and GTK GUI executables will
 be built. If the gtkmm library is not available only the console executable will
 be built.
+
+To fetch the DABlin source code, execute the following commmands:
+
+```
+git clone https://github.com/Opendigitalradio/dablin.git
+cd dablin
+```
 
 You can use, for example, the following command sequence in order to compile and
 install DABlin:
