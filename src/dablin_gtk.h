@@ -89,8 +89,15 @@ struct DABlinGTKOptions {
 	bool pcm_output;
 	int gain;
 	bool initially_disable_slideshow;
+	bool loose;
 	
-DABlinGTKOptions() : initial_sid(-1), pcm_output(false), gain(DAB2ETI_AUTO_GAIN), initially_disable_slideshow(false) {}
+DABlinGTKOptions() :
+	initial_sid(-1),
+	pcm_output(false),
+	gain(DAB2ETI_AUTO_GAIN),
+	initially_disable_slideshow(false),
+	loose(false)
+	{}
 };
 
 

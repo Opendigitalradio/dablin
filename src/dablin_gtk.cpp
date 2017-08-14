@@ -38,6 +38,7 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto_gain is default)\n");
 	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
 	fprintf(stderr, "  -S            Initially disable slideshow\n");
+	fprintf(stderr, "  -L            Enable loose behaviour (e.g. PAD conformance)\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
 	exit(1);
 }
@@ -58,7 +59,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hd:C:c:g:s:pS")) != -1) {
+	while((c = getopt(argc, argv, "hd:C:c:g:s:pSL")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -83,6 +84,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'S':
 			options.initially_disable_slideshow = true;
+			break;
+		case 'L':
+			options.loose = true;
 			break;
 		case '?':
 		default:
@@ -172,7 +176,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	}
 
 	fic_decoder = new FICDecoder(this);
-	pad_decoder = new PADDecoder(this);
+	pad_decoder = new PADDecoder(this, options.loose);
 
 	set_title("DABlin v" + std::string(DABLIN_VERSION));
 	set_default_icon_name("media-playback-start");

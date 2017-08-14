@@ -111,12 +111,27 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 	if(xpad_cis.empty())
 		return;
 
-	// abort, if the announced X-PAD len mismatches/exceeds the available X-PAD len
 	size_t announced_xpad_len = xpad_cis_len;
 	for(xpad_cis_t::const_iterator it = xpad_cis.cbegin(); it != xpad_cis.cend(); it++)
 		announced_xpad_len += it->len;
-	if(exact_xpad_len ? (announced_xpad_len != xpad_len) : (announced_xpad_len > xpad_len))
+
+	// abort, if the announced X-PAD len exceeds the available one
+	if(announced_xpad_len > xpad_len)
 		return;
+
+	if(exact_xpad_len && announced_xpad_len < xpad_len) {
+		/* If the announced X-PAD len falls below the available one (which can
+		 * only happen with DAB+), a decoder shall discard the X-PAD (see §5.4.3
+		 * in ETSI TS 102 563).
+		 * This behaviour can be disabled in order to process the X-PAD anyhow.
+		 */
+		if(loose) {
+			fprintf(stderr, "\x1B[33m" "[X-PAD len]" "\x1B[0m" " ");
+		} else {
+			fprintf(stderr, "\x1B[31m" "[X-PAD len]" "\x1B[0m" " ");
+			return;
+		}
+	}
 
 	// process CIs
 	size_t xpad_offset = xpad_cis_len;

@@ -182,6 +182,7 @@ public:
 class PADDecoder {
 private:
 	PADDecoderObserver *observer;
+	bool loose;
 
 	XPAD_CI last_xpad_ci;
 
@@ -190,7 +191,7 @@ private:
 	MOTDecoder mot_decoder;
 	MOTManager mot_manager;
 public:
-	PADDecoder(PADDecoderObserver *observer) : observer(observer) {}
+	PADDecoder(PADDecoderObserver *observer, bool loose) : observer(observer), loose(loose) {}
 
 	void Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, uint16_t fpad);
 	void Reset();

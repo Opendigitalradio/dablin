@@ -202,6 +202,12 @@ keyboard shortcut `m` to toggle muting the audio.
 
 ## Status output
 
+While playback a number of status messages may appear. Some are quite common
+(enclosed with round brackets) e.g. due to bad reception, while others are
+rather unlikely to occur (enclosed with square brackets).
+
+### Common
+
 During (re-)synchronisation status messages are shown. Also dropped
 Superframes or AU are mentioned.
 
@@ -225,6 +231,15 @@ AU No. 2 failed and hence the AU was dismissed.
 When the decoding of an AU nevertheless fails, this is indicated by an
 `(AAC)` message in magenta color. However in that case the AAC decoder
 may output audio samples anyway.
+
+### Uncommon
+
+If the announced X-PAD length of a DAB+ service does not match the available
+X-PAD length i.e. if it falls below, a red `[X-PAD len]` message is shown and
+the X-PAD is discarded. However not all X-PADs may be affected and hence it may
+happen that the Dynamic Label can be processed but the MOT Slideshow cannot. To
+anyhow process affected X-PADs, a loose mode can be enabled by using `-L`. Thus
+the mentioned message will be shown in yellow then.
 
 
 ## Standards
