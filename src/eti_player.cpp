@@ -161,7 +161,6 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 
 void ETIPlayer::FormatChange(const std::string& format) {
 	fprintf(stderr, "ETIPlayer: format: %s\n", format.c_str());
-
 	if(observer)
 		observer->ETIChangeFormat(format);
 }
@@ -174,16 +173,6 @@ void ETIPlayer::ProcessFIC(const uint8_t *data, size_t len) {
 
 void ETIPlayer::ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t *fpad_data) {
 //	fprintf(stderr, "Received %zu bytes X-PAD\n", xpad_len);
-
-	if(!observer)
-		return;
-
-	// undo reversed byte order + trim long MP2 frames
-	size_t used_xpad_len = std::min(xpad_len, sizeof(xpad));
-	for(size_t i = 0; i < used_xpad_len; i++)
-		xpad[i] = xpad_data[xpad_len - 1 - i];
-
-	uint16_t fpad_value = fpad_data[0] << 8 | fpad_data[1];
-
-	observer->ETIProcessPAD(xpad, used_xpad_len, exact_xpad_len, fpad_value);
+	if(observer)
+		observer->ETIProcessPAD(xpad_data, xpad_len, exact_xpad_len, fpad_data);
 }

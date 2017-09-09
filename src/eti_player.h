@@ -43,7 +43,7 @@ public:
 
 	virtual void ETIChangeFormat(const std::string& /*format*/) {};
 	virtual void ETIProcessFIC(const uint8_t* /*data*/, size_t /*len*/) {};
-	virtual void ETIProcessPAD(const uint8_t* /*xpad_data*/, size_t /*xpad_len*/, bool /*exact_xpad_len*/, uint16_t /*fpad*/) {};
+	virtual void ETIProcessPAD(const uint8_t* /*xpad_data*/, size_t /*xpad_len*/, bool /*exact_xpad_len*/, const uint8_t* /*fpad_data*/) {}
 	virtual void ETIResetPAD() {};
 };
 
@@ -59,7 +59,6 @@ private:
 	AUDIO_SERVICE audio_service_now;
 	AUDIO_SERVICE audio_service_next;
 
-	uint8_t xpad[256];	// limit never reached by longest possible X-PAD
 	SubchannelSink *dec;
 	AudioOutput *out;
 
