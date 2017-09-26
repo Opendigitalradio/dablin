@@ -465,7 +465,8 @@ void DABlinGTK::FICChangeServiceEmitted() {
 			combo_services.set_active(row_it);
 	} else {
 		// set (updated) service
-		if(combo_services.get_active() == row_it)
+		Gtk::ListStore::iterator current_it = combo_services.get_active();
+		if(current_it && current_it == row_it)
 			SetService(new_service);
 	}
 }
