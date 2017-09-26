@@ -171,10 +171,12 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	if(header.oe)
 		return;
 
-	// check for (un)supported extension
+	// check for (un)supported extension + set ID field len
+	size_t len_id = -1;
 	switch(header.extension) {
-	case 0:
-	case 1:
+	case 0:	// ensemble
+	case 1:	// programme service
+		len_id = 2;
 		break;
 	default:
 //		fprintf(stderr, "FICDecoder: received unsupported FIG 1/%d with %zu field bytes\n", header.extension, len);
@@ -182,50 +184,51 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	}
 
 	// check length
-	size_t len_calced = 2 + 16 + 2;
+	size_t len_calced = len_id + 16 + 2;
 	if(len != len_calced) {
 		fprintf(stderr, "FICDecoder: received FIG 1/%d having %zu field bytes (expected: %zu)\n", header.extension, len, len_calced);
 		return;
 	}
 
-	// parse data
-	uint16_t id = data[0] << 8 | data[1];
+	// parse actual label data
 	FIC_LABEL label;
 	label.charset = header.charset;
-	memcpy(label.label, data + 2, 16);
-	label.short_label_mask = data[18] << 8 | data[19];
+	memcpy(label.label, data + len_id, 16);
+	label.short_label_mask = data[len_id + 16] << 8 | data[len_id + 17];
 
 
 	// handle extension
 	switch(header.extension) {
-	case 0:
-		ProcessFIG1_0(id, label);
-		break;
-	case 1:
-		ProcessFIG1_1(id, label);
-		break;
+	case 0: {	// ensemble
+		uint16_t eid = data[0] << 8 | data[1];
+		ProcessFIG1_0(eid, label);
+		break; }
+	case 1: {	// programme service
+		uint16_t sid = data[0] << 8 | data[1];
+		ProcessFIG1_1(sid, label);
+		break; }
 	}
 }
 
-void FICDecoder::ProcessFIG1_0(uint16_t id, const FIC_LABEL& label) {
-	if(ensemble.eid != id || ensemble.label != label) {
-		ensemble.eid = id;
+void FICDecoder::ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label) {
+	if(ensemble.eid != eid || ensemble.label != label) {
+		ensemble.eid = eid;
 		ensemble.label = label;
 
 		std::string label_str = ConvertLabelToUTF8(label);
-		fprintf(stderr, "FICDecoder: EId 0x%04X: ensemble label '%s'\n", id, label_str.c_str());
+		fprintf(stderr, "FICDecoder: EId 0x%04X: ensemble label '%s'\n", eid, label_str.c_str());
 
 		observer->FICChangeEnsemble(ensemble);
 	}
 }
 
-void FICDecoder::ProcessFIG1_1(uint16_t id, const FIC_LABEL& label) {
-	SERVICE& service = GetService(id);
+void FICDecoder::ProcessFIG1_1(uint16_t sid, const FIC_LABEL& label) {
+	SERVICE& service = GetService(sid);
 	if(service.label != label) {
 		service.label = label;
 
 		std::string label_str = ConvertLabelToUTF8(label);
-		fprintf(stderr, "FICDecoder: SId 0x%04X: programme service label '%s'\n", id, label_str.c_str());
+		fprintf(stderr, "FICDecoder: SId 0x%04X: programme service label '%s'\n", sid, label_str.c_str());
 
 		UpdateService(service);
 	}

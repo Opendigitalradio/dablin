@@ -128,8 +128,8 @@ private:
 	void ProcessFIG0_2(const uint8_t *data, size_t len, const FIG0_HEADER& header);
 
 	void ProcessFIG1(const uint8_t *data, size_t len);
-	void ProcessFIG1_0(uint16_t id, const FIC_LABEL& label);
-	void ProcessFIG1_1(uint16_t id, const FIC_LABEL& label);
+	void ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label);
+	void ProcessFIG1_1(uint16_t sid, const FIC_LABEL& label);
 
 	SERVICE& GetService(uint16_t sid);
 	void UpdateService(SERVICE& service);
