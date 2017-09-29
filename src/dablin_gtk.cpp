@@ -208,12 +208,14 @@ DABlinGTK::~DABlinGTK() {
 }
 
 int DABlinGTK::ComboServicesSlotCompare(const Gtk::TreeModel::iterator& a, const Gtk::TreeModel::iterator& b) {
-	const SERVICE& service_a = (SERVICE) (*a)[combo_services_cols.col_service];
-	const SERVICE& service_b = (SERVICE) (*b)[combo_services_cols.col_service];
+	const LISTED_SERVICE& service_a = (LISTED_SERVICE) (*a)[combo_services_cols.col_service];
+	const LISTED_SERVICE& service_b = (LISTED_SERVICE) (*b)[combo_services_cols.col_service];
 
-	if(service_a == service_b)
-		return 0;
-	return service_a < service_b ? -1 : 1;
+	if(service_a < service_b)
+		return -1;
+	if(service_b < service_a)
+		return 1;
+	return 0;
 }
 
 void DABlinGTK::InitWidgets() {
@@ -334,7 +336,7 @@ void DABlinGTK::AddChannel(dab_channels_t::const_iterator &it) {
 		initial_channel_it = row_it;
 }
 
-void DABlinGTK::SetService(const SERVICE& service) {
+void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 	if(!service.IsNone()) {
 		char sid_string[7];
 		snprintf(sid_string, sizeof(sid_string), "0x%04X", service.sid);
@@ -438,7 +440,7 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 void DABlinGTK::FICChangeServiceEmitted() {
 //	fprintf(stderr, "### FICChangeServiceEmitted\n");
 
-	SERVICE new_service = fic_change_service.Pop();
+	LISTED_SERVICE new_service = fic_change_service.Pop();
 
 	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(new_service.label);
 
@@ -449,7 +451,7 @@ void DABlinGTK::FICChangeServiceEmitted() {
 	Gtk::ListStore::Children children = combo_services_liststore->children();
 	Gtk::ListStore::iterator row_it = std::find_if(
 			children.begin(), children.end(),
-			[&](const Gtk::TreeModel::Row& row)->bool {return ((SERVICE) row[combo_services_cols.col_service]).sid == new_service.sid;}
+			[&](const Gtk::TreeModel::Row& row)->bool {return ((LISTED_SERVICE) row[combo_services_cols.col_service]).sid == new_service.sid;}
 	);
 	bool add_new_row = row_it == children.end();
 	if(add_new_row)
@@ -498,7 +500,7 @@ void DABlinGTK::on_combo_channels() {
 }
 
 void DABlinGTK::on_combo_services() {
-	SERVICE service;	// default: none
+	LISTED_SERVICE service;	// default: none
 	Gtk::TreeModel::iterator row_it = combo_services.get_active();
 	if(combo_services_liststore->iter_is_valid(row_it)) {
 		Gtk::TreeModel::Row row = *row_it;

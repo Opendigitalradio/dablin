@@ -197,7 +197,7 @@ void DABlinText::ETIUpdateProgress(const ETI_PROGRESS progress) {
 	fprintf(stderr, format.c_str(), progress.text.c_str());
 }
 
-void DABlinText::FICChangeService(const SERVICE& service) {
+void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
 
 	// abort, if no/not initial service

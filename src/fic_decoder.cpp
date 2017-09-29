@@ -248,7 +248,7 @@ void FICDecoder::UpdateService(SERVICE& service) {
 	if(service.audio_service.IsNone() || service.label.IsNone())
 		return;
 
-	observer->FICChangeService(service);
+	observer->FICChangeService(LISTED_SERVICE(service));
 }
 
 std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {

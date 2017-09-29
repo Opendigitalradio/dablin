@@ -70,7 +70,7 @@ public:
 class DABlinGTKServiceColumns : public Gtk::TreeModelColumnRecord {
 public:
 	Gtk::TreeModelColumn<Glib::ustring> col_string;
-	Gtk::TreeModelColumn<SERVICE> col_service;
+	Gtk::TreeModelColumn<LISTED_SERVICE> col_service;
 
 	DABlinGTKServiceColumns() {
 		add(col_string);
@@ -196,7 +196,7 @@ private:
 	void AddChannels();
 	void AddChannel(dab_channels_t::const_iterator &it);
 
-	void SetService(const SERVICE& service);
+	void SetService(const LISTED_SERVICE& service);
 
 	void on_tglbtn_mute();
 	void on_vlmbtn(double value);
@@ -212,8 +212,8 @@ private:
 	void FICChangeEnsemble(const ENSEMBLE& ensemble) {fic_change_ensemble.PushAndEmit(ensemble);}
 	void FICChangeEnsembleEmitted();
 
-	GTKDispatcherQueue<SERVICE> fic_change_service;
-	void FICChangeService(const SERVICE& service) {fic_change_service.PushAndEmit(service);}
+	GTKDispatcherQueue<LISTED_SERVICE> fic_change_service;
+	void FICChangeService(const LISTED_SERVICE& service) {fic_change_service.PushAndEmit(service);}
 	void FICChangeServiceEmitted();
 
 	// PAD data change

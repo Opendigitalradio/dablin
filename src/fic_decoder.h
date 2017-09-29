@@ -93,15 +93,27 @@ struct SERVICE {
 	bool IsNone() const {return sid == sid_none;}
 
 	SERVICE() : sid(sid_none) {}
+};
 
-	bool operator==(const SERVICE & service) const {
-		return sid == service.sid && audio_service == service.audio_service && label == service.label;
-	}
-	bool operator!=(const SERVICE & service) const {
-		return !(*this == service);
-	}
-	bool operator<(const SERVICE & service) const {
-		return ((audio_service.subchid << 16) | sid) < ((service.audio_service.subchid << 16) | service.sid);
+struct LISTED_SERVICE {
+	int sid;
+	AUDIO_SERVICE audio_service;
+	FIC_LABEL label;
+
+	static const int sid_none = -1;
+	bool IsNone() const {return sid == sid_none;}
+
+	LISTED_SERVICE() : sid(sid_none) {}
+	LISTED_SERVICE(SERVICE s) :
+		sid(s.sid),
+		audio_service(s.audio_service),
+		label(s.label)
+	{}
+
+	bool operator<(const LISTED_SERVICE & service) const {
+		if(audio_service.subchid != service.audio_service.subchid)
+			return audio_service.subchid < service.audio_service.subchid;
+		return sid < service.sid;
 	}
 };
 
@@ -113,7 +125,7 @@ public:
 	virtual ~FICDecoderObserver() {};
 
 	virtual void FICChangeEnsemble(const ENSEMBLE& /*ensemble*/) {};
-	virtual void FICChangeService(const SERVICE& /*service*/) {};
+	virtual void FICChangeService(const LISTED_SERVICE& /*service*/) {};
 };
 
 
