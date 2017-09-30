@@ -51,6 +51,16 @@ struct SuperframeFormat {
 	bool aac_channel_mode;
 	bool ps_flag;
 	int mpeg_surround_config;
+
+	int GetCoreSrIndex() {
+		return dac_rate ? (sbr_flag ? 6 : 3) : (sbr_flag ? 8 : 5);	// 24/48/16/32 kHz
+	}
+	int GetCoreChConfig() {
+		return aac_channel_mode ? 2 : 1;
+	}
+	int GetExtensionSrIndex() {
+		return dac_rate ? 3 : 5;	// 48/32 kHz
+	}
 };
 
 

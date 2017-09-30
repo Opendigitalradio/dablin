@@ -330,20 +330,16 @@ AACDecoder::AACDecoder(std::string decoder_name, SubchannelSinkObserver* observe
 	 * it detects PS only by implicit signaling.
 	 */
 
-	int core_sr_index = sf_format.dac_rate ? (sf_format.sbr_flag ? 6 : 3) : (sf_format.sbr_flag ? 8 : 5);	// 24/48/16/32 kHz
-	int core_ch_config = sf_format.aac_channel_mode ? 2 : 1;
-	int extension_sr_index = sf_format.dac_rate ? 3 : 5;	// 48/32 kHz
-
 	// AAC LC
 	asc_len = 0;
-	asc[asc_len++] = 0b00010 << 3 | core_sr_index >> 1;
-	asc[asc_len++] = (core_sr_index & 0x01) << 7 | core_ch_config << 3 | 0b100;
+	asc[asc_len++] = 0b00010 << 3 | sf_format.GetCoreSrIndex() >> 1;
+	asc[asc_len++] = (sf_format.GetCoreSrIndex() & 0x01) << 7 | sf_format.GetCoreChConfig() << 3 | 0b100;
 
 	if(sf_format.sbr_flag) {
 		// add SBR
 		asc[asc_len++] = 0x56;
 		asc[asc_len++] = 0xE5;
-		asc[asc_len++] = 0x80 | (extension_sr_index << 3);
+		asc[asc_len++] = 0x80 | (sf_format.GetExtensionSrIndex() << 3);
 
 		if(sf_format.ps_flag) {
 			// add PS
