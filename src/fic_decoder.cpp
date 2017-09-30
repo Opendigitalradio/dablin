@@ -78,15 +78,15 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 	data++;
 	len--;
 
-	// ignore other ensembles
-	if(header.oe)
+	// ignore next config/other ensembles/data services
+	if(header.cn || header.oe || header.pd)
 		return;
 
 
 	// handle extension
 	switch(header.extension) {
 	case 2:
-		ProcessFIG0_2(data, len, header);
+		ProcessFIG0_2(data, len);
 		break;
 //	default:
 //		fprintf(stderr, "FICDecoder: received unsupported FIG 0/%d with %zu field bytes\n", header.extension, len);
@@ -95,24 +95,14 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 
 
 
-void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len, const FIG0_HEADER& header) {
+void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len) {
 	// FIG 0/2 - Basic service and service component definition
+	// programme services only
 
-	// ignore next config
-	if(header.cn)
-		return;
-
+	// iterate through all services
 	for(size_t offset = 0; offset < len;) {
-		uint16_t sid_prog = 0;
-//		uint32_t sid_data;
-
-		if(header.pd) {
-//			sid_data = data[offset] << 24 | data[offset + 1] << 16 | data[offset + 2] << 8 | data[offset + 3];
-			offset += 4;
-		} else {
-			sid_prog = data[offset] << 8 | data[offset + 1];
-			offset += 2;
-		}
+		uint16_t sid = data[offset] << 8 | data[offset + 1];
+		offset += 2;
 
 		size_t num_service_comps = data[offset++] & 0x0F;
 
@@ -135,11 +125,11 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len, const FIG0_HEADE
 
 						AUDIO_SERVICE audio_service(subchid, dab_plus);
 
-						FIC_SERVICE& service = GetService(sid_prog);
+						FIC_SERVICE& service = GetService(sid);
 						if(service.audio_service != audio_service) {
 							service.audio_service = audio_service;
 
-							fprintf(stderr, "FICDecoder: SId 0x%04X: audio service (subchannel %2d, %s)\n", sid_prog, subchid, dab_plus ? "DAB+" : "DAB");
+							fprintf(stderr, "FICDecoder: SId 0x%04X: audio service (subchannel %2d, %s)\n", sid, subchid, dab_plus ? "DAB+" : "DAB");
 
 							UpdateService(service);
 						}
