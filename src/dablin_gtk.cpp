@@ -492,7 +492,7 @@ void DABlinGTK::on_combo_channels() {
 
 	// prevent re-use of initial SID
 	if(initial_channel_appended)
-		options.initial_sid = -1;
+		options.initial_sid = LISTED_SERVICE::sid_none;
 
 	// append
 	eti_source = new DAB2ETISource(options.dab2eti_binary, freq, options.gain, this);

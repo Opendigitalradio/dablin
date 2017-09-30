@@ -161,13 +161,13 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	eti_player = new ETIPlayer(options.pcm_output, this);
 
 	// set initial subchannel, if desired
-	if(options.initial_subchid_dab != -1) {
+	if(options.initial_subchid_dab != AUDIO_SERVICE::subchid_none) {
 		eti_player->SetAudioService(AUDIO_SERVICE(options.initial_subchid_dab, false));
 
 		// set XTerm window title to subchannel number
 		fprintf(stderr, "\x1B]0;" "Subchannel %d (DAB) - DABlin" "\a", options.initial_subchid_dab);
 	}
-	if(options.initial_subchid_dab_plus != -1) {
+	if(options.initial_subchid_dab_plus != AUDIO_SERVICE::subchid_none) {
 		eti_player->SetAudioService(AUDIO_SERVICE(options.initial_subchid_dab_plus, true));
 
 		// set XTerm window title to subchannel number
@@ -201,7 +201,7 @@ void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
 
 	// abort, if no/not initial service
-	if(options.initial_sid == -1 || service.sid != options.initial_sid)
+	if(options.initial_sid == LISTED_SERVICE::sid_none || service.sid != options.initial_sid)
 		return;
 
 	// if the audio service changed, switch

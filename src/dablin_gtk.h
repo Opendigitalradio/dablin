@@ -92,7 +92,7 @@ struct DABlinGTKOptions {
 	bool loose;
 	
 DABlinGTKOptions() :
-	initial_sid(-1),
+	initial_sid(LISTED_SERVICE::sid_none),
 	pcm_output(false),
 	gain(DAB2ETI_AUTO_GAIN),
 	initially_disable_slideshow(false),
