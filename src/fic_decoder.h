@@ -84,10 +84,21 @@ struct FIC_ENSEMBLE {
 	}
 };
 
+typedef std::map<int,AUDIO_SERVICE> sec_comps_t;
+typedef std::map<int,int> comp_defs_t;
+typedef std::map<int,FIC_LABEL> comp_labels_t;
+
 struct FIC_SERVICE {
 	int sid;
+
+	// primary component
 	AUDIO_SERVICE audio_service;
 	FIC_LABEL label;
+
+	// secondary components (if present)
+	sec_comps_t sec_comps;		// from FIG 0/2: SubChId -> AUDIO_SERVICE
+	comp_defs_t comp_defs;		// from FIG 0/8: SCIdS -> SubChId
+	comp_labels_t comp_labels;	// from FIG 1/4: SCIdS -> FIC_LABEL
 
 	static const int sid_none = -1;
 	bool IsNone() const {return sid == sid_none;}
@@ -97,23 +108,50 @@ struct FIC_SERVICE {
 
 struct LISTED_SERVICE {
 	int sid;
+	int scids;
 	AUDIO_SERVICE audio_service;
 	FIC_LABEL label;
+
+	int pri_comp_subchid;	// only used for sorting
+	bool multi_comps;
 
 	static const int sid_none = -1;
 	bool IsNone() const {return sid == sid_none;}
 
-	LISTED_SERVICE() : sid(sid_none) {}
-	LISTED_SERVICE(FIC_SERVICE s) :
+	static const int scids_none = -1;
+	bool IsPrimary() const {return scids == scids_none;}
+
+	LISTED_SERVICE() :
+		sid(sid_none),
+		scids(scids_none),
+		pri_comp_subchid(AUDIO_SERVICE::subchid_none),
+		multi_comps(false)
+	{}
+	// primary component
+	LISTED_SERVICE(FIC_SERVICE s, bool multi_comps) :
 		sid(s.sid),
+		scids(scids_none),
 		audio_service(s.audio_service),
-		label(s.label)
+		label(s.label),
+		pri_comp_subchid(s.audio_service.subchid),
+		multi_comps(multi_comps)
+	{}
+	// secondary component
+	LISTED_SERVICE(FIC_SERVICE s, int scids) :
+		sid(s.sid),
+		scids(scids),
+		audio_service(s.sec_comps[s.comp_defs[scids]]),
+		label(s.comp_labels.find(scids) != s.comp_labels.end() ? s.comp_labels[scids] : s.label),	// fall back to service label, if no component label
+		pri_comp_subchid(s.audio_service.subchid),
+		multi_comps(true)
 	{}
 
 	bool operator<(const LISTED_SERVICE & service) const {
-		if(audio_service.subchid != service.audio_service.subchid)
-			return audio_service.subchid < service.audio_service.subchid;
-		return sid < service.sid;
+		if(pri_comp_subchid != service.pri_comp_subchid)
+			return pri_comp_subchid < service.pri_comp_subchid;
+		if(sid != service.sid)
+			return sid < service.sid;
+		return scids < service.scids;
 	}
 };
 
@@ -138,10 +176,12 @@ private:
 
 	void ProcessFIG0(const uint8_t *data, size_t len);
 	void ProcessFIG0_2(const uint8_t *data, size_t len);
+	void ProcessFIG0_8(const uint8_t *data, size_t len);
 
 	void ProcessFIG1(const uint8_t *data, size_t len);
 	void ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label);
 	void ProcessFIG1_1(uint16_t sid, const FIC_LABEL& label);
+	void ProcessFIG1_4(uint16_t sid, int scids, const FIC_LABEL& label);
 
 	FIC_SERVICE& GetService(uint16_t sid);
 	void UpdateService(FIC_SERVICE& service);

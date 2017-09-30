@@ -32,6 +32,7 @@
 struct DABlinTextOptions {
 	std::string filename;
 	int initial_sid;
+	int initial_scids;
 	int initial_subchid_dab;
 	int initial_subchid_dab_plus;
 	std::string dab2eti_binary;
@@ -40,6 +41,7 @@ struct DABlinTextOptions {
 	int gain;
 DABlinTextOptions() :
 	initial_sid(LISTED_SERVICE::sid_none),
+	initial_scids(LISTED_SERVICE::scids_none),
 	initial_subchid_dab(AUDIO_SERVICE::subchid_none),
 	initial_subchid_dab_plus(AUDIO_SERVICE::subchid_none),
 	pcm_output(false),

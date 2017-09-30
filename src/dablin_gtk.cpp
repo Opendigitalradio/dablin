@@ -35,6 +35,7 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -C <ch>,...   Channels to be displayed (separated by comma; requires dab2eti as source)\n");
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source; otherwise no initial channel)\n");
 	fprintf(stderr, "  -s <sid>      ID of the service to be played (otherwise no initial service)\n");
+	fprintf(stderr, "  -x <scids>    ID of the service component to be played (requires service ID)\n");
 	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto_gain is default)\n");
 	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
 	fprintf(stderr, "  -S            Initially disable slideshow\n");
@@ -59,7 +60,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hd:C:c:g:s:pSL")) != -1) {
+	while((c = getopt(argc, argv, "hd:C:c:g:s:x:pSL")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -75,6 +76,9 @@ int main(int argc, char **argv) {
 			break;
 		case 's':
 			options.initial_sid = strtol(optarg, NULL, 0);
+			break;
+		case 'x':
+			options.initial_scids = strtol(optarg, NULL, 0);
 			break;
 		case 'g':
 			options.gain = strtol(optarg, NULL, 0);
@@ -128,6 +132,10 @@ int main(int argc, char **argv) {
 			fprintf(stderr, "The channel '%s' is not supported!\n", options.initial_channel.c_str());
 			usage(argv[0]);
 		}
+	}
+	if(options.initial_scids != LISTED_SERVICE::scids_none && options.initial_sid == LISTED_SERVICE::sid_none) {
+		fprintf(stderr, "The service component ID requires the service ID to be specified!\n");
+		usage(argv[0]);
 	}
 #ifdef DABLIN_DISABLE_SDL
 	if(!options.pcm_output) {
@@ -345,8 +353,9 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		set_title(label + " - DABlin");
 		frame_combo_services.set_tooltip_text(
 				"Short label: \"" + DeriveShortLabel(label, service.label.short_label_mask) + "\"\n"
-				"SId: " + sid_string + "\n"
-				"SubChId: " + std::to_string(service.audio_service.subchid));
+				"SId: " + sid_string + (!service.IsPrimary() ? " (SCIdS: " + std::to_string(service.scids) + ")" : "") + "\n"
+				"SubChId: " + std::to_string(service.audio_service.subchid)
+		);
 	} else {
 		set_title("DABlin");
 		frame_combo_services.set_tooltip_text("");
@@ -443,15 +452,17 @@ void DABlinGTK::FICChangeServiceEmitted() {
 	LISTED_SERVICE new_service = fic_change_service.Pop();
 
 	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(new_service.label);
-
-//	std::stringstream ss;
-//	ss << "'" << label << "' - Subchannel " << new_service.audio_service.subchid << " " << (new_service.audio_service.dab_plus ? "(DAB+)" : "(DAB)");
+	if(new_service.multi_comps)
+		label = (!new_service.IsPrimary() ? "» " : "") + label + (new_service.IsPrimary() ? " »" : "");
 
 	// get row (add new one, if needed)
 	Gtk::ListStore::Children children = combo_services_liststore->children();
 	Gtk::ListStore::iterator row_it = std::find_if(
 			children.begin(), children.end(),
-			[&](const Gtk::TreeModel::Row& row)->bool {return ((LISTED_SERVICE) row[combo_services_cols.col_service]).sid == new_service.sid;}
+			[&](const Gtk::TreeModel::Row& row)->bool {
+				const LISTED_SERVICE& ls = (LISTED_SERVICE) row[combo_services_cols.col_service];
+				return ls.sid == new_service.sid && ls.scids == new_service.scids;
+			}
 	);
 	bool add_new_row = row_it == children.end();
 	if(add_new_row)
@@ -463,7 +474,7 @@ void DABlinGTK::FICChangeServiceEmitted() {
 
 	if(add_new_row) {
 		// set (initial) service
-		if(new_service.sid == options.initial_sid)
+		if(new_service.sid == options.initial_sid && new_service.scids == options.initial_scids)
 			combo_services.set_active(row_it);
 	} else {
 		// set (updated) service
@@ -491,8 +502,10 @@ void DABlinGTK::on_combo_channels() {
 	frame_combo_channels.set_tooltip_text("Center frequency: " + std::to_string(freq) + " kHz");
 
 	// prevent re-use of initial SID
-	if(initial_channel_appended)
+	if(initial_channel_appended) {
 		options.initial_sid = LISTED_SERVICE::sid_none;
+		options.initial_scids = LISTED_SERVICE::scids_none;
+	}
 
 	// append
 	eti_source = new DAB2ETISource(options.dab2eti_binary, freq, options.gain, this);

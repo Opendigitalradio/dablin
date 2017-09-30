@@ -201,6 +201,17 @@ with it. If you want/have to use a gain value you can specify it using
 In addition to the respective button, the GTK GUI version also allows the
 keyboard shortcut `m` to toggle muting the audio.
 
+### Secondary component audio services
+
+Some ensembles may contain audio services that consist of additional
+"sub services" called secondary components, in addition to the primary
+component. That secondary components can initially be selected by using
+`-x` in addition to `-s`.
+
+In the GTK version in the service list such components are shown
+prefixed with `» ` (e.g. `» BBC R5LiveSportX`). Meanwhile the related
+primary component is suffixed with ` »` (e.g. `BBC Radio 5 Live »`).
+
 
 ## Status output
 

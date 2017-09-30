@@ -34,6 +34,7 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -d <binary>   Use dab2eti as source (using the mentioned binary)\n");
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source)\n");
 	fprintf(stderr, "  -s <sid>      ID of the service to be played\n");
+	fprintf(stderr, "  -x <scids>    ID of the service component to be played (requires service ID)\n");
 	fprintf(stderr, "  -r <subchid>  ID of the subchannel (DAB) to be played\n");
 	fprintf(stderr, "  -R <subchid>  ID of the subchannel (DAB+) to be played\n");
 	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto_gain is default)\n");
@@ -59,7 +60,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hc:d:g:s:pr:R:")) != -1) {
+	while((c = getopt(argc, argv, "hc:d:g:s:x:pr:R:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -73,6 +74,9 @@ int main(int argc, char **argv) {
 		case 's':
 			options.initial_sid = strtol(optarg, NULL, 0);
 			id_param_count++;
+			break;
+		case 'x':
+			options.initial_scids = strtol(optarg, NULL, 0);
 			break;
 		case 'r':
 			options.initial_subchid_dab = strtol(optarg, NULL, 0);
@@ -124,6 +128,10 @@ int main(int argc, char **argv) {
 			fprintf(stderr, "The channel '%s' is not supported!\n", options.initial_channel.c_str());
 			usage(argv[0]);
 		}
+	}
+	if(options.initial_scids != LISTED_SERVICE::scids_none && options.initial_sid == LISTED_SERVICE::sid_none) {
+		fprintf(stderr, "The service component ID requires the service ID to be specified!\n");
+		usage(argv[0]);
 	}
 #ifdef DABLIN_DISABLE_SDL
 	if(!options.pcm_output) {
@@ -201,7 +209,7 @@ void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
 
 	// abort, if no/not initial service
-	if(options.initial_sid == LISTED_SERVICE::sid_none || service.sid != options.initial_sid)
+	if(options.initial_sid == LISTED_SERVICE::sid_none || service.sid != options.initial_sid || service.scids != options.initial_scids)
 		return;
 
 	// if the audio service changed, switch

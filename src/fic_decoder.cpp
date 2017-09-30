@@ -88,6 +88,9 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 	case 2:
 		ProcessFIG0_2(data, len);
 		break;
+	case 8:
+		ProcessFIG0_8(data, len);
+		break;
 //	default:
 //		fprintf(stderr, "FICDecoder: received unsupported FIG 0/%d with %zu field bytes\n", header.extension, len);
 	}
@@ -117,7 +120,7 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len) {
 				bool ps = data[offset + 1] & 0x02;
 				bool ca = data[offset + 1] & 0x01;
 
-				if(ps && !ca) {
+				if(!ca) {
 					switch(ascty) {
 					case 0:		// DAB
 					case 63:	// DAB+
@@ -126,10 +129,11 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len) {
 						AUDIO_SERVICE audio_service(subchid, dab_plus);
 
 						FIC_SERVICE& service = GetService(sid);
-						if(service.audio_service != audio_service) {
-							service.audio_service = audio_service;
+						AUDIO_SERVICE& current_audio_service = ps ? service.audio_service : service.sec_comps[subchid];
+						if(current_audio_service != audio_service) {
+							current_audio_service = audio_service;
 
-							fprintf(stderr, "FICDecoder: SId 0x%04X: audio service (subchannel %2d, %s)\n", sid, subchid, dab_plus ? "DAB+" : "DAB");
+							fprintf(stderr, "FICDecoder: SId 0x%04X: audio service (subchannel %2d, %-4s, %s)\n", sid, subchid, dab_plus ? "DAB+" : "DAB", ps ? "primary" : "secondary");
 
 							UpdateService(service);
 						}
@@ -144,7 +148,51 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len) {
 	}
 }
 
+void FICDecoder::ProcessFIG0_8(const uint8_t *data, size_t len) {
+	// FIG 0/8 - Service component global definition
+	// programme services only
 
+	// iterate through all service components
+	for(size_t offset = 0; offset < len;) {
+		uint16_t sid = data[offset] << 8 | data[offset + 1];
+		offset += 2;
+
+		bool ext_flag = data[offset] & 0x80;
+		int scids = data[offset] & 0x0F;
+		offset++;
+
+		bool ls_flag = data[offset] & 0x80;
+		if(ls_flag) {
+			// long form - skipped, as not relevant
+			offset += 2;
+		} else {
+			// short form
+			bool msc_fic_flag = data[offset] & 0x40;
+
+			// handle only MSC components
+			if(!msc_fic_flag) {
+				int subchid = data[offset] & 0x3F;
+
+				FIC_SERVICE& service = GetService(sid);
+				bool new_comp = service.comp_defs.find(scids) == service.comp_defs.end();
+				int& current_subchid = service.comp_defs[scids];
+				if(new_comp || current_subchid != subchid) {
+					current_subchid = subchid;
+
+					fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: MSC service component (subchannel %2d)\n", sid, scids, subchid);
+
+					UpdateService(service);
+				}
+			}
+
+			offset++;
+		}
+
+		// skip Rfa field, if needed
+		if(ext_flag)
+			offset++;
+	}
+}
 
 void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	if(len < 1) {
@@ -167,6 +215,12 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	case 0:	// ensemble
 	case 1:	// programme service
 		len_id = 2;
+		break;
+	case 4:	// service component
+		// programme services only (P/D = 0)
+		if(data[0] & 0x80)
+			return;
+		len_id = 3;
 		break;
 	default:
 //		fprintf(stderr, "FICDecoder: received unsupported FIG 1/%d with %zu field bytes\n", header.extension, len);
@@ -197,6 +251,11 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 		uint16_t sid = data[0] << 8 | data[1];
 		ProcessFIG1_1(sid, label);
 		break; }
+	case 4: {	// service component
+		int scids = data[0] & 0x0F;
+		uint16_t sid = data[1] << 8 | data[2];
+		ProcessFIG1_4(sid, scids, label);
+		break; }
 	}
 }
 
@@ -224,6 +283,21 @@ void FICDecoder::ProcessFIG1_1(uint16_t sid, const FIC_LABEL& label) {
 	}
 }
 
+void FICDecoder::ProcessFIG1_4(uint16_t sid, int scids, const FIC_LABEL& label) {
+	// programme services only
+
+	FIC_SERVICE& service = GetService(sid);
+	FIC_LABEL& comp_label = service.comp_labels[scids];
+	if(comp_label != label) {
+		comp_label = label;
+
+		std::string label_str = ConvertLabelToUTF8(label);
+		fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: service component label '%s'\n", sid, scids, label_str.c_str());
+
+		UpdateService(service);
+	}
+}
+
 FIC_SERVICE& FICDecoder::GetService(uint16_t sid) {
 	FIC_SERVICE& result = services[sid];	// created, if not yet existing
 
@@ -238,7 +312,17 @@ void FICDecoder::UpdateService(FIC_SERVICE& service) {
 	if(service.audio_service.IsNone() || service.label.IsNone())
 		return;
 
-	observer->FICChangeService(LISTED_SERVICE(service));
+	// secondary components (if both component and definition are present)
+	bool multi_comps = false;
+	for(comp_defs_t::const_iterator it = service.comp_defs.cbegin(); it != service.comp_defs.cend(); it++) {
+		if(service.sec_comps.find(it->second) == service.sec_comps.end())
+			continue;
+		observer->FICChangeService(LISTED_SERVICE(service, it->first));
+		multi_comps = true;
+	}
+
+	// primary component
+	observer->FICChangeService(LISTED_SERVICE(service, multi_comps));
 }
 
 std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {
