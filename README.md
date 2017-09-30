@@ -156,9 +156,9 @@ directly from GNOME Shell. For now, at least, start DABlin from a console.)
 
 DABlin processes frame-aligned DAB ETI-NI recordings. If no filename is
 specified, `stdin` is used for input.
-You just have to specify the regarding Service ID (SID). The GUI version
-does not necessarily need this - in that case initially no service is
-played until one is chosen.
+You just should specify the service ID (SID) of the desired service
+using `-s` - otherwise initially no service is played. The GUI version
+of course does not necessarily need this.
 
 If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/Opendigitalradio/dabtools)
 (ODR maintained fork) and transfer the ETI live stream via pipe, e.g.:
@@ -176,6 +176,7 @@ dablin -s 0xd911 mux.eti
 
 It is possible to let DABlin invoke `dab2eti`. You therefore just have
 to specify the path to the `dab2eti` binary and the desired channel.
+
 ```
 dablin -d ~/bin/dab2eti -c 11D -s 0xd911
 ```
@@ -188,6 +189,7 @@ In case of the GTK GUI version the desired channel may not be specified. To
 avoid the huge channel list containing all possible DAB channels, one
 can also state the desired channels (separated by comma) which shall be
 displayed within the channel list.
+
 ```
 dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 ```

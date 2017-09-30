@@ -133,9 +133,9 @@ int main(int argc, char **argv) {
 #endif
 
 
-	// exactly one SId/SubChId needed!
-	if(id_param_count != 1) {
-		fprintf(stderr, "Exactly one SId or SubChId must be specified!\n");
+	// at most one SId/SubChId needed!
+	if(id_param_count > 1) {
+		fprintf(stderr, "At most one SId or SubChId shall be specified!\n");
 		usage(argv[0]);
 	}
 
