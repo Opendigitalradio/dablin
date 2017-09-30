@@ -67,24 +67,24 @@ struct FIC_LABEL {
 	}
 };
 
-struct ENSEMBLE {
+struct FIC_ENSEMBLE {
 	int eid;
 	FIC_LABEL label;
 
 	static const int eid_none = -1;
 	bool IsNone() const {return eid == eid_none;}
 
-	ENSEMBLE() : eid(eid_none) {}
+	FIC_ENSEMBLE() : eid(eid_none) {}
 
-	bool operator==(const ENSEMBLE & ensemble) const {
+	bool operator==(const FIC_ENSEMBLE & ensemble) const {
 		return eid == ensemble.eid && label == ensemble.label;
 	}
-	bool operator!=(const ENSEMBLE & ensemble) const {
+	bool operator!=(const FIC_ENSEMBLE & ensemble) const {
 		return !(*this == ensemble);
 	}
 };
 
-struct SERVICE {
+struct FIC_SERVICE {
 	int sid;
 	AUDIO_SERVICE audio_service;
 	FIC_LABEL label;
@@ -92,7 +92,7 @@ struct SERVICE {
 	static const int sid_none = -1;
 	bool IsNone() const {return sid == sid_none;}
 
-	SERVICE() : sid(sid_none) {}
+	FIC_SERVICE() : sid(sid_none) {}
 };
 
 struct LISTED_SERVICE {
@@ -104,7 +104,7 @@ struct LISTED_SERVICE {
 	bool IsNone() const {return sid == sid_none;}
 
 	LISTED_SERVICE() : sid(sid_none) {}
-	LISTED_SERVICE(SERVICE s) :
+	LISTED_SERVICE(FIC_SERVICE s) :
 		sid(s.sid),
 		audio_service(s.audio_service),
 		label(s.label)
@@ -117,14 +117,14 @@ struct LISTED_SERVICE {
 	}
 };
 
-typedef std::map<uint16_t, SERVICE> services_t;
+typedef std::map<uint16_t, FIC_SERVICE> fic_services_t;
 
 // --- FICDecoderObserver -----------------------------------------------------------------
 class FICDecoderObserver {
 public:
 	virtual ~FICDecoderObserver() {};
 
-	virtual void FICChangeEnsemble(const ENSEMBLE& /*ensemble*/) {};
+	virtual void FICChangeEnsemble(const FIC_ENSEMBLE& /*ensemble*/) {};
 	virtual void FICChangeService(const LISTED_SERVICE& /*service*/) {};
 };
 
@@ -143,11 +143,11 @@ private:
 	void ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label);
 	void ProcessFIG1_1(uint16_t sid, const FIC_LABEL& label);
 
-	SERVICE& GetService(uint16_t sid);
-	void UpdateService(SERVICE& service);
+	FIC_SERVICE& GetService(uint16_t sid);
+	void UpdateService(FIC_SERVICE& service);
 
-	ENSEMBLE ensemble;
-	services_t services;
+	FIC_ENSEMBLE ensemble;
+	fic_services_t services;
 
 	static const char* no_char;
 	static const char* ebu_values_0x00_to_0x1F[];

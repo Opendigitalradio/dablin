@@ -208,8 +208,8 @@ private:
 	bool HandleKeyPressEvent(GdkEventKey* key_event);
 
 	// FIC data change
-	GTKDispatcherQueue<ENSEMBLE> fic_change_ensemble;
-	void FICChangeEnsemble(const ENSEMBLE& ensemble) {fic_change_ensemble.PushAndEmit(ensemble);}
+	GTKDispatcherQueue<FIC_ENSEMBLE> fic_change_ensemble;
+	void FICChangeEnsemble(const FIC_ENSEMBLE& ensemble) {fic_change_ensemble.PushAndEmit(ensemble);}
 	void FICChangeEnsembleEmitted();
 
 	GTKDispatcherQueue<LISTED_SERVICE> fic_change_service;

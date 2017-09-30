@@ -425,7 +425,7 @@ void DABlinGTK::ETIChangeFormatEmitted() {
 void DABlinGTK::FICChangeEnsembleEmitted() {
 //	fprintf(stderr, "### FICChangeEnsembleEmitted\n");
 
-	ENSEMBLE new_ensemble = fic_change_ensemble.Pop();
+	FIC_ENSEMBLE new_ensemble = fic_change_ensemble.Pop();
 
 	char eid_string[7];
 	snprintf(eid_string, sizeof(eid_string), "0x%04X", new_ensemble.eid);

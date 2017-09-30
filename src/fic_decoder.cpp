@@ -21,7 +21,7 @@
 
 // --- FICDecoder -----------------------------------------------------------------
 void FICDecoder::Reset() {
-	ensemble = ENSEMBLE();
+	ensemble = FIC_ENSEMBLE();
 	services.clear();
 }
 
@@ -135,7 +135,7 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len, const FIG0_HEADE
 
 						AUDIO_SERVICE audio_service(subchid, dab_plus);
 
-						SERVICE& service = GetService(sid_prog);
+						FIC_SERVICE& service = GetService(sid_prog);
 						if(service.audio_service != audio_service) {
 							service.audio_service = audio_service;
 
@@ -223,7 +223,7 @@ void FICDecoder::ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label) {
 }
 
 void FICDecoder::ProcessFIG1_1(uint16_t sid, const FIC_LABEL& label) {
-	SERVICE& service = GetService(sid);
+	FIC_SERVICE& service = GetService(sid);
 	if(service.label != label) {
 		service.label = label;
 
@@ -234,8 +234,8 @@ void FICDecoder::ProcessFIG1_1(uint16_t sid, const FIC_LABEL& label) {
 	}
 }
 
-SERVICE& FICDecoder::GetService(uint16_t sid) {
-	SERVICE& result = services[sid];	// created, if not yet existing
+FIC_SERVICE& FICDecoder::GetService(uint16_t sid) {
+	FIC_SERVICE& result = services[sid];	// created, if not yet existing
 
 	// if new service, set SID
 	if(result.IsNone())
@@ -243,7 +243,7 @@ SERVICE& FICDecoder::GetService(uint16_t sid) {
 	return result;
 }
 
-void FICDecoder::UpdateService(SERVICE& service) {
+void FICDecoder::UpdateService(FIC_SERVICE& service) {
 	// abort update, if audio service or label not yet present
 	if(service.audio_service.IsNone() || service.label.IsNone())
 		return;
