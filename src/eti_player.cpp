@@ -55,15 +55,15 @@ void ETIPlayer::SetAudioService(const AUDIO_SERVICE& audio_service) {
 		return;
 
 	if(audio_service.IsNone())
-		fprintf(stderr, "ETIPlayer: playing no subchannel\n");
+		fprintf(stderr, "ETIPlayer: playing no sub-channel\n");
 	else
-		fprintf(stderr, "ETIPlayer: playing subchannel %d (%s)\n", audio_service.subchid, audio_service.dab_plus ? "DAB+" : "DAB");
+		fprintf(stderr, "ETIPlayer: playing sub-channel %d (%s)\n", audio_service.subchid, audio_service.dab_plus ? "DAB+" : "DAB");
 
 	audio_service_next = audio_service;
 }
 
 void ETIPlayer::ProcessFrame(const uint8_t *data) {
-	// handle subchannel change
+	// handle sub-channel change
 	{
 		std::lock_guard<std::mutex> lock(status_mutex);
 
@@ -133,7 +133,7 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 		subch_offset += ficl * 4;
 	}
 
-	// abort here, if ATM no subchannel selected
+	// abort here, if ATM no sub-channel selected
 	if(audio_service_now.IsNone())
 		return;
 
@@ -149,7 +149,7 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 		}
 	}
 	if(subch_bytes == 0) {
-		fprintf(stderr, "ETIPlayer: ignored ETI frame without subch %d\n", audio_service_now.subchid);
+		fprintf(stderr, "ETIPlayer: ignored ETI frame without sub-channel %d\n", audio_service_now.subchid);
 		return;
 	}
 

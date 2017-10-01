@@ -182,7 +182,7 @@ dablin -d ~/bin/dab2eti -c 11D -s 0xd911
 ```
 
 With the console version, instead of the desired service it is also
-possible to directly request a specific subchannel by using `-r` (for
+possible to directly request a specific sub-channel by using `-r` (for
 DAB) or `-R` (for DAB+).
 
 In case of the GTK GUI version the desired channel may not be specified. To
@@ -285,7 +285,7 @@ first slide has been received completely and without errors.
 
 Currently the following limitations apply:
 
-* slideshows in a separate subchannel are not supported (just X-PAD);
+* slideshows in a separate sub-channel are not supported (just X-PAD);
 * for MOT the hardcoded (default) X-PAD Application Types 12/13 are used;
 * the TriggerTime field is not processed (except the value Now)
 

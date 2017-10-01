@@ -35,8 +35,8 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source)\n");
 	fprintf(stderr, "  -s <sid>      ID of the service to be played\n");
 	fprintf(stderr, "  -x <scids>    ID of the service component to be played (requires service ID)\n");
-	fprintf(stderr, "  -r <subchid>  ID of the subchannel (DAB) to be played\n");
-	fprintf(stderr, "  -R <subchid>  ID of the subchannel (DAB+) to be played\n");
+	fprintf(stderr, "  -r <subchid>  ID of the sub-channel (DAB) to be played\n");
+	fprintf(stderr, "  -R <subchid>  ID of the sub-channel (DAB+) to be played\n");
 	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto_gain is default)\n");
 	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
@@ -168,18 +168,18 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 
 	eti_player = new ETIPlayer(options.pcm_output, this);
 
-	// set initial subchannel, if desired
+	// set initial sub-channel, if desired
 	if(options.initial_subchid_dab != AUDIO_SERVICE::subchid_none) {
 		eti_player->SetAudioService(AUDIO_SERVICE(options.initial_subchid_dab, false));
 
-		// set XTerm window title to subchannel number
-		fprintf(stderr, "\x1B]0;" "Subchannel %d (DAB) - DABlin" "\a", options.initial_subchid_dab);
+		// set XTerm window title to sub-channel number
+		fprintf(stderr, "\x1B]0;" "Sub-channel %d (DAB) - DABlin" "\a", options.initial_subchid_dab);
 	}
 	if(options.initial_subchid_dab_plus != AUDIO_SERVICE::subchid_none) {
 		eti_player->SetAudioService(AUDIO_SERVICE(options.initial_subchid_dab_plus, true));
 
-		// set XTerm window title to subchannel number
-		fprintf(stderr, "\x1B]0;" "Subchannel %d (DAB+) - DABlin" "\a", options.initial_subchid_dab_plus);
+		// set XTerm window title to sub-channel number
+		fprintf(stderr, "\x1B]0;" "Sub-channel %d (DAB+) - DABlin" "\a", options.initial_subchid_dab_plus);
 	}
 
 	if(options.dab2eti_binary.empty())

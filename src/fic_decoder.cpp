@@ -133,7 +133,7 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len) {
 						if(current_audio_service != audio_service) {
 							current_audio_service = audio_service;
 
-							fprintf(stderr, "FICDecoder: SId 0x%04X: audio service (subchannel %2d, %-4s, %s)\n", sid, subchid, dab_plus ? "DAB+" : "DAB", ps ? "primary" : "secondary");
+							fprintf(stderr, "FICDecoder: SId 0x%04X: audio service (sub-channel %2d, %-4s, %s)\n", sid, subchid, dab_plus ? "DAB+" : "DAB", ps ? "primary" : "secondary");
 
 							UpdateService(service);
 						}
@@ -179,7 +179,7 @@ void FICDecoder::ProcessFIG0_8(const uint8_t *data, size_t len) {
 				if(new_comp || current_subchid != subchid) {
 					current_subchid = subchid;
 
-					fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: MSC service component (subchannel %2d)\n", sid, scids, subchid);
+					fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: MSC service component (sub-channel %2d)\n", sid, scids, subchid);
 
 					UpdateService(service);
 				}
