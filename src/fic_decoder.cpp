@@ -23,6 +23,7 @@
 void FICDecoder::Reset() {
 	ensemble = FIC_ENSEMBLE();
 	services.clear();
+	subchannels.clear();
 }
 
 void FICDecoder::Process(const uint8_t *data, size_t len) {
@@ -85,6 +86,9 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 
 	// handle extension
 	switch(header.extension) {
+	case 1:
+		ProcessFIG0_1(data, len);
+		break;
 	case 2:
 		ProcessFIG0_2(data, len);
 		break;
@@ -96,7 +100,68 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 	}
 }
 
+void FICDecoder::ProcessFIG0_1(const uint8_t *data, size_t len) {
+	// FIG 0/1 - Basic sub-channel organization
 
+	// iterate through all sub-channels
+	for(size_t offset = 0; offset < len;) {
+		int subchid = data[offset] >> 2;
+		size_t start_address = (data[offset] & 0x03) << 8 | data[offset + 1];
+		offset += 2;
+
+		FIC_SUBCHANNEL sc;
+		sc.start = start_address;
+
+		bool short_long_form = data[offset] & 0x80;
+		if(short_long_form) {
+			// long form
+			int option = (data[offset] & 0x70) >> 4;
+			int pl = (data[offset] & 0x0C) >> 2;
+			size_t subch_size = (data[offset] & 0x03) << 8 | data[offset + 1];
+
+			switch(option) {
+			case 0b000:
+				sc.size = subch_size;
+				sc.pl = "EEP " + std::to_string(pl + 1) + "-A";
+				sc.bitrate = subch_size / eep_a_size_factors[pl] *  8;
+				break;
+			case 0b001:
+				sc.size = subch_size;
+				sc.pl = "EEP " + std::to_string(pl + 1) + "-B";
+				sc.bitrate = subch_size / eep_b_size_factors[pl] * 32;
+				break;
+			}
+			offset += 2;
+		} else {
+			// short form
+
+			bool table_switch = data[offset] & 0x40;
+			if(!table_switch) {
+				int table_index = data[offset] & 0x3F;
+				sc.size = uep_sizes[table_index];
+				sc.pl = "UEP " + std::to_string(uep_pls[table_index]);
+				sc.bitrate = uep_bitrates[table_index];
+			}
+			offset++;
+		}
+
+		if(!sc.IsNone()) {
+			FIC_SUBCHANNEL& current_sc = subchannels[subchid];
+			if(current_sc != sc) {
+				current_sc = sc;
+
+				fprintf(stderr, "FICDecoder: SubChId %2d: start %3zu CUs, size %3zu CUs, PL %-7s = %3d kBit/s\n", subchid, sc.start, sc.size, sc.pl.c_str(), sc.bitrate);
+
+				// update services that consist of this sub-channel
+				for(fic_services_t::const_iterator it = services.cbegin(); it != services.cend(); it++) {
+					const FIC_SERVICE& s = it->second;
+					if(s.audio_service.subchid == subchid || s.sec_comps.find(subchid) != s.sec_comps.end())
+						UpdateService(s);
+				}
+			}
+		}
+	}
+}
 
 void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len) {
 	// FIG 0/2 - Basic service and service component definition
@@ -133,7 +198,7 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len) {
 						if(current_audio_service != audio_service) {
 							current_audio_service = audio_service;
 
-							fprintf(stderr, "FICDecoder: SId 0x%04X: audio service (sub-channel %2d, %-4s, %s)\n", sid, subchid, dab_plus ? "DAB+" : "DAB", ps ? "primary" : "secondary");
+							fprintf(stderr, "FICDecoder: SId 0x%04X: audio service (SubChId %2d, %-4s, %s)\n", sid, subchid, dab_plus ? "DAB+" : "DAB", ps ? "primary" : "secondary");
 
 							UpdateService(service);
 						}
@@ -179,7 +244,7 @@ void FICDecoder::ProcessFIG0_8(const uint8_t *data, size_t len) {
 				if(new_comp || current_subchid != subchid) {
 					current_subchid = subchid;
 
-					fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: MSC service component (sub-channel %2d)\n", sid, scids, subchid);
+					fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: MSC service component (SubChId %2d)\n", sid, scids, subchid);
 
 					UpdateService(service);
 				}
@@ -340,9 +405,15 @@ void FICDecoder::UpdateListedService(const FIC_SERVICE& service, int scids, bool
 		ls.audio_service = service.sec_comps.at(service.comp_defs.at(scids));
 
 		// use component label, if available
-		if(service.comp_labels.find(scids) != service.comp_labels.end())
-			ls.label = service.comp_labels.at(scids);
+		comp_labels_t::const_iterator cl_it = service.comp_labels.find(scids);
+		if(cl_it != service.comp_labels.end())
+			ls.label = cl_it->second;
 	}
+
+	// use sub-channel information, if available
+	fic_subchannels_t::const_iterator sc_it = subchannels.find(ls.audio_service.subchid);
+	if(sc_it != subchannels.end())
+		ls.subchannel = sc_it->second;
 
 	// forward to observer
 	observer->FICChangeService(ls);
@@ -407,6 +478,27 @@ const char* FICDecoder::ebu_values_0x7B_to_0xFF[] = {
 		"\u00C3", "\u00C5", "\u00C6", "\u0152", "\u0177", "\u00DD", "\u00D5", "\u00D8", "\u00DE", "\u014A", "\u0154", "\u0106", "\u015A", "\u0179", "\u0164", "\u00F0",
 		"\u00E3", "\u00E5", "\u00E6", "\u0153", "\u0175", "\u00FD", "\u00F5", "\u00F8", "\u00FE", "\u014B", "\u0155", "\u0107", "\u015B", "\u017A", "\u0165", "\u0127"
 };
+
+const size_t FICDecoder::uep_sizes[] = {
+		 16,  21,  24,  29,  35,  24,  29,  35,  42,  52,  29,  35,  42,  52,  32,  42,
+		 48,  58,  70,  40,  52,  58,  70,  84,  48,  58,  70,  84, 104,  58,  70,  84,
+		104,  64,  84,  96, 116, 140,  80, 104, 116, 140, 168,  96, 116, 140, 168, 208,
+		116, 140, 168, 208, 232, 128, 168, 192, 232, 280, 160, 208, 280, 192, 280, 416
+};
+const int FICDecoder::uep_pls[] = {
+		5, 4, 3, 2, 1, 5, 4, 3, 2, 1, 5, 4, 3, 2, 5, 4,
+		3, 2, 1, 5, 4, 3, 2, 1, 5, 4, 3, 2, 1, 5, 4, 3,
+		2, 5, 4, 3, 2, 1, 5, 4, 3, 2, 1, 5, 4, 3, 2, 1,
+		5, 4, 3, 2, 1, 5, 4, 3, 2, 1, 5, 4, 2, 5, 3, 1
+};
+const int FICDecoder::uep_bitrates[] = {
+		 32,  32,  32,  32,  32,  48,  48,  48,  48,  48,  56,  56,  56,  56,  64,  64,
+		 64,  64,  64,  80,  80,  80,  80,  80,  96,  96,  96,  96,  96, 112, 112, 112,
+		112, 128, 128, 128, 128, 128, 160, 160, 160, 160, 160, 192, 192, 192, 192, 192,
+		224, 224, 224, 224, 224, 256, 256, 256, 256, 256, 320, 320, 320, 384, 384, 384
+};
+const int FICDecoder::eep_a_size_factors[] = {12,  8,  6,  4};
+const int FICDecoder::eep_b_size_factors[] = {27, 21, 18, 15};
 
 std::string FICDecoder::ConvertCharEBUToUTF8(const uint8_t value) {
 	// convert via LUT

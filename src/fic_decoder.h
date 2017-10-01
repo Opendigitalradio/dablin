@@ -67,6 +67,28 @@ struct FIC_LABEL {
 	}
 };
 
+struct FIC_SUBCHANNEL {
+	size_t start;
+	size_t size;
+	std::string pl;
+	int bitrate;
+
+	bool IsNone() const {return pl.empty();}
+
+	FIC_SUBCHANNEL() : start(0), size(0), bitrate(-1) {}
+
+	bool operator==(const FIC_SUBCHANNEL & fic_subchannel) const {
+		return
+				start == fic_subchannel.start &&
+				size == fic_subchannel.size &&
+				pl == fic_subchannel.pl &&
+				bitrate == fic_subchannel.bitrate;
+	}
+	bool operator!=(const FIC_SUBCHANNEL & fic_subchannel) const {
+		return !(*this == fic_subchannel);
+	}
+};
+
 struct FIC_ENSEMBLE {
 	int eid;
 	FIC_LABEL label;
@@ -109,6 +131,7 @@ struct FIC_SERVICE {
 struct LISTED_SERVICE {
 	int sid;
 	int scids;
+	FIC_SUBCHANNEL subchannel;
 	AUDIO_SERVICE audio_service;
 	FIC_LABEL label;
 
@@ -138,6 +161,7 @@ struct LISTED_SERVICE {
 };
 
 typedef std::map<uint16_t, FIC_SERVICE> fic_services_t;
+typedef std::map<int, FIC_SUBCHANNEL> fic_subchannels_t;
 
 // --- FICDecoderObserver -----------------------------------------------------------------
 class FICDecoderObserver {
@@ -157,6 +181,7 @@ private:
 	void ProcessFIB(const uint8_t *data);
 
 	void ProcessFIG0(const uint8_t *data, size_t len);
+	void ProcessFIG0_1(const uint8_t *data, size_t len);
 	void ProcessFIG0_2(const uint8_t *data, size_t len);
 	void ProcessFIG0_8(const uint8_t *data, size_t len);
 
@@ -171,11 +196,18 @@ private:
 
 	FIC_ENSEMBLE ensemble;
 	fic_services_t services;
+	fic_subchannels_t subchannels;	// from FIG 0/1: SubChId -> FIC_SUBCHANNEL
 
 	static const char* no_char;
 	static const char* ebu_values_0x00_to_0x1F[];
 	static const char* ebu_values_0x7B_to_0xFF[];
 	static std::string ConvertCharEBUToUTF8(const uint8_t value);
+
+	static const size_t uep_sizes[];
+	static const int uep_pls[];
+	static const int uep_bitrates[];
+	static const int eep_a_size_factors[];
+	static const int eep_b_size_factors[];
 public:
 	FICDecoder(FICDecoderObserver *observer) : observer(observer) {}
 

@@ -345,11 +345,12 @@ void DABlinGTK::AddChannel(dab_channels_t::const_iterator &it) {
 }
 
 void DABlinGTK::SetService(const LISTED_SERVICE& service) {
+	// (re)set labels/tooltips
 	if(!service.IsNone()) {
 		char sid_string[7];
 		snprintf(sid_string, sizeof(sid_string), "0x%04X", service.sid);
-
 		Glib::ustring label = FICDecoder::ConvertLabelToUTF8(service.label);
+
 		set_title(label + " - DABlin");
 		frame_combo_services.set_tooltip_text(
 				"Short label: \"" + DeriveShortLabel(label, service.label.short_label_mask) + "\"\n"
@@ -357,9 +358,18 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 				"SubChId: " + std::to_string(service.audio_service.subchid) + "\n"
 				"Audio type: " + (service.audio_service.dab_plus ? "DAB+" : "DAB")
 		);
+		if(!service.subchannel.IsNone()) {
+			frame_label_format.set_tooltip_text(
+					"Sub-channel start: " + std::to_string(service.subchannel.start) + " CUs" + "\n"
+					"Sub-channel size: " + std::to_string(service.subchannel.size) + " CUs" + "\n"
+					"Protection level: " + service.subchannel.pl + "\n"
+					"Bit rate: " + std::to_string(service.subchannel.bitrate) + " kBit/s"
+			);
+		}
 	} else {
 		set_title("DABlin");
 		frame_combo_services.set_tooltip_text("");
+		frame_label_format.set_tooltip_text("");
 	}
 
 	// if the audio service changed, reset format/DL/slide + switch
