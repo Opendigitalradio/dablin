@@ -354,7 +354,8 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		frame_combo_services.set_tooltip_text(
 				"Short label: \"" + DeriveShortLabel(label, service.label.short_label_mask) + "\"\n"
 				"SId: " + sid_string + (!service.IsPrimary() ? " (SCIdS: " + std::to_string(service.scids) + ")" : "") + "\n"
-				"SubChId: " + std::to_string(service.audio_service.subchid)
+				"SubChId: " + std::to_string(service.audio_service.subchid) + "\n"
+				"Audio type: " + (service.audio_service.dab_plus ? "DAB+" : "DAB")
 		);
 	} else {
 		set_title("DABlin");
