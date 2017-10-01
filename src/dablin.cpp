@@ -185,7 +185,7 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	if(options.dab2eti_binary.empty())
 		eti_source = new ETISource(options.filename, this);
 	else
-		eti_source = new DAB2ETISource(options.dab2eti_binary, dab_channels.find(options.initial_channel)->second, options.gain, this);
+		eti_source = new DAB2ETISource(options.dab2eti_binary, dab_channels.at(options.initial_channel), options.gain, this);
 
 	fic_decoder = new FICDecoder(this);
 }
