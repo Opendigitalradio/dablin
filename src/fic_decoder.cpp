@@ -307,7 +307,7 @@ FIC_SERVICE& FICDecoder::GetService(uint16_t sid) {
 	return result;
 }
 
-void FICDecoder::UpdateService(FIC_SERVICE& service) {
+void FICDecoder::UpdateService(const FIC_SERVICE& service) {
 	// abort update, if audio service or label not yet present
 	if(service.audio_service.IsNone() || service.label.IsNone())
 		return;
@@ -317,12 +317,35 @@ void FICDecoder::UpdateService(FIC_SERVICE& service) {
 	for(comp_defs_t::const_iterator it = service.comp_defs.cbegin(); it != service.comp_defs.cend(); it++) {
 		if(service.sec_comps.find(it->second) == service.sec_comps.end())
 			continue;
-		observer->FICChangeService(LISTED_SERVICE(service, it->first));
+		UpdateListedService(service, it->first, true);
 		multi_comps = true;
 	}
 
 	// primary component
-	observer->FICChangeService(LISTED_SERVICE(service, multi_comps));
+	UpdateListedService(service, LISTED_SERVICE::scids_none, multi_comps);
+}
+
+void FICDecoder::UpdateListedService(const FIC_SERVICE& service, int scids, bool multi_comps) {
+	// assemble listed service
+	LISTED_SERVICE ls;
+	ls.sid = service.sid;
+	ls.scids = scids;
+	ls.label = service.label;
+	ls.pri_comp_subchid = service.audio_service.subchid;
+	ls.multi_comps = multi_comps;
+
+	if(scids == LISTED_SERVICE::scids_none) {	// primary component
+		ls.audio_service = service.audio_service;
+	} else {									// secondary component
+		ls.audio_service = service.sec_comps.at(service.comp_defs.at(scids));
+
+		// use component label, if available
+		if(service.comp_labels.find(scids) != service.comp_labels.end())
+			ls.label = service.comp_labels.at(scids);
+	}
+
+	// forward to observer
+	observer->FICChangeService(ls);
 }
 
 std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {

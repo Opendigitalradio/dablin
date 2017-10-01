@@ -127,24 +127,6 @@ struct LISTED_SERVICE {
 		pri_comp_subchid(AUDIO_SERVICE::subchid_none),
 		multi_comps(false)
 	{}
-	// primary component
-	LISTED_SERVICE(FIC_SERVICE s, bool multi_comps) :
-		sid(s.sid),
-		scids(scids_none),
-		audio_service(s.audio_service),
-		label(s.label),
-		pri_comp_subchid(s.audio_service.subchid),
-		multi_comps(multi_comps)
-	{}
-	// secondary component
-	LISTED_SERVICE(FIC_SERVICE s, int scids) :
-		sid(s.sid),
-		scids(scids),
-		audio_service(s.sec_comps[s.comp_defs[scids]]),
-		label(s.comp_labels.find(scids) != s.comp_labels.end() ? s.comp_labels[scids] : s.label),	// fall back to service label, if no component label
-		pri_comp_subchid(s.audio_service.subchid),
-		multi_comps(true)
-	{}
 
 	bool operator<(const LISTED_SERVICE & service) const {
 		if(pri_comp_subchid != service.pri_comp_subchid)
@@ -184,7 +166,8 @@ private:
 	void ProcessFIG1_4(uint16_t sid, int scids, const FIC_LABEL& label);
 
 	FIC_SERVICE& GetService(uint16_t sid);
-	void UpdateService(FIC_SERVICE& service);
+	void UpdateService(const FIC_SERVICE& service);
+	void UpdateListedService(const FIC_SERVICE& service, int scids, bool multi_comps);
 
 	FIC_ENSEMBLE ensemble;
 	fic_services_t services;
