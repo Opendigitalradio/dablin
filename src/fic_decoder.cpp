@@ -146,18 +146,13 @@ void FICDecoder::ProcessFIG0_1(const uint8_t *data, size_t len) {
 		}
 
 		if(!sc.IsNone()) {
-			FIC_SUBCHANNEL& current_sc = subchannels[subchid];
+			FIC_SUBCHANNEL& current_sc = GetSubchannel(subchid);
 			if(current_sc != sc) {
 				current_sc = sc;
 
 				fprintf(stderr, "FICDecoder: SubChId %2d: start %3zu CUs, size %3zu CUs, PL %-7s = %3d kBit/s\n", subchid, sc.start, sc.size, sc.pl.c_str(), sc.bitrate);
 
-				// update services that consist of this sub-channel
-				for(fic_services_t::const_iterator it = services.cbegin(); it != services.cend(); it++) {
-					const FIC_SERVICE& s = it->second;
-					if(s.audio_service.subchid == subchid || s.sec_comps.find(subchid) != s.sec_comps.end())
-						UpdateService(s);
-				}
+				UpdateSubchannel(subchid);
 			}
 		}
 	}
@@ -360,6 +355,20 @@ void FICDecoder::ProcessFIG1_4(uint16_t sid, int scids, const FIC_LABEL& label) 
 		fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: service component label '%s'\n", sid, scids, label_str.c_str());
 
 		UpdateService(service);
+	}
+}
+
+FIC_SUBCHANNEL& FICDecoder::GetSubchannel(int subchid) {
+	// created automatically, if not yet existing
+	return subchannels[subchid];
+}
+
+void FICDecoder::UpdateSubchannel(int subchid) {
+	// update services that consist of this sub-channel
+	for(fic_services_t::const_iterator it = services.cbegin(); it != services.cend(); it++) {
+		const FIC_SERVICE& s = it->second;
+		if(s.audio_service.subchid == subchid || s.sec_comps.find(subchid) != s.sec_comps.end())
+			UpdateService(s);
 	}
 }
 

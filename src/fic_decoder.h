@@ -190,6 +190,8 @@ private:
 	void ProcessFIG1_1(uint16_t sid, const FIC_LABEL& label);
 	void ProcessFIG1_4(uint16_t sid, int scids, const FIC_LABEL& label);
 
+	FIC_SUBCHANNEL& GetSubchannel(int subchid);
+	void UpdateSubchannel(int subchid);
 	FIC_SERVICE& GetService(uint16_t sid);
 	void UpdateService(const FIC_SERVICE& service);
 	void UpdateListedService(const FIC_SERVICE& service, int scids, bool multi_comps);
