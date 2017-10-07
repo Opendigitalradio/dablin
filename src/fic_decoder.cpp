@@ -92,6 +92,9 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 	case 2:
 		ProcessFIG0_2(data, len);
 		break;
+	case 5:
+		ProcessFIG0_5(data, len);
+		break;
 	case 8:
 		ProcessFIG0_8(data, len);
 		break;
@@ -147,6 +150,7 @@ void FICDecoder::ProcessFIG0_1(const uint8_t *data, size_t len) {
 
 		if(!sc.IsNone()) {
 			FIC_SUBCHANNEL& current_sc = GetSubchannel(subchid);
+			sc.language = current_sc.language;	// ignored for comparison
 			if(current_sc != sc) {
 				current_sc = sc;
 
@@ -200,6 +204,40 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len) {
 
 						break;
 					}
+				}
+			}
+
+			offset += 2;
+		}
+	}
+}
+
+void FICDecoder::ProcessFIG0_5(const uint8_t *data, size_t len) {
+	// FIG 0/5 - Service component language
+	// programme services only
+
+	// iterate through all components
+	for(size_t offset = 0; offset < len;) {
+		bool ls_flag = data[offset] & 0x80;
+		if(ls_flag) {
+			// long form - skipped, as not relevant
+			offset += 3;
+		} else {
+			// short form
+			bool msc_fic_flag = data[offset] & 0x40;
+
+			// handle only MSC components
+			if(!msc_fic_flag) {
+				int subchid = data[offset] & 0x3F;
+				int language = data[offset + 1];
+
+				FIC_SUBCHANNEL& current_sc = GetSubchannel(subchid);
+				if(current_sc.language != language) {
+					current_sc.language = language;
+
+					fprintf(stderr, "FICDecoder: SubChId %2d: language '%s'\n", subchid, ConvertLanguageToString(language).c_str());
+
+					UpdateSubchannel(subchid);
 				}
 			}
 
@@ -509,6 +547,25 @@ const int FICDecoder::uep_bitrates[] = {
 const int FICDecoder::eep_a_size_factors[] = {12,  8,  6,  4};
 const int FICDecoder::eep_b_size_factors[] = {27, 21, 18, 15};
 
+const char* FICDecoder::languages_0x00_to_0x2B[] = {
+		"unknown/not applicable", "Albanian", "Breton", "Catalan", "Croatian", "Welsh", "Czech", "Danish",
+		"German", "English", "Spanish", "Esperanto", "Estonian", "Basque", "Faroese", "French",
+		"Frisian", "Irish", "Gaelic", "Galician", "Icelandic", "Italian", "Sami", "Latin",
+		"Latvian", "Luxembourgian", "Lithuanian", "Hungarian", "Maltese", "Dutch", "Norwegian", "Occitan",
+		"Polish", "Portuguese", "Romanian", "Romansh", "Serbian", "Slovak", "Slovene", "Finnish",
+		"Swedish", "Turkish", "Flemish", "Walloon"
+};
+const char* FICDecoder::languages_0x7F_downto_0x45[] = {
+		"Amharic", "Arabic", "Armenian", "Assamese", "Azerbaijani", "Bambora", "Belorussian", "Bengali",
+		"Bulgarian", "Burmese", "Chinese", "Chuvash", "Dari", "Fulani", "Georgian", "Greek",
+		"Gujurati", "Gurani", "Hausa", "Hebrew", "Hindi", "Indonesian", "Japanese", "Kannada",
+		"Kazakh", "Khmer", "Korean", "Laotian", "Macedonian", "Malagasay", "Malaysian", "Moldavian",
+		"Marathi", "Ndebele", "Nepali", "Oriya", "Papiamento", "Persian", "Punjabi", "Pushtu",
+		"Quechua", "Russian", "Rusyn", "Serbo-Croat", "Shona", "Sinhalese", "Somali", "Sranan Tongo",
+		"Swahili", "Tadzhik", "Tamil", "Tatar", "Telugu", "Thai", "Ukranian", "Urdu",
+		"Uzbek", "Vietnamese", "Zulu"
+};
+
 std::string FICDecoder::ConvertCharEBUToUTF8(const uint8_t value) {
 	// convert via LUT
 	if(value <= 0x1F)
@@ -530,4 +587,14 @@ std::string FICDecoder::ConvertCharEBUToUTF8(const uint8_t value) {
 
 	// leave untouched
 	return std::string((char*) &value, 1);
+}
+
+std::string FICDecoder::ConvertLanguageToString(const int value) {
+	if(value >= 0x00 && value <= 0x2B)
+		return languages_0x00_to_0x2B[value];
+	if(value == 0x40)
+		return "background sound/clean feed";
+	if(value >= 0x45 && value <= 0x7F)
+		return languages_0x7F_downto_0x45[0x7F - value];
+	return "unknown (" + std::to_string(value) + ")";
 }

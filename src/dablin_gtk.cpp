@@ -359,12 +359,20 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 				"Audio type: " + (service.audio_service.dab_plus ? "DAB+" : "DAB")
 		);
 		if(!service.subchannel.IsNone()) {
-			frame_label_format.set_tooltip_text(
-					"Sub-channel start: " + std::to_string(service.subchannel.start) + " CUs" + "\n"
-					"Sub-channel size: " + std::to_string(service.subchannel.size) + " CUs" + "\n"
-					"Protection level: " + service.subchannel.pl + "\n"
-					"Bit rate: " + std::to_string(service.subchannel.bitrate) + " kBit/s"
-			);
+			std::string tooltip_text;
+			if(!service.subchannel.pl.empty()) {
+				tooltip_text +=
+						"Sub-channel start: " + std::to_string(service.subchannel.start) + " CUs\n"
+						"Sub-channel size: " + std::to_string(service.subchannel.size) + " CUs\n"
+						"Protection level: " + service.subchannel.pl + "\n"
+						"Bit rate: " + std::to_string(service.subchannel.bitrate) + " kBit/s";
+			}
+			if(service.subchannel.language != FIC_SUBCHANNEL::language_none) {
+				if(!tooltip_text.empty())
+					tooltip_text += "\n";
+				tooltip_text += "Language: " + FICDecoder::ConvertLanguageToString(service.subchannel.language);
+			}
+			frame_label_format.set_tooltip_text(tooltip_text);
 		}
 	} else {
 		set_title("DABlin");

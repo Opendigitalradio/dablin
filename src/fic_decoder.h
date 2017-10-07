@@ -72,17 +72,20 @@ struct FIC_SUBCHANNEL {
 	size_t size;
 	std::string pl;
 	int bitrate;
+	int language;
 
-	bool IsNone() const {return pl.empty();}
+	static const int language_none = -1;
+	bool IsNone() const {return pl.empty() && language == language_none;}
 
-	FIC_SUBCHANNEL() : start(0), size(0), bitrate(-1) {}
+	FIC_SUBCHANNEL() : start(0), size(0), bitrate(-1), language(language_none) {}
 
 	bool operator==(const FIC_SUBCHANNEL & fic_subchannel) const {
 		return
 				start == fic_subchannel.start &&
 				size == fic_subchannel.size &&
 				pl == fic_subchannel.pl &&
-				bitrate == fic_subchannel.bitrate;
+				bitrate == fic_subchannel.bitrate &&
+				language == fic_subchannel.language;
 	}
 	bool operator!=(const FIC_SUBCHANNEL & fic_subchannel) const {
 		return !(*this == fic_subchannel);
@@ -183,6 +186,7 @@ private:
 	void ProcessFIG0(const uint8_t *data, size_t len);
 	void ProcessFIG0_1(const uint8_t *data, size_t len);
 	void ProcessFIG0_2(const uint8_t *data, size_t len);
+	void ProcessFIG0_5(const uint8_t *data, size_t len);
 	void ProcessFIG0_8(const uint8_t *data, size_t len);
 
 	void ProcessFIG1(const uint8_t *data, size_t len);
@@ -210,6 +214,9 @@ private:
 	static const int uep_bitrates[];
 	static const int eep_a_size_factors[];
 	static const int eep_b_size_factors[];
+
+	static const char* languages_0x00_to_0x2B[];
+	static const char* languages_0x7F_downto_0x45[];
 public:
 	FICDecoder(FICDecoderObserver *observer) : observer(observer) {}
 
@@ -218,6 +225,7 @@ public:
 
 	static std::string ConvertTextToUTF8(const uint8_t *data, size_t len, int charset);
 	static std::string ConvertLabelToUTF8(const FIC_LABEL& label);
+	static std::string ConvertLanguageToString(const int value);
 };
 
 
