@@ -60,26 +60,38 @@ bool ETISource::OpenFile() {
 		}
 	}
 
+	// init total frames
+	return UpdateTotalFrames();
+}
+
+bool ETISource::UpdateTotalFrames() {
 	// if file size available, calc total frame count
-	if(fseeko(input_file, 0, SEEK_END)) {
+	off_t old_offset = ftello(input_file);
+	if(old_offset == -1) {
 		// ignore non-seekable files (like usually stdin)
-		if(errno != ESPIPE) {
-			perror("ETISource: error seeking to end");
-			return false;
-		}
-	} else {
-		off_t len = ftello(input_file);
-		if(len == -1) {
-			perror("ETISource: error getting file size");
-			return false;
-		}
-		if(fseeko(input_file, 0, SEEK_SET)) {
-			perror("ETISource: error seeking to begin");
-			return false;
-		}
-		eti_frame_total = (len / sizeof(eti_frame)) - 1;
+		if(errno == ESPIPE)
+			return true;
+		perror("ETISource: error getting file offset");
+		return false;
 	}
 
+	if(fseeko(input_file, 0, SEEK_END)) {
+		perror("ETISource: error seeking to end");
+		return false;
+	}
+
+	off_t len = ftello(input_file);
+	if(len == -1) {
+		perror("ETISource: error getting file size");
+		return false;
+	}
+
+	if(fseeko(input_file, old_offset, SEEK_SET)) {
+		perror("ETISource: error seeking to offset");
+		return false;
+	}
+
+	eti_frame_total = (len / sizeof(eti_frame)) - 1;
 	return true;
 }
 
@@ -126,15 +138,15 @@ int ETISource::Main() {
 		if(!(ready_fds && FD_ISSET(file_no, &fds)))
 			continue;
 
-		ssize_t bytes = read(file_no, eti_frame + filled, sizeof(eti_frame) - filled);
+		size_t bytes = fread(eti_frame + filled, 1, sizeof(eti_frame) - filled, input_file);
 
 		if(bytes > 0)
 			filled += bytes;
 		if(bytes == 0) {
-			fprintf(stderr, "ETISource: EOF reached!\n");
-			break;
-		}
-		if(bytes == -1) {
+			if(feof(input_file)) {
+				fprintf(stderr, "ETISource: EOF reached!\n");
+				break;
+			}
 			perror("ETISource: error while read");
 			return 1;
 		}
@@ -144,6 +156,10 @@ int ETISource::Main() {
 
 		// if present, update progress every 500ms or at file end
 		if(eti_frame_total && (eti_frame_count * 24 >= eti_progress_next_ms || eti_frame_count == eti_frame_total)) {
+			// update total frames
+			if(!UpdateTotalFrames())
+				return 1;
+
 			ETI_PROGRESS progress;
 			progress.value = (double) eti_frame_count / (double) eti_frame_total;
 			progress.text = FramecountToTimecode(eti_frame_count) + " / " + FramecountToTimecode(eti_frame_total);

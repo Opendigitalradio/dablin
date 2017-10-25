@@ -67,6 +67,7 @@ protected:
 	unsigned long int eti_progress_next_ms;
 
 	bool OpenFile();
+	bool UpdateTotalFrames();
 	virtual void PrintSource();
 
 	static std::string FramecountToTimecode(size_t value);
