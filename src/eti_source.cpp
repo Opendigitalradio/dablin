@@ -204,15 +204,15 @@ std::string ETISource::FramecountToTimecode(size_t value) {
 
 
 // --- DAB2ETISource -----------------------------------------------------------------
-DAB2ETISource::DAB2ETISource(std::string binary, uint32_t freq, int gain, ETISourceObserver *observer) : ETISource("", observer) {
-	this->freq = freq;
+DAB2ETISource::DAB2ETISource(std::string binary, DAB2ETI_CHANNEL channel, ETISourceObserver *observer) : ETISource("", observer) {
+	this->channel = channel;
 
 	// it doesn't matter whether there is a prefixed path or not
 	binary_name = binary.substr(binary.find_last_of('/') + 1);
 
-	std::string cmdline = binary + " " + std::to_string(freq * 1000);
-	if (gain != DAB2ETI_AUTO_GAIN)
-		cmdline += " " + std::to_string(gain);
+	std::string cmdline = binary + " " + std::to_string(channel.freq * 1000);
+	if(!channel.HasAutoGain())
+		cmdline += " " + std::to_string(channel.gain);
 	
 	input_file = popen(cmdline.c_str(), "r");
 	if(!input_file)
@@ -220,7 +220,8 @@ DAB2ETISource::DAB2ETISource(std::string binary, uint32_t freq, int gain, ETISou
 }
 
 void DAB2ETISource::PrintSource() {
-	fprintf(stderr, "ETISource: playing live from %u kHz via dab2eti\n", freq);
+	std::string gain_string = channel.HasAutoGain() ? "auto" : std::to_string(channel.gain);
+	fprintf(stderr, "ETISource: playing live from %u kHz via dab2eti (gain: %s)\n", channel.freq, gain_string.c_str());
 }
 
 DAB2ETISource::~DAB2ETISource() {

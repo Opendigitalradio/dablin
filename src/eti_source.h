@@ -22,8 +22,6 @@
 // support 2GB+ files on 32bit systems
 #define _FILE_OFFSET_BITS 64
 
-#define DAB2ETI_AUTO_GAIN -10000
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -37,6 +35,17 @@
 struct ETI_PROGRESS {
 	double value;
 	std::string text;
+};
+
+struct DAB2ETI_CHANNEL {
+	uint32_t freq;
+	int gain;
+
+	static const int auto_gain = -10000;
+	bool HasAutoGain() const {return gain == auto_gain;}
+
+	DAB2ETI_CHANNEL() : freq(-1), gain(auto_gain) {}
+	DAB2ETI_CHANNEL(uint32_t freq, int gain) : freq(freq), gain(gain) {}
 };
 
 
@@ -83,12 +92,12 @@ public:
 // --- DAB2ETISource -----------------------------------------------------------------
 class DAB2ETISource : public ETISource {
 private:
-	uint32_t freq;
+	DAB2ETI_CHANNEL channel;
 	std::string binary_name;
 
 	void PrintSource();
 public:
-	DAB2ETISource(std::string binary, uint32_t freq, int gain, ETISourceObserver *observer);
+	DAB2ETISource(std::string binary, DAB2ETI_CHANNEL channel, ETISourceObserver *observer);
 	~DAB2ETISource();
 };
 

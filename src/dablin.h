@@ -45,7 +45,7 @@ DABlinTextOptions() :
 	initial_subchid_dab(AUDIO_SERVICE::subchid_none),
 	initial_subchid_dab_plus(AUDIO_SERVICE::subchid_none),
 	pcm_output(false),
-	gain(DAB2ETI_AUTO_GAIN)
+	gain(DAB2ETI_CHANNEL::auto_gain)
 	{}
 };
 

@@ -36,7 +36,7 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -c <ch>       Channel to be played (requires dab2eti as source; otherwise no initial channel)\n");
 	fprintf(stderr, "  -s <sid>      ID of the service to be played (otherwise no initial service)\n");
 	fprintf(stderr, "  -x <scids>    ID of the service component to be played (requires service ID)\n");
-	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto_gain is default)\n");
+	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto gain is default)\n");
 	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
 	fprintf(stderr, "  -S            Initially disable slideshow\n");
 	fprintf(stderr, "  -L            Enable loose behaviour (e.g. PAD conformance)\n");
@@ -527,7 +527,7 @@ void DABlinGTK::on_combo_channels() {
 	}
 
 	// append
-	eti_source = new DAB2ETISource(options.dab2eti_binary, freq, options.gain, this);
+	eti_source = new DAB2ETISource(options.dab2eti_binary, DAB2ETI_CHANNEL(freq, options.gain), this);
 	eti_source_thread = std::thread(&ETISource::Main, eti_source);
 }
 

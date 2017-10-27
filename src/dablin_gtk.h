@@ -96,7 +96,7 @@ DABlinGTKOptions() :
 	initial_sid(LISTED_SERVICE::sid_none),
 	initial_scids(LISTED_SERVICE::scids_none),
 	pcm_output(false),
-	gain(DAB2ETI_AUTO_GAIN),
+	gain(DAB2ETI_CHANNEL::auto_gain),
 	initially_disable_slideshow(false),
 	loose(false)
 	{}

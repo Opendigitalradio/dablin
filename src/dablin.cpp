@@ -37,7 +37,7 @@ static void usage(const char* exe) {
 	fprintf(stderr, "  -x <scids>    ID of the service component to be played (requires service ID)\n");
 	fprintf(stderr, "  -r <subchid>  ID of the sub-channel (DAB) to be played\n");
 	fprintf(stderr, "  -R <subchid>  ID of the sub-channel (DAB+) to be played\n");
-	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto_gain is default)\n");
+	fprintf(stderr, "  -g <gain>     Set USB stick gain to pass to dab2eti (auto gain is default)\n");
 	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
 	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
 	exit(1);
@@ -185,7 +185,7 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	if(options.dab2eti_binary.empty())
 		eti_source = new ETISource(options.filename, this);
 	else
-		eti_source = new DAB2ETISource(options.dab2eti_binary, dab_channels.at(options.initial_channel), options.gain, this);
+		eti_source = new DAB2ETISource(options.dab2eti_binary, DAB2ETI_CHANNEL(dab_channels.at(options.initial_channel), options.gain), this);
 
 	fic_decoder = new FICDecoder(this);
 }
