@@ -24,6 +24,7 @@
 #include <string.h>
 #include <stdexcept>
 #include <sstream>
+#include <string>
 
 #include "mpg123.h"
 #if MPG123_API_VERSION < 36

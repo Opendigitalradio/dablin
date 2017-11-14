@@ -20,6 +20,7 @@
 #define DABLIN_H_
 
 #include <signal.h>
+#include <string>
 
 #include "eti_source.h"
 #include "eti_player.h"

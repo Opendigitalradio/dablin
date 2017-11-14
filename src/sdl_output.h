@@ -21,6 +21,7 @@
 
 #include <stdexcept>
 #include <stdint.h>
+#include <string>
 #include <mutex>
 #include <vector>
 

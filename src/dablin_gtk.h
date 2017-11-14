@@ -23,6 +23,7 @@
 #include <mutex>
 #include <queue>
 #include <signal.h>
+#include <string>
 #include <thread>
 
 #include <gtkmm.h>

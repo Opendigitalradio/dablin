@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdexcept>
 #include <sstream>
+#include <string>
 
 #if !(defined(DABLIN_AAC_FAAD2) ^ defined(DABLIN_AAC_FDKAAC))
 #error "You must select a AAC decoder by defining either DABLIN_AAC_FAAD2 or DABLIN_AAC_FDKAAC!"
