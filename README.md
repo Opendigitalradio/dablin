@@ -174,8 +174,14 @@ dablin -s 0xd911 mux.eti
 ```
 
 
-It is possible to let DABlin invoke `dab2eti`. You therefore just have
-to specify the path to the `dab2eti` binary and the desired channel.
+It is possible to let DABlin invoke `dab2eti` or any other DAB live
+source that outputs ETI-NI. The respective binary is then called with
+one or two parameters:
+* center frequency in Hz
+* gain value (optional; instead of auto gain)
+
+You therefore just have to specify the path to the `dab2eti` binary and
+the desired channel.
 
 ```
 dablin -d ~/bin/dab2eti -c 11D -s 0xd911
