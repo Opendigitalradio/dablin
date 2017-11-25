@@ -83,9 +83,23 @@ bool MOTObject::ParseCheckHeader(MOT_FILE& target_file) {
 	if(header_size != header.GetSize())
 		return false;
 
-	file.body_size = body_size;
-	file.content_type = content_type;
-	file.content_sub_type = content_sub_type;
+	bool header_update =
+			content_type == MOT_FILE::CONTENT_TYPE_MOT_TRANSPORT &&
+			content_sub_type == MOT_FILE::CONTENT_SUB_TYPE_HEADER_UPDATE;
+
+	// abort, if neither none nor both conditions (header received/update) apply
+	if(header_received != header_update)
+		return false;
+
+	if(!header_update) {
+		// store core info
+		file.body_size = body_size;
+		file.content_type = content_type;
+		file.content_sub_type = content_sub_type;
+	}
+
+	std::string old_content_name = file.content_name;
+	std::string new_content_name;
 
 	// parse/check header extension
 	for(size_t offset = 7; offset < data.size();) {
@@ -137,6 +151,7 @@ bool MOTObject::ParseCheckHeader(MOT_FILE& target_file) {
 			if(data_len == 0)
 				return false;
 			file.content_name = FICDecoder::ConvertTextToUTF8(&data[offset + 1], data_len - 1, data[offset] >> 4);
+			new_content_name = file.content_name;
 //			fprintf(stderr, "ContentName: '%s'\n", file.content_name.c_str());
 			break;
 		case 0x26:	// CategoryTitle
@@ -151,6 +166,15 @@ bool MOTObject::ParseCheckHeader(MOT_FILE& target_file) {
 		offset += data_len;
 	}
 
+	if(!header_update) {
+		// ensure actual header is processed only once
+		header_received = true;
+	} else {
+		// ensure matching content name
+		if(new_content_name != old_content_name)
+			return false;
+	}
+
 	target_file = file;
 	return true;
 }
@@ -160,16 +184,19 @@ bool MOTObject::IsToBeShown() {
 	if(shown)
 		return false;
 
-	// abort, if incomplete entities
-	if(!header.IsFinished() || !body.IsFinished())
-		return false;
-
-	// parse/check MOT header
-	if(!ParseCheckHeader(result_file))
-		return false;
+	// try to process finished header
+	if(header.IsFinished()) {
+		// parse/check MOT header
+		bool result = ParseCheckHeader(result_file);
+		header.Reset();	// allow for header updates
+		if(!result)
+			return false;
+	}
 
 	// abort, if incomplete/not yet triggered
-	if(result_file.body_size != body.GetSize())
+	if(!header_received)
+		return false;
+	if(!body.IsFinished() || result_file.body_size != body.GetSize())
 		return false;
 	if(!result_file.trigger_time_now)
 		return false;
