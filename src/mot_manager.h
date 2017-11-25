@@ -44,13 +44,15 @@ struct MOT_FILE {
 	std::string click_through_url;
 	bool trigger_time_now;
 
-	MOT_FILE() {Reset();}
-	void Reset() {
-		data.clear();
-		content_type = -1;
-		content_sub_type = -1;
-		trigger_time_now = false;
-	}
+	static const int CONTENT_TYPE_IMAGE	= 0x02;
+	static const int CONTENT_SUB_TYPE_JFIF	= 0x001;
+	static const int CONTENT_SUB_TYPE_PNG	= 0x003;
+
+	MOT_FILE() :
+		content_type(-1),
+		content_sub_type(-1),
+		trigger_time_now(false)
+	{}
 };
 
 
@@ -73,8 +75,8 @@ public:
 };
 
 
-// --- MOTTransport -----------------------------------------------------------------
-class MOTTransport {
+// --- MOTObject -----------------------------------------------------------------
+class MOTObject {
 private:
 	MOTEntity header;
 	MOTEntity body;
@@ -84,7 +86,7 @@ private:
 
 	bool ParseCheckHeader(MOT_FILE& file);
 public:
-	MOTTransport(): shown(false) {}
+	MOTObject(): shown(false) {}
 
 	void AddSeg(bool dg_type_header, int seg_number, bool last_seg, const uint8_t* data, size_t len);
 	bool IsToBeShown();
@@ -95,7 +97,7 @@ public:
 // --- MOTManager -----------------------------------------------------------------
 class MOTManager {
 private:
-	MOTTransport transport;
+	MOTObject object;
 	int current_transport_id;
 
 	bool ParseCheckDataGroupHeader(const std::vector<uint8_t>& dg, size_t& offset, int& dg_type);
@@ -106,7 +108,7 @@ public:
 
 	void Reset();
 	bool HandleMOTDataGroup(const std::vector<uint8_t>& dg);
-	MOT_FILE GetFile() {return transport.GetFile();}
+	MOT_FILE GetFile() {return object.GetFile();}
 };
 
 #endif /* MOT_MANAGER_H_ */

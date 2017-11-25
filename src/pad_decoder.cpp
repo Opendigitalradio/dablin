@@ -168,14 +168,13 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 				if(mot_manager.HandleMOTDataGroup(mot_decoder.GetMOTDataGroup())) {
 					const MOT_FILE new_slide = mot_manager.GetFile();
 
-					// check slide type
+					// check file type
 					bool show_slide = true;
-					if(new_slide.content_type != 0x02)	// image
+					if(new_slide.content_type != MOT_FILE::CONTENT_TYPE_IMAGE)
 						show_slide = false;
 					switch(new_slide.content_sub_type) {
-					case 0x01:	// JFIF
-						break;
-					case 0x03:	// PNG
+					case MOT_FILE::CONTENT_SUB_TYPE_JFIF:
+					case MOT_FILE::CONTENT_SUB_TYPE_PNG:
 						break;
 					default:
 						show_slide = false;

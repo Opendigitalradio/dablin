@@ -604,11 +604,11 @@ void DABlinGTKSlideshowWindow::UpdateSlide(const MOT_FILE& slide) {
 	std::string type_display = "unknown";
 
 	switch(slide.content_sub_type) {
-	case 0x01:	// JFIF
+	case MOT_FILE::CONTENT_SUB_TYPE_JFIF:
 		type_mime = "image/jpeg";
 		type_display = "JPEG";
 		break;
-	case 0x03:	// PNG
+	case MOT_FILE::CONTENT_SUB_TYPE_PNG:
 		type_mime = "image/png";
 		type_display = "PNG";
 		break;

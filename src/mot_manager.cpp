@@ -59,12 +59,12 @@ std::vector<uint8_t> MOTEntity::GetData() {
 }
 
 
-// --- MOTTransport -----------------------------------------------------------------
-void MOTTransport::AddSeg(bool dg_type_header, int seg_number, bool last_seg, const uint8_t* data, size_t len) {
+// --- MOTObject -----------------------------------------------------------------
+void MOTObject::AddSeg(bool dg_type_header, int seg_number, bool last_seg, const uint8_t* data, size_t len) {
 	(dg_type_header ? header : body).AddSeg(seg_number, last_seg, data, len);
 }
 
-bool MOTTransport::ParseCheckHeader(MOT_FILE& file) {
+bool MOTObject::ParseCheckHeader(MOT_FILE& file) {
 	std::vector<uint8_t> data = header.GetData();
 
 	// parse/check header core
@@ -128,7 +128,7 @@ bool MOTTransport::ParseCheckHeader(MOT_FILE& file) {
 				return false;
 			// TODO: not only distinguish between Now or not
 			file.trigger_time_now = !(data[offset] & 0x80);
-//			fprintf(stderr, "TriggerTime: %s\n", file.tr	igger_time_now ? "Now" : "(not Now)");
+//			fprintf(stderr, "TriggerTime: %s\n", file.trigger_time_now ? "Now" : "(not Now)");
 			break;
 		case 0x0C:	// ContentName
 			if(data_len == 0)
@@ -151,7 +151,7 @@ bool MOTTransport::ParseCheckHeader(MOT_FILE& file) {
 	return true;
 }
 
-bool MOTTransport::IsToBeShown() {
+bool MOTObject::IsToBeShown() {
 	// abort, if already shown
 	if(shown)
 		return false;
@@ -180,7 +180,7 @@ MOTManager::MOTManager() {
 }
 
 void MOTManager::Reset() {
-	transport = MOTTransport();
+	object = MOTObject();
 	current_transport_id = -1;
 }
 
@@ -267,18 +267,18 @@ bool MOTManager::HandleMOTDataGroup(const std::vector<uint8_t>& dg) {
 		return false;
 
 
-	// add segment to transport (reset if necessary)
+	// add segment to MOT object (reset if necessary)
 	if(current_transport_id != transport_id) {
 		current_transport_id = transport_id;
-		transport = MOTTransport();
+		object = MOTObject();
 	}
-	transport.AddSeg(dg_type == 3, seg_number, last_seg, &dg[offset], seg_size);
+	object.AddSeg(dg_type == 3, seg_number, last_seg, &dg[offset], seg_size);
 
-	// check if file shall be shown
-	bool display = transport.IsToBeShown();
+	// check if object shall be shown
+	bool display = object.IsToBeShown();
 //	fprintf(stderr, "dg_type: %d, seg_number: %2d%s, transport_id: %5d, size: %4zu; display: %s\n",
 //			dg_type, seg_number, last_seg ? " (LAST)" : "", transport_id, seg_size, display ? "true" : "false");
 
-	// if file shall be shown, update it
+	// if object shall be shown, update it
 	return display;
 }
