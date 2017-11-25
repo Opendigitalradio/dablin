@@ -64,7 +64,8 @@ void MOTObject::AddSeg(bool dg_type_header, int seg_number, bool last_seg, const
 	(dg_type_header ? header : body).AddSeg(seg_number, last_seg, data, len);
 }
 
-bool MOTObject::ParseCheckHeader(MOT_FILE& file) {
+bool MOTObject::ParseCheckHeader(MOT_FILE& target_file) {
+	MOT_FILE file = target_file;
 	std::vector<uint8_t> data = header.GetData();
 
 	// parse/check header core
@@ -73,16 +74,18 @@ bool MOTObject::ParseCheckHeader(MOT_FILE& file) {
 
 	size_t body_size = (data[0] << 20) | (data[1] << 12) | (data[2] << 4) | (data[3] >> 4);
 	size_t header_size = ((data[3] & 0x0F) << 9) | (data[4] << 1) | (data[5] >> 7);
-	file.content_type = (data[5] & 0x7F) >> 1;
-	file.content_sub_type = ((data[5] & 0x01) << 8) | data[6];
+	int content_type = (data[5] & 0x7F) >> 1;
+	int content_sub_type = ((data[5] & 0x01) << 8) | data[6];
 
 //	fprintf(stderr, "body_size: %5zu, header_size: %3zu, content_type: 0x%02X, content_sub_type: 0x%03X\n",
 //			body_size, header_size, content_type, content_sub_type);
 
 	if(header_size != header.GetSize())
 		return false;
-	if(body_size != body.GetSize())
-		return false;
+
+	file.body_size = body_size;
+	file.content_type = content_type;
+	file.content_sub_type = content_sub_type;
 
 	// parse/check header extension
 	for(size_t offset = 7; offset < data.size();) {
@@ -148,6 +151,7 @@ bool MOTObject::ParseCheckHeader(MOT_FILE& file) {
 		offset += data_len;
 	}
 
+	target_file = file;
 	return true;
 }
 
@@ -156,17 +160,21 @@ bool MOTObject::IsToBeShown() {
 	if(shown)
 		return false;
 
-	// abort, if incomplete
+	// abort, if incomplete entities
 	if(!header.IsFinished() || !body.IsFinished())
 		return false;
 
 	// parse/check MOT header
-	MOT_FILE header_file;
-	if(!ParseCheckHeader(header_file))
+	if(!ParseCheckHeader(result_file))
 		return false;
 
-	// update result file
-	result_file = header_file;
+	// abort, if incomplete/not yet triggered
+	if(result_file.body_size != body.GetSize())
+		return false;
+	if(!result_file.trigger_time_now)
+		return false;
+
+	// add body data
 	result_file.data = body.GetData();
 
 	shown = true;

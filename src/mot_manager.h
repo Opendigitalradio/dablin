@@ -35,6 +35,7 @@ struct MOT_FILE {
 	std::vector<uint8_t> data;
 
 	// from header core
+	size_t body_size;
 	int content_type;
 	int content_sub_type;
 
@@ -49,6 +50,7 @@ struct MOT_FILE {
 	static const int CONTENT_SUB_TYPE_PNG	= 0x003;
 
 	MOT_FILE() :
+		body_size(-1),
 		content_type(-1),
 		content_sub_type(-1),
 		trigger_time_now(false)
@@ -84,7 +86,7 @@ private:
 
 	MOT_FILE result_file;
 
-	bool ParseCheckHeader(MOT_FILE& file);
+	bool ParseCheckHeader(MOT_FILE& target_file);
 public:
 	MOTObject(): shown(false) {}
 
