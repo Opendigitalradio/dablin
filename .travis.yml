@@ -2,33 +2,28 @@ language: c++
 sudo: required
 dist: trusty
 
-compiler:
-  - gcc
-  - clang
-
-before_script:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y libfaad-dev libfdk-aac-dev libmpg123-dev libsdl2-dev libgtkmm-3.0-dev
+addons: &addons
+  apt:
+    sources: &sources
+      - ubuntu-toolchain-r-test
+    packages: &packages
+      - libfaad-dev
+      - libfdk-aac-dev
+      - libmpg123-dev
+      - libsdl2-dev
+      - libgtkmm-3.0-dev
+      - g++-6
 
 script:
   - |
-    pushd /tmp
-    git clone https://github.com/Opendigitalradio/ka9q-fec.git
-    cd ka9q-fec
-    mkdir build
-    cd build
-    cmake ..
-    make
-    sudo make install
-    popd
-  - |
     mkdir build_faad
     pushd build_faad
-    cmake ..
+    cmake -DCMAKE_C_COMPILER=gcc-6 -DCMAKE_CXX_COMPILER=g++-6 ..
     make
     popd
+  - |
     mkdir build_fdkaac
     pushd build_fdkaac
-    cmake -DUSE_FDK-AAC=1 ..
+    cmake -DUSE_FDK-AAC=1 -DCMAKE_C_COMPILER=gcc-6 -DCMAKE_CXX_COMPILER=g++-6 ..
     make
     popd
