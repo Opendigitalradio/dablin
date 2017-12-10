@@ -21,6 +21,7 @@ script:
     cmake -DCMAKE_C_COMPILER=gcc-6 -DCMAKE_CXX_COMPILER=g++-6 ..
     make
   - |
+    popd
     mkdir build_fdkaac
     pushd build_fdkaac
     cmake -DUSE_FDK-AAC=1 -DCMAKE_C_COMPILER=gcc-6 -DCMAKE_CXX_COMPILER=g++-6 ..
