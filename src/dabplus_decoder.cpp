@@ -424,8 +424,9 @@ AACDecoderFDKAAC::AACDecoderFDKAAC(SubchannelSinkObserver* observer, SuperframeF
 	 *
 	 * Note:
 	 * Older lib versions use a combined parameter for the output channel count.
+	 * As the headers of these didn't define the version, branch accordingly.
 	 */
-#ifdef AAC_PCM_OUTPUT_CHANNELS
+#if !defined(AACDECODER_LIB_VL0) && !defined(AACDECODER_LIB_VL1) && !defined(AACDECODER_LIB_VL2)
 	init_result = aacDecoder_SetParam(handle, AAC_PCM_OUTPUT_CHANNELS, channels);
 	if(init_result != AAC_DEC_OK)
 		throw std::runtime_error("AACDecoderFDKAAC: error while setting parameter AAC_PCM_OUTPUT_CHANNELS: " + std::to_string(init_result));
