@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 			usage(argv[0]);
 			break;
 		case 'd':
-			options.dab2eti_binary = optarg;
+			options.dab_live_source_binary = optarg;
 			break;
 		case 'C':
 			options.displayed_channels = optarg;
@@ -110,22 +110,22 @@ int main(int argc, char **argv) {
 	}
 
 	// ensure valid options
-	if(options.dab2eti_binary.empty()) {
+	if(options.dab_live_source_binary.empty()) {
 		if(!options.displayed_channels.empty()) {
-			fprintf(stderr, "If displayed channels are used, dab2eti must be used!\n");
+			fprintf(stderr, "If displayed channels are used, DAB live source must be used!\n");
 			usage(argv[0]);
 		}
 		if(!options.displayed_channels.empty()) {
-			fprintf(stderr, "If displayed channels are selected, dab2eti must be used!\n");
+			fprintf(stderr, "If displayed channels are selected, DAB live source must be used!\n");
 			usage(argv[0]);
 		}
 		if(!options.initial_channel.empty()) {
-			fprintf(stderr, "If a channel is selected, dab2eti must be used!\n");
+			fprintf(stderr, "If a channel is selected, DAB live source must be used!\n");
 			usage(argv[0]);
 		}
 	} else {
 		if(!options.filename.empty()) {
-			fprintf(stderr, "Both a file and dab2eti cannot be used as source!\n");
+			fprintf(stderr, "Both a file and DAB live source cannot be used as source!\n");
 			usage(argv[0]);
 		}
 		if(!options.initial_channel.empty() && dab_channels.find(options.initial_channel) == dab_channels.end()) {
@@ -176,7 +176,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 
 	eti_player = new ETIPlayer(options.pcm_output, this);
 
-	if(!options.dab2eti_binary.empty()) {
+	if(!options.dab_live_source_binary.empty()) {
 		eti_source = NULL;
 	} else {
 		eti_source = new ETISource(options.filename, this);
@@ -239,7 +239,7 @@ void DABlinGTK::InitWidgets() {
 	combo_channels.set_model(combo_channels_liststore);
 	combo_channels.pack_start(combo_channels_cols.col_string);
 
-	if(!options.dab2eti_binary.empty())
+	if(!options.dab_live_source_binary.empty())
 		AddChannels();
 	else
 		frame_combo_channels.set_sensitive(false);
@@ -527,7 +527,7 @@ void DABlinGTK::on_combo_channels() {
 	}
 
 	// append
-	eti_source = new DAB2ETISource(options.dab2eti_binary, DAB2ETI_CHANNEL(freq, options.gain), this);
+	eti_source = new DABLiveETISource(options.dab_live_source_binary, DAB_LIVE_SOURCE_CHANNEL(freq, options.gain), this);
 	eti_source_thread = std::thread(&ETISource::Main, eti_source);
 }
 

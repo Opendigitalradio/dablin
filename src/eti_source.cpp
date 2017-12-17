@@ -203,8 +203,8 @@ std::string ETISource::FramecountToTimecode(size_t value) {
 
 
 
-// --- DAB2ETISource -----------------------------------------------------------------
-DAB2ETISource::DAB2ETISource(std::string binary, DAB2ETI_CHANNEL channel, ETISourceObserver *observer) : ETISource("", observer) {
+// --- DABLiveETISource -----------------------------------------------------------------
+DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : ETISource("", observer) {
 	this->channel = channel;
 
 	// it doesn't matter whether there is a prefixed path or not
@@ -216,20 +216,20 @@ DAB2ETISource::DAB2ETISource(std::string binary, DAB2ETI_CHANNEL channel, ETISou
 	
 	input_file = popen(cmdline.c_str(), "r");
 	if(!input_file)
-		perror("ETISource: error starting dab2eti");
+		perror("ETISource: error starting DAB live source");
 }
 
-void DAB2ETISource::PrintSource() {
+void DABLiveETISource::PrintSource() {
 	std::string gain_string = channel.HasAutoGain() ? "auto" : std::to_string(channel.gain);
-	fprintf(stderr, "ETISource: playing live from %u kHz via dab2eti (gain: %s)\n", channel.freq, gain_string.c_str());
+	fprintf(stderr, "ETISource: playing from %u kHz via DAB live source (gain: %s)\n", channel.freq, gain_string.c_str());
 }
 
-DAB2ETISource::~DAB2ETISource() {
+DABLiveETISource::~DABLiveETISource() {
 	// TODO: replace bad style temporary solution (here possible, because dab2eti allows only one concurrent session)
 	std::string cmd_killall = "killall " + binary_name;
 	int result = system(cmd_killall.c_str());
 	if(result != 0)
-		fprintf(stderr, "ETISource: error killing dab2eti\n");
+		fprintf(stderr, "ETISource: error killing DAB live source\n");
 
 	pclose(input_file);
 	input_file = NULL;

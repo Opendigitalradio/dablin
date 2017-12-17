@@ -85,7 +85,7 @@ struct DABlinGTKOptions {
 	std::string filename;
 	int initial_sid;
 	int initial_scids;
-	std::string dab2eti_binary;
+	std::string dab_live_source_binary;
 	std::string displayed_channels;
 	std::string initial_channel;
 	bool pcm_output;
@@ -97,7 +97,7 @@ DABlinGTKOptions() :
 	initial_sid(LISTED_SERVICE::sid_none),
 	initial_scids(LISTED_SERVICE::scids_none),
 	pcm_output(false),
-	gain(DAB2ETI_CHANNEL::auto_gain),
+	gain(DAB_LIVE_SOURCE_CHANNEL::auto_gain),
 	initially_disable_slideshow(false),
 	loose(false)
 	{}

@@ -37,15 +37,15 @@ struct ETI_PROGRESS {
 	std::string text;
 };
 
-struct DAB2ETI_CHANNEL {
+struct DAB_LIVE_SOURCE_CHANNEL {
 	uint32_t freq;
 	int gain;
 
 	static const int auto_gain = -10000;
 	bool HasAutoGain() const {return gain == auto_gain;}
 
-	DAB2ETI_CHANNEL() : freq(-1), gain(auto_gain) {}
-	DAB2ETI_CHANNEL(uint32_t freq, int gain) : freq(freq), gain(gain) {}
+	DAB_LIVE_SOURCE_CHANNEL() : freq(-1), gain(auto_gain) {}
+	DAB_LIVE_SOURCE_CHANNEL(uint32_t freq, int gain) : freq(freq), gain(gain) {}
 };
 
 
@@ -89,16 +89,16 @@ public:
 };
 
 
-// --- DAB2ETISource -----------------------------------------------------------------
-class DAB2ETISource : public ETISource {
+// --- DABLiveETISource -----------------------------------------------------------------
+class DABLiveETISource : public ETISource {
 private:
-	DAB2ETI_CHANNEL channel;
+	DAB_LIVE_SOURCE_CHANNEL channel;
 	std::string binary_name;
 
 	void PrintSource();
 public:
-	DAB2ETISource(std::string binary, DAB2ETI_CHANNEL channel, ETISourceObserver *observer);
-	~DAB2ETISource();
+	DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer);
+	~DABLiveETISource();
 };
 
 
