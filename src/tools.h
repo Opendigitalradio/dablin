@@ -23,7 +23,18 @@
 #include <stdint.h>
 #include <string.h>
 #include <string>
+#include <sstream>
 #include <map>
+#include <vector>
+
+
+typedef std::vector<std::string> string_vector_t;
+
+// --- MiscTools -----------------------------------------------------------------
+class MiscTools {
+public:
+	static string_vector_t SplitString(const std::string &s, const char delimiter);
+};
 
 
 // --- CalcCRC -----------------------------------------------------------------

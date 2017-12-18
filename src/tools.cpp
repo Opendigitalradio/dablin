@@ -19,6 +19,18 @@
 #include "tools.h"
 
 
+// --- MiscTools -----------------------------------------------------------------
+string_vector_t MiscTools::SplitString(const std::string &s, const char delimiter) {
+	string_vector_t result;
+	std::stringstream ss(s);
+	std::string part;
+
+	while(std::getline(ss, part, delimiter))
+		result.push_back(part);
+	return result;
+}
+
+
 // --- CalcCRC -----------------------------------------------------------------
 CalcCRC CalcCRC::CalcCRC_CRC16_CCITT(true, true, 0x1021);	// 0001 0000 0010 0001 (16, 12, 5, 0)
 CalcCRC CalcCRC::CalcCRC_CRC16_IBM(true, false, 0x8005);	// 1000 0000 0000 0101 (16, 15, 2, 0)

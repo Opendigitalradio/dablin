@@ -43,6 +43,7 @@ struct DAB_LIVE_SOURCE_CHANNEL {
 
 	static const int auto_gain = -10000;
 	bool HasAutoGain() const {return gain == auto_gain;}
+	std::string GainToString() {return HasAutoGain() ? "auto" : std::to_string(gain);}
 
 	DAB_LIVE_SOURCE_CHANNEL() : freq(-1), gain(auto_gain) {}
 	DAB_LIVE_SOURCE_CHANNEL(uint32_t freq, int gain) : freq(freq), gain(gain) {}

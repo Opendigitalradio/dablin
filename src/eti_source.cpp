@@ -220,8 +220,7 @@ DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL c
 }
 
 void DABLiveETISource::PrintSource() {
-	std::string gain_string = channel.HasAutoGain() ? "auto" : std::to_string(channel.gain);
-	fprintf(stderr, "ETISource: playing from %u kHz via DAB live source (gain: %s)\n", channel.freq, gain_string.c_str());
+	fprintf(stderr, "ETISource: playing from %u kHz via DAB live source (gain: %s)\n", channel.freq, channel.GainToString().c_str());
 }
 
 DABLiveETISource::~DABLiveETISource() {

@@ -30,16 +30,17 @@ static void break_handler(int) {
 static void usage(const char* exe) {
 	fprint_dablin_banner(stderr);
 	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
-	fprintf(stderr, "  -h            Show this help\n");
-	fprintf(stderr, "  -d <binary>   Use DAB live source (using the mentioned binary)\n");
-	fprintf(stderr, "  -c <ch>       Channel to be played (requires DAB live source)\n");
-	fprintf(stderr, "  -s <sid>      ID of the service to be played\n");
-	fprintf(stderr, "  -x <scids>    ID of the service component to be played (requires service ID)\n");
-	fprintf(stderr, "  -r <subchid>  ID of the sub-channel (DAB) to be played\n");
-	fprintf(stderr, "  -R <subchid>  ID of the sub-channel (DAB+) to be played\n");
-	fprintf(stderr, "  -g <gain>     USB stick gain to pass to DAB live source (auto gain is default)\n");
-	fprintf(stderr, "  -p            Output PCM to stdout instead of using SDL\n");
-	fprintf(stderr, "  file          Input file to be played (stdin, if not specified)\n");
+	fprintf(stderr, "  -h            Show this help\n"
+					"  -d <binary>   Use DAB live source (using the mentioned binary)\n"
+					"  -c <ch>       Channel to be played (requires DAB live source)\n"
+					"  -s <sid>      ID of the service to be played\n"
+					"  -x <scids>    ID of the service component to be played (requires service ID)\n"
+					"  -r <subchid>  ID of the sub-channel (DAB) to be played\n"
+					"  -R <subchid>  ID of the sub-channel (DAB+) to be played\n"
+					"  -g <gain>     USB stick gain to pass to DAB live source (auto gain is default)\n"
+					"  -p            Output PCM to stdout instead of using SDL\n"
+					"  file          Input file to be played (stdin, if not specified)\n"
+			);
 	exit(1);
 }
 

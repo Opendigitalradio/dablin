@@ -30,17 +30,18 @@ static void break_handler(int) {
 static void usage(const char* exe) {
 	fprint_dablin_banner(stderr);
 	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
-	fprintf(stderr, "  -h           Show this help\n");
-	fprintf(stderr, "  -d <binary>  Use DAB live source (using the mentioned binary)\n");
-	fprintf(stderr, "  -C <ch>,...  Channels to be listed (comma separated; requires DAB live source)\n");
-	fprintf(stderr, "  -c <ch>      Channel to be played (requires DAB live source)\n");
-	fprintf(stderr, "  -s <sid>     ID of the service to be played\n");
-	fprintf(stderr, "  -x <scids>   ID of the service component to be played (requires service ID)\n");
-	fprintf(stderr, "  -g <gain>    USB stick gain to pass to DAB live source (auto gain is default)\n");
-	fprintf(stderr, "  -p           Output PCM to stdout instead of using SDL\n");
-	fprintf(stderr, "  -S           Initially disable slideshow\n");
-	fprintf(stderr, "  -L           Enable loose behaviour (e.g. PAD conformance)\n");
-	fprintf(stderr, "  file         Input file to be played (stdin, if not specified)\n");
+	fprintf(stderr, "  -h           Show this help\n"
+					"  -d <binary>  Use DAB live source (using the mentioned binary)\n"
+					"  -C <ch>,...  Channels to be listed (comma separated; requires DAB live source)\n"
+					"  -c <ch>      Channel to be played (requires DAB live source)\n"
+					"  -s <sid>     ID of the service to be played\n"
+					"  -x <scids>   ID of the service component to be played (requires service ID)\n"
+					"  -g <gain>    USB stick gain to pass to DAB live source (auto gain is default)\n"
+					"  -p           Output PCM to stdout instead of using SDL\n"
+					"  -S           Initially disable slideshow\n"
+					"  -L           Enable loose behaviour (e.g. PAD conformance)\n"
+					"  file         Input file to be played (stdin, if not specified)\n"
+			);
 	exit(1);
 }
 
@@ -111,10 +112,6 @@ int main(int argc, char **argv) {
 
 	// ensure valid options
 	if(options.dab_live_source_binary.empty()) {
-		if(!options.displayed_channels.empty()) {
-			fprintf(stderr, "If displayed channels are used, DAB live source must be used!\n");
-			usage(argv[0]);
-		}
 		if(!options.displayed_channels.empty()) {
 			fprintf(stderr, "If displayed channels are selected, DAB live source must be used!\n");
 			usage(argv[0]);
@@ -323,11 +320,9 @@ void DABlinGTK::AddChannels() {
 			AddChannel(it);
 	} else {
 		// add specific channels
-		std::stringstream ss(options.displayed_channels);
-		std::string ch;
-
-		while(std::getline(ss, ch, ',')) {
-			dab_channels_t::const_iterator it = dab_channels.find(ch);
+		string_vector_t channels = MiscTools::SplitString(options.displayed_channels, ',');
+		for(string_vector_t::const_iterator ch_it = channels.cbegin(); ch_it != channels.cend(); ch_it++) {
+			dab_channels_t::const_iterator it = dab_channels.find(*ch_it);
 			if(it != dab_channels.cend())
 				AddChannel(it);
 		}
