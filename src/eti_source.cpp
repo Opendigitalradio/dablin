@@ -135,6 +135,12 @@ int ETISource::Main() {
 		select_timeval.tv_usec = 100 * 1000;
 
 		int ready_fds = select(file_no + 1, &fds, NULL, NULL, &select_timeval);
+		if(ready_fds == -1) {
+			// ignore break request, as handled above
+			if(errno != EINTR)
+				perror("ETISource: error while select");
+			continue;
+		}
 		if(!(ready_fds && FD_ISSET(file_no, &fds)))
 			continue;
 
@@ -147,7 +153,7 @@ int ETISource::Main() {
 				fprintf(stderr, "ETISource: EOF reached!\n");
 				break;
 			}
-			perror("ETISource: error while read");
+			perror("ETISource: error while fread");
 			return 1;
 		}
 
