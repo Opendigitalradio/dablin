@@ -47,6 +47,10 @@ struct DAB_LIVE_SOURCE_CHANNEL {
 
 	DAB_LIVE_SOURCE_CHANNEL() : freq(-1), gain(auto_gain) {}
 	DAB_LIVE_SOURCE_CHANNEL(uint32_t freq, int gain) : freq(freq), gain(gain) {}
+
+	bool operator<(const DAB_LIVE_SOURCE_CHANNEL & ch) const {
+		return freq < ch.freq;
+	}
 };
 
 

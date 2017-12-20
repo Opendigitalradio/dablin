@@ -58,11 +58,11 @@ public:
 class DABlinGTKChannelColumns : public Gtk::TreeModelColumnRecord {
 public:
 	Gtk::TreeModelColumn<Glib::ustring> col_string;
-	Gtk::TreeModelColumn<uint32_t> col_freq;
+	Gtk::TreeModelColumn<DAB_LIVE_SOURCE_CHANNEL> col_channel;
 
 	DABlinGTKChannelColumns() {
 		add(col_string);
-		add(col_freq);
+		add(col_channel);
 	}
 };
 
@@ -172,6 +172,7 @@ private:
 	DABlinGTKChannelColumns combo_channels_cols;
 	Glib::RefPtr<Gtk::ListStore> combo_channels_liststore;
 	Gtk::ComboBox combo_channels;
+	int ComboChannelsSlotCompare(const Gtk::TreeModel::iterator& a, const Gtk::TreeModel::iterator& b);
 
 	Gtk::Frame frame_label_ensemble;
 	Gtk::Label label_ensemble;
@@ -197,7 +198,7 @@ private:
 
 	void InitWidgets();
 	void AddChannels();
-	void AddChannel(dab_channels_t::const_iterator &it);
+	void AddChannel(dab_channels_t::const_iterator &it, int gain);
 
 	void SetService(const LISTED_SERVICE& service);
 

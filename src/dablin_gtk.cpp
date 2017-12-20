@@ -32,7 +32,8 @@ static void usage(const char* exe) {
 	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
 	fprintf(stderr, "  -h           Show this help\n"
 					"  -d <binary>  Use DAB live source (using the mentioned binary)\n"
-					"  -C <ch>,...  Channels to be listed (comma separated; requires DAB live source)\n"
+					"  -C <ch>,...  Channels to be listed (comma separated; requires DAB live source;\n"
+					"               an optional gain can also be specified, e.g. \"5C:-54\")\n"
 					"  -c <ch>      Channel to be played (requires DAB live source)\n"
 					"  -s <sid>     ID of the service to be played\n"
 					"  -x <scids>   ID of the service component to be played (requires service ID)\n"
@@ -212,6 +213,17 @@ DABlinGTK::~DABlinGTK() {
 	delete fic_decoder;
 }
 
+int DABlinGTK::ComboChannelsSlotCompare(const Gtk::TreeModel::iterator& a, const Gtk::TreeModel::iterator& b) {
+	const DAB_LIVE_SOURCE_CHANNEL& ch_a = (DAB_LIVE_SOURCE_CHANNEL) (*a)[combo_channels_cols.col_channel];
+	const DAB_LIVE_SOURCE_CHANNEL& ch_b = (DAB_LIVE_SOURCE_CHANNEL) (*b)[combo_channels_cols.col_channel];
+
+	if(ch_a < ch_b)
+		return -1;
+	if(ch_b < ch_a)
+		return 1;
+	return 0;
+}
+
 int DABlinGTK::ComboServicesSlotCompare(const Gtk::TreeModel::iterator& a, const Gtk::TreeModel::iterator& b) {
 	const LISTED_SERVICE& service_a = (LISTED_SERVICE) (*a)[combo_services_cols.col_service];
 	const LISTED_SERVICE& service_b = (LISTED_SERVICE) (*b)[combo_services_cols.col_service];
@@ -230,7 +242,8 @@ void DABlinGTK::InitWidgets() {
 	frame_combo_channels.add(combo_channels);
 
 	combo_channels_liststore = Gtk::ListStore::create(combo_channels_cols);
-	combo_channels_liststore->set_sort_column(combo_channels_cols.col_freq, Gtk::SORT_ASCENDING);
+	combo_channels_liststore->set_default_sort_func(sigc::mem_fun(*this, &DABlinGTK::ComboChannelsSlotCompare));
+	combo_channels_liststore->set_sort_column(Gtk::TreeSortable::DEFAULT_SORT_COLUMN_ID, Gtk::SORT_ASCENDING);
 
 	combo_channels.signal_changed().connect(sigc::mem_fun(*this, &DABlinGTK::on_combo_channels));
 	combo_channels.set_model(combo_channels_liststore);
@@ -317,23 +330,37 @@ void DABlinGTK::AddChannels() {
 	if(options.displayed_channels.empty()) {
 		// add all channels
 		for(dab_channels_t::const_iterator it = dab_channels.cbegin(); it != dab_channels.cend(); it++)
-			AddChannel(it);
+			AddChannel(it, options.gain);
 	} else {
 		// add specific channels
 		string_vector_t channels = MiscTools::SplitString(options.displayed_channels, ',');
 		for(string_vector_t::const_iterator ch_it = channels.cbegin(); ch_it != channels.cend(); ch_it++) {
-			dab_channels_t::const_iterator it = dab_channels.find(*ch_it);
-			if(it != dab_channels.cend())
-				AddChannel(it);
+			int gain = options.gain;
+			string_vector_t parts = MiscTools::SplitString(*ch_it, ':');
+			switch(parts.size()) {
+			case 2:
+				gain = strtol(parts[1].c_str(), NULL, 0);
+				// no break
+			case 1: {
+				dab_channels_t::const_iterator it = dab_channels.find(parts[0]);
+				if(it != dab_channels.cend())
+					AddChannel(it, gain);
+				else
+					fprintf(stderr, "DABlinGTK: The channel '%s' is not supported; ignoring!\n", parts[0].c_str());
+				break; }
+			default:
+				fprintf(stderr, "DABlinGTK: The format of channel '%s' is not supported; ignoring!\n", ch_it->c_str());
+				continue;
+			}
 		}
 	}
 }
 
-void DABlinGTK::AddChannel(dab_channels_t::const_iterator &it) {
+void DABlinGTK::AddChannel(dab_channels_t::const_iterator &it, int gain) {
 	Gtk::ListStore::iterator row_it = combo_channels_liststore->append();
 	Gtk::TreeModel::Row row = *row_it;
 	row[combo_channels_cols.col_string] = it->first;
-	row[combo_channels_cols.col_freq] = it->second;
+	row[combo_channels_cols.col_channel] = DAB_LIVE_SOURCE_CHANNEL(it->second, gain);
 
 	if(it->first == options.initial_channel)
 		initial_channel_it = row_it;
@@ -500,7 +527,7 @@ void DABlinGTK::FICChangeServiceEmitted() {
 
 void DABlinGTK::on_combo_channels() {
 	Gtk::TreeModel::Row row = *combo_channels.get_active();
-	uint32_t freq = row[combo_channels_cols.col_freq];
+	DAB_LIVE_SOURCE_CHANNEL channel = row[combo_channels_cols.col_channel];
 
 	// cleanup
 	if(eti_source) {
@@ -513,7 +540,10 @@ void DABlinGTK::on_combo_channels() {
 	combo_services_liststore->clear();	// TODO: prevent on_combo_services() being called for each deleted row
 	label_ensemble.set_label("");
 	frame_label_ensemble.set_tooltip_text("");
-	frame_combo_channels.set_tooltip_text("Center frequency: " + std::to_string(freq) + " kHz");
+	frame_combo_channels.set_tooltip_text(
+			"Center frequency: " + std::to_string(channel.freq) + " kHz\n"
+			"Gain: " + channel.GainToString()
+	);
 
 	// prevent re-use of initial SID
 	if(initial_channel_appended) {
@@ -522,7 +552,7 @@ void DABlinGTK::on_combo_channels() {
 	}
 
 	// append
-	eti_source = new DABLiveETISource(options.dab_live_source_binary, DAB_LIVE_SOURCE_CHANNEL(freq, options.gain), this);
+	eti_source = new DABLiveETISource(options.dab_live_source_binary, channel, this);
 	eti_source_thread = std::thread(&ETISource::Main, eti_source);
 }
 

@@ -191,18 +191,20 @@ With the console version, instead of the desired service it is also
 possible to directly request a specific sub-channel by using `-r` (for
 DAB) or `-R` (for DAB+).
 
+Using `dab2eti` the E4000 tuner is recommended as auto gain is supported
+with it. If you want/have to use a gain value you can specify it using
+`-g`.
+
 In case of the GTK GUI version the desired channel may not be specified. To
 avoid the huge channel list containing all possible DAB channels, one
 can also state the desired channels (separated by comma) which shall be
-displayed within the channel list.
+displayed within the channel list. Hereby the specified (default) gain
+value can also be overwritten for a channel by adding the desired value
+after a colon, e.g. `5C:-54`.
 
 ```
 dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 ```
-
-Using `dab2eti` the E4000 tuner is recommended as auto gain is supported
-with it. If you want/have to use a gain value you can specify it using
-`-g`.
 
 In addition to the respective button, the GTK GUI version also allows the
 keyboard shortcut `m` to toggle muting the audio.
