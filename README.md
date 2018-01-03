@@ -113,12 +113,16 @@ required Spatial Audio Coding (SAC) extension of MPEG Surround at the
 moment.
 
 
-## Precompiled packages
+## Precompiled packages and source-based Linux distributions
 
 Some users kindly provide precompiled DABlin packages on their own:
 
 * [openSUSE](https://build.opensuse.org/package/show/home:mnhauke:ODR-mmbTools/dablin) (by Martin Hauke)
 * [CentOS](https://build.opensuse.org/package/show/home:radiorabe:dab/dablin) (by [Radio Bern RaBe 95.6](http://rabe.ch)); [more info](https://github.com/radiorabe/centos-rpm-dablin)
+
+Source-based Linux distributions:
+
+* [Gentoo](https://github.com/paraenggu/delicious-absurdities-overlay) (by Christian Affolter, as part of his *delicious-absurdities-overlay*)
 
 
 ## Compilation
