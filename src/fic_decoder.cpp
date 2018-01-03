@@ -467,7 +467,7 @@ void FICDecoder::UpdateListedService(const FIC_SERVICE& service, int scids, bool
 }
 
 std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {
-	std::string result = ConvertTextToUTF8(label.label, sizeof(label.label), label.charset);
+	std::string result = ConvertTextToUTF8(label.label, sizeof(label.label), label.charset, NULL);
 
 	// discard trailing spaces
 	size_t last_pos = result.find_last_not_of(' ');
@@ -477,7 +477,7 @@ std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {
 	return result;
 }
 
-std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int charset) {
+std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int charset, std::string* charset_name) {
 	// remove undesired chars
 	std::vector<uint8_t> cleaned_data;
 	for(size_t i = 0; i < len; i++) {
@@ -497,12 +497,18 @@ std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int c
 	// convert characters
 	switch(charset) {
 	case 0:		// EBU Latin based
+		if(charset_name)
+			*charset_name = "EBU Latin based";
 		for(size_t i = 0; i < cleaned_data.size(); i++)
 			result += ConvertCharEBUToUTF8(cleaned_data[i]);
 		break;
 	case 15:	// UTF-8
-	default:	// on unsupported charset, forward untouched
+		if(charset_name)
+			*charset_name = "UTF-8";
 		result = std::string((char*) &cleaned_data[0], cleaned_data.size());
+		break;
+	default:	// ignore unsupported charset
+		fprintf(stderr, "FICDecoder: The charset %d is not supported; ignoring!\n", charset);
 		break;
 	}
 

@@ -570,7 +570,7 @@ void DABlinGTK::PADChangeDynamicLabelEmitted() {
 //	fprintf(stderr, "### PADChangeDynamicLabelEmitted\n");
 
 	DL_STATE dl = pad_change_dynamic_label.Pop();
-	Glib::ustring label = FICDecoder::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset);
+	Glib::ustring label = FICDecoder::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset, NULL);
 	frame_label_dl.set_sensitive(true);
 	label_dl.set_label(label);
 }
