@@ -408,6 +408,7 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 
 		frame_label_dl.set_sensitive(false);
 		label_dl.set_label("");
+		frame_label_dl.set_tooltip_text("");
 
 		slideshow_window.hide();
 		slideshow_window.ClearSlide();
@@ -570,9 +571,23 @@ void DABlinGTK::PADChangeDynamicLabelEmitted() {
 //	fprintf(stderr, "### PADChangeDynamicLabelEmitted\n");
 
 	DL_STATE dl = pad_change_dynamic_label.Pop();
-	Glib::ustring label = FICDecoder::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset, NULL);
-	frame_label_dl.set_sensitive(true);
-	label_dl.set_label(label);
+
+	// consider clear display command
+	if(dl.charset != -1) {
+		std::string charset_name;
+		Glib::ustring label = FICDecoder::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset, &charset_name);
+
+		// skip unsupported charsets
+		if(!charset_name.empty()) {
+			frame_label_dl.set_sensitive(true);
+			label_dl.set_label(label);
+			frame_label_dl.set_tooltip_text("Charset: " + charset_name);
+		}
+	} else {
+		frame_label_dl.set_sensitive(true);
+		label_dl.set_label("");
+		frame_label_dl.set_tooltip_text("");
+	}
 }
 
 void DABlinGTK::PADChangeSlideEmitted() {

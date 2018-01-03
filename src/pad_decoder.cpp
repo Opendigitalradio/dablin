@@ -327,8 +327,7 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 
 	// on Remove Label command, display empty label
 	if(cmd_remove_label) {
-		label.raw.clear();
-		label.charset = 0;	// EBU Latin based (though it doesn't matter)
+		label.Reset();
 		return true;
 	}
 
