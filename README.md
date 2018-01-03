@@ -122,7 +122,7 @@ Some users kindly provide precompiled DABlin packages on their own:
 
 Source-based Linux distributions:
 
-* [Gentoo](https://github.com/paraenggu/delicious-absurdities-overlay) (by Christian Affolter, as part of his *delicious-absurdities-overlay*)
+* [Gentoo](https://github.com/paraenggu/delicious-absurdities-overlay/tree/master/media-sound/dablin) (by Christian Affolter, as part of his [delicious-absurdities-overlay](https://github.com/paraenggu/delicious-absurdities-overlay))
 
 
 ## Compilation
