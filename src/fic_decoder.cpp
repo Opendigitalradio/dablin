@@ -502,6 +502,10 @@ std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int c
 			result += ConvertCharEBUToUTF8(cleaned_data[i]);
 		return result;
 	}
+	if(charset == 0b0100 && mot)	// ISO/IEC-8859-1 (MOT only)
+		return ConvertStringIconvToUTF8(cleaned_data, charset_name, "ISO-8859-1");
+	if(charset == 0b0110 && !mot)	// UCS-2 BE (DAB only)
+		return ConvertStringIconvToUTF8(cleaned_data, charset_name, "UCS-2BE");
 	if(charset == 0b1111) {			// UTF-8
 		if(charset_name)
 			*charset_name = "UTF-8";
@@ -512,6 +516,45 @@ std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int c
 	// ignore unsupported charset
 	fprintf(stderr, "FICDecoder: The %s charset %d is not supported; ignoring!\n", mot ? "MOT" : "DAB", charset);
 	return "";
+}
+
+std::string FICDecoder::ConvertStringIconvToUTF8(const std::vector<uint8_t>& cleaned_data, std::string* charset_name, const std::string& src_charset) {
+	// prepare
+	iconv_t conv = iconv_open("UTF-8", src_charset.c_str());
+	if(conv == (iconv_t) -1) {
+		perror("FICDecoder: error while iconv_open");
+		return "";
+	}
+
+	size_t input_len = cleaned_data.size();
+	char input_bytes[input_len];
+	char* input = input_bytes;
+	memcpy(input_bytes, &cleaned_data[0], cleaned_data.size());
+
+	size_t output_len = input_len * 4; // theoretical worst case
+	size_t output_len_orig = output_len;
+	char output_bytes[output_len];
+	char* output = output_bytes;
+
+	// convert
+	size_t count = iconv(conv, &input, &input_len, &output, &output_len);
+	if(count == (size_t) -1) {
+		perror("FICDecoder: error while iconv");
+		return "";
+	}
+	if(input_len) {
+		fprintf(stderr, "FICDecoder: Could not convert all chars to %s!\n", src_charset.c_str());
+		return "";
+	}
+
+	if(iconv_close(conv)) {
+		perror("FICDecoder: error while iconv_close");
+		return "";
+	}
+
+	if(charset_name)
+		*charset_name = src_charset;
+	return std::string(output_bytes, output_len_orig - output_len);
 }
 
 const char* FICDecoder::no_char = "";

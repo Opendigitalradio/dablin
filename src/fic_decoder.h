@@ -26,6 +26,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <iconv.h>
 
 #include "tools.h"
 
@@ -208,6 +209,7 @@ private:
 	static const char* ebu_values_0x00_to_0x1F[];
 	static const char* ebu_values_0x7B_to_0xFF[];
 	static std::string ConvertCharEBUToUTF8(const uint8_t value);
+	static std::string ConvertStringIconvToUTF8(const std::vector<uint8_t>& cleaned_data, std::string* charset_name, const std::string& src_charset);
 
 	static const size_t uep_sizes[];
 	static const int uep_pls[];
