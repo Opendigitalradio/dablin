@@ -575,7 +575,7 @@ void DABlinGTK::PADChangeDynamicLabelEmitted() {
 	// consider clear display command
 	if(dl.charset != -1) {
 		std::string charset_name;
-		Glib::ustring label = FICDecoder::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset, &charset_name);
+		Glib::ustring label = FICDecoder::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset, false, &charset_name);
 
 		// skip unsupported charsets
 		if(!charset_name.empty()) {
