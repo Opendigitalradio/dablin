@@ -112,7 +112,7 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 	bool ficf = eti_frame[5] & 0x80;
 	int nst = eti_frame[5] & 0x7F;
 	int mid = (eti_frame[6] & 0x18) >> 3;
-//	int fl = (eti_frame[6] & 0x07) << 8 | eti_frame[7];
+	int fl = (eti_frame[6] & 0x07) << 8 | eti_frame[7];
 
 	// check header CRC
 	size_t header_crc_data_len = 4 + nst * 4 + 2;
@@ -126,7 +126,16 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 	int ficl = ficf ? (mid == 3 ? 32 : 24) : 0;
 
 	int subch_bytes = 0;
-	int subch_offset = 8 + nst * 4 + 4;
+	int subch_offset = 4 + 4 + nst * 4 + 4;
+
+	// check (MST) CRC
+	size_t mst_crc_data_len = (fl - nst - 1) * 4;
+	uint16_t mst_crc_stored = eti_frame[subch_offset + mst_crc_data_len] << 8 | eti_frame[subch_offset + mst_crc_data_len + 1];
+	uint16_t mst_crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(eti_frame + subch_offset, mst_crc_data_len);
+	if(mst_crc_stored != mst_crc_calced) {
+		fprintf(stderr, "ETIPlayer: ignored ETI frame due to wrong (MST) CRC\n");
+		return;
+	}
 
 	if(ficl) {
 		ProcessFIC(eti_frame + subch_offset, ficl * 4);
@@ -152,9 +161,6 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 		fprintf(stderr, "ETIPlayer: ignored ETI frame without sub-channel %d\n", audio_service_now.subchid);
 		return;
 	}
-
-	// TODO: check body CRC?
-
 
 	dec->Feed(eti_frame + subch_offset, subch_bytes);
 }
