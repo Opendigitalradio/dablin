@@ -144,6 +144,11 @@ git clone https://github.com/Opendigitalradio/dablin.git
 cd dablin
 ```
 
+Note that by default the `master` branch is cloned which contains the
+current stable version. The development takes place in the `next` branch
+which can instead be cloned by appending `-b next` to the end of the
+above `git clone` command line.
+
 You can use, for example, the following command sequence in order to compile and
 install DABlin:
 
