@@ -467,7 +467,7 @@ void FICDecoder::UpdateListedService(const FIC_SERVICE& service, int scids, bool
 }
 
 std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {
-	std::string result = ConvertTextToUTF8(label.label, sizeof(label.label), label.charset, false, NULL);
+	std::string result = ConvertTextToUTF8(label.label, sizeof(label.label), label.charset, false, nullptr);
 
 	// discard trailing spaces
 	size_t last_pos = result.find_last_not_of(' ');

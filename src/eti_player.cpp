@@ -25,7 +25,7 @@ ETIPlayer::ETIPlayer(bool pcm_output, ETIPlayerObserver *observer) {
 
 	next_frame_time = std::chrono::steady_clock::now();
 
-	dec = NULL;
+	dec = nullptr;
 
 #ifndef DABLIN_DISABLE_SDL
 	if(!pcm_output)
@@ -72,7 +72,7 @@ void ETIPlayer::ProcessFrame(const uint8_t *data) {
 			if(dec) {
 //					out->StopAudio();
 				delete dec;
-				dec = NULL;
+				dec = nullptr;
 			}
 
 			audio_service_now = audio_service_next;

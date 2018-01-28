@@ -33,7 +33,7 @@ SDLOutput::SDLOutput() : AudioOutput() {
 	channels = 0;
 	float32 = false;
 
-	audio_buffer = NULL;
+	audio_buffer = nullptr;
 	audio_start_buffer_size = 0;
 	audio_mute = false;
 	audio_volume = 1.0;
@@ -101,7 +101,7 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 	desired.callback = sdl_audio_callback;
 	desired.userdata = (AudioSource*) this;
 
-	audio_device = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
+	audio_device = SDL_OpenAudioDevice(nullptr, 0, &desired, &obtained, 0);
 	if(!audio_device)
 		throw std::runtime_error("SDLOutput: error while SDL_OpenAudioDevice: " + std::string(SDL_GetError()));
 	fprintf(stderr, "SDLOutput: audio opened; driver name: %s, freq: %d, channels: %d, size: %d, samples: %d, silence: 0x%02X, output: %s\n",
@@ -179,7 +179,7 @@ size_t SDLOutput::GetAudio(uint8_t *data, size_t len) {
 	// output silence, if needed
 	if(audio_volume == 0.0 || audio_mute || audio_start_buffer_size) {
 		if(audio_start_buffer_size == 0)
-			audio_buffer->Read(NULL, len);
+			audio_buffer->Read(nullptr, len);
 		memset(data, audio_spec.silence, len);
 		return len;
 	}

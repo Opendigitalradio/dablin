@@ -18,7 +18,7 @@
 
 #include "dablin.h"
 
-static DABlinText *dablin = NULL;
+static DABlinText *dablin = nullptr;
 
 static void break_handler(int) {
 	fprintf(stderr, "...DABlin exits...\n");
@@ -73,22 +73,22 @@ int main(int argc, char **argv) {
 			options.initial_channel = optarg;
 			break;
 		case 's':
-			options.initial_sid = strtol(optarg, NULL, 0);
+			options.initial_sid = strtol(optarg, nullptr, 0);
 			id_param_count++;
 			break;
 		case 'x':
-			options.initial_scids = strtol(optarg, NULL, 0);
+			options.initial_scids = strtol(optarg, nullptr, 0);
 			break;
 		case 'r':
-			options.initial_subchid_dab = strtol(optarg, NULL, 0);
+			options.initial_subchid_dab = strtol(optarg, nullptr, 0);
 			id_param_count++;
 			break;
 		case 'R':
-			options.initial_subchid_dab_plus = strtol(optarg, NULL, 0);
+			options.initial_subchid_dab_plus = strtol(optarg, nullptr, 0);
 			id_param_count++;
 			break;
 		case 'g':
-			options.gain = strtol(optarg, NULL, 0);
+			options.gain = strtol(optarg, nullptr, 0);
 			break;
 		case 'p':
 			options.pcm_output = true;

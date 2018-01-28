@@ -24,7 +24,7 @@ ETISource::ETISource(std::string filename, ETISourceObserver *observer) {
 	this->filename = filename;
 	this->observer = observer;
 
-	input_file = NULL;
+	input_file = nullptr;
 	eti_frame_count = 0;
 	eti_frame_total = 0;
 	eti_progress_next_ms = 0;
@@ -121,7 +121,7 @@ int ETISource::Main() {
 		select_timeval.tv_sec = 0;
 		select_timeval.tv_usec = 100 * 1000;
 
-		int ready_fds = select(file_no + 1, &fds, NULL, NULL, &select_timeval);
+		int ready_fds = select(file_no + 1, &fds, nullptr, nullptr, &select_timeval);
 		if(ready_fds == -1) {
 			// ignore break request, as handled above
 			if(errno != EINTR)
@@ -224,5 +224,5 @@ DABLiveETISource::~DABLiveETISource() {
 		fprintf(stderr, "ETISource: error killing DAB live source\n");
 
 	pclose(input_file);
-	input_file = NULL;
+	input_file = nullptr;
 }

@@ -64,7 +64,7 @@ MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer) : SubchannelSink(observ
 	if(!mpg123_feature(MPG123_FEATURE_DECODE_LAYER2))
 		throw std::runtime_error("MP2Decoder: no Layer II decode support!");
 
-	handle = mpg123_new(NULL, &mpg_result);
+	handle = mpg123_new(nullptr, &mpg_result);
 	if(!handle)
 		throw std::runtime_error("MP2Decoder: error while mpg123_new: " + std::string(mpg123_plain_strerror(mpg_result)));
 
@@ -157,7 +157,7 @@ size_t MP2Decoder::DecodeFrame(uint8_t **data) {
 	}
 
 	size_t frame_len;
-	mpg_result = mpg123_framebyframe_decode(handle, NULL, data, &frame_len);
+	mpg_result = mpg123_framebyframe_decode(handle, nullptr, data, &frame_len);
 	if(mpg_result != MPG123_OK)
 		throw std::runtime_error("MP2Decoder: error while mpg123_framebyframe_decode: " + std::string(mpg123_plain_strerror(mpg_result)));
 

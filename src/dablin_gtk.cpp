@@ -18,7 +18,7 @@
 
 #include "dablin_gtk.h"
 
-static DABlinGTK *dablin = NULL;
+static DABlinGTK *dablin = nullptr;
 
 static void break_handler(int) {
 	fprintf(stderr, "...DABlin exits...\n");
@@ -77,13 +77,13 @@ int main(int argc, char **argv) {
 			options.initial_channel = optarg;
 			break;
 		case 's':
-			options.initial_sid = strtol(optarg, NULL, 0);
+			options.initial_sid = strtol(optarg, nullptr, 0);
 			break;
 		case 'x':
-			options.initial_scids = strtol(optarg, NULL, 0);
+			options.initial_scids = strtol(optarg, nullptr, 0);
 			break;
 		case 'g':
-			options.gain = strtol(optarg, NULL, 0);
+			options.gain = strtol(optarg, nullptr, 0);
 			break;
 		case 'p':
 			options.pcm_output = true;
@@ -175,7 +175,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	eti_player = new ETIPlayer(options.pcm_output, this);
 
 	if(!options.dab_live_source_binary.empty()) {
-		eti_source = NULL;
+		eti_source = nullptr;
 	} else {
 		eti_source = new ETISource(options.filename, this);
 		eti_source_thread = std::thread(&ETISource::Main, eti_source);
@@ -339,7 +339,7 @@ void DABlinGTK::AddChannels() {
 			string_vector_t parts = MiscTools::SplitString(*ch_it, ':');
 			switch(parts.size()) {
 			case 2:
-				gain = strtol(parts[1].c_str(), NULL, 0);
+				gain = strtol(parts[1].c_str(), nullptr, 0);
 				// no break
 			case 1: {
 				dab_channels_t::const_iterator it = dab_channels.find(parts[0]);

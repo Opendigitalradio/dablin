@@ -21,14 +21,14 @@
 
 // --- SuperframeFilter -----------------------------------------------------------------
 SuperframeFilter::SuperframeFilter(SubchannelSinkObserver* observer) : SubchannelSink(observer) {
-	aac_dec = NULL;
+	aac_dec = nullptr;
 
 	frame_len = 0;
 	frame_count = 0;
 	sync_frames = 0;
 
-	sf_raw = NULL;
-	sf = NULL;
+	sf_raw = nullptr;
+	sf = nullptr;
 	sf_len = 0;
 
 	sf_format_set = false;
@@ -156,7 +156,7 @@ void SuperframeFilter::CheckForPAD(const uint8_t *data, size_t len) {
 void SuperframeFilter::ResetPAD() {
 	// required to reset internal state of PAD parser (in case of omitted CI list)
 	uint8_t zero_fpad[FPAD_LEN] = {0x00};
-	observer->ProcessPAD(NULL, 0, true, zero_fpad);
+	observer->ProcessPAD(nullptr, 0, true, zero_fpad);
 }
 
 
@@ -214,7 +214,7 @@ void SuperframeFilter::ProcessFormat() {
 
 	switch(sf_format.mpeg_surround_config) {
 	case 0:
-		surround_mode = NULL;
+		surround_mode = nullptr;
 		break;
 	case 1:
 		surround_mode = "Surround 5.1";
