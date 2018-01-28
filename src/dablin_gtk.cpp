@@ -340,7 +340,7 @@ void DABlinGTK::AddChannels() {
 			switch(parts.size()) {
 			case 2:
 				gain = strtol(parts[1].c_str(), nullptr, 0);
-				// no break
+				// fall through
 			case 1: {
 				dab_channels_t::const_iterator it = dab_channels.find(parts[0]);
 				if(it != dab_channels.cend())
