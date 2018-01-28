@@ -21,7 +21,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <mutex>
 #include <string>
 #include <map>
 #include <set>

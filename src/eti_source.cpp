@@ -38,12 +38,6 @@ ETISource::~ETISource() {
 		fclose(input_file);
 }
 
-void ETISource::DoExit() {
-	std::lock_guard<std::mutex> lock(status_mutex);
-
-	do_exit = true;
-}
-
 void ETISource::PrintSource() {
 	fprintf(stderr, "ETISource: reading from '%s'\n", filename.c_str());
 }
@@ -120,14 +114,7 @@ int ETISource::Main() {
 	timeval select_timeval;
 	size_t filled = 0;
 
-	for(;;) {
-		{
-			std::lock_guard<std::mutex> lock(status_mutex);
-
-			if(do_exit)
-				break;
-		}
-
+	while(!do_exit) {
 		FD_ZERO(&fds);
 		FD_SET(file_no, &fds);
 

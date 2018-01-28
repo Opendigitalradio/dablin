@@ -22,7 +22,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <stdio.h>
-#include <mutex>
+#include <atomic>
 
 #include "audio_output.h"
 
@@ -34,15 +34,14 @@ private:
 	int channels;
 	bool float32;
 
-	std::mutex audio_mute_mutex;
-	bool audio_mute;
+	std::atomic<bool> audio_mute;
 public:
 	PCMOutput();
 	~PCMOutput() {}
 
 	void StartAudio(int samplerate, int channels, bool float32);
 	void PutAudio(const uint8_t *data, size_t len);
-	void SetAudioMute(bool audio_mute);
+	void SetAudioMute(bool audio_mute) {this->audio_mute = audio_mute;};
 	void SetAudioVolume(double) {}
 	bool HasAudioVolumeControl() {return false;}
 };

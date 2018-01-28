@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <mutex>
+#include <atomic>
 #include <string>
 #include <thread>
 #include <unistd.h>
@@ -70,8 +70,7 @@ protected:
 	std::string filename;
 	ETISourceObserver *observer;
 
-	std::mutex status_mutex;
-	bool do_exit;
+	std::atomic<bool> do_exit;
 
 	FILE *input_file;
 
@@ -90,7 +89,7 @@ public:
 	virtual ~ETISource();
 
 	int Main();
-	void DoExit();
+	void DoExit() {do_exit = true;}
 };
 
 

@@ -44,13 +44,6 @@ void PCMOutput::StartAudio(int samplerate, int channels, bool float32) {
 
 
 void PCMOutput::PutAudio(const uint8_t *data, size_t len) {
-	std::lock_guard<std::mutex> lock(audio_mute_mutex);
-
 	if(!audio_mute)
 		fwrite(data, len, 1, stdout);
-}
-
-void PCMOutput::SetAudioMute(bool audio_mute) {
-	std::lock_guard<std::mutex> lock(audio_mute_mutex);
-	this->audio_mute = audio_mute;
 }
