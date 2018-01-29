@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ SDLOutput::SDLOutput() : AudioOutput() {
 
 	audio_buffer = nullptr;
 	audio_start_buffer_size = 0;
+
 	audio_mute = false;
 	audio_volume = 1.0;
 
@@ -139,16 +140,6 @@ void SDLOutput::PutAudio(const uint8_t *data, size_t len) {
 	audio_buffer->Write(data, len);
 
 //	fprintf(stderr, "Buffer: %zu / %zu\n", audio_buffer->Size(), audio_buffer->Capacity());
-}
-
-void SDLOutput::SetAudioMute(bool audio_mute) {
-	std::lock_guard<std::mutex> lock(audio_buffer_mutex);
-	this->audio_mute = audio_mute;
-}
-
-void SDLOutput::SetAudioVolume(double audio_volume) {
-	std::lock_guard<std::mutex> lock(audio_buffer_mutex);
-	this->audio_volume = audio_volume;
 }
 
 void SDLOutput::AudioCallback(Uint8* stream, int len) {
