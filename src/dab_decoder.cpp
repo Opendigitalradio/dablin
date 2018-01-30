@@ -118,7 +118,7 @@ void MP2Decoder::Feed(const uint8_t *data, size_t len) {
 			break;	// loop left below
 		case MPG123_NEW_FORMAT:
 			ProcessFormat();
-			// fall through, as MPG123_NEW_FORMAT implies MPG123_OK
+			// fall through - as MPG123_NEW_FORMAT implies MPG123_OK
 		case MPG123_OK: {
 			// forward decoded frame, if applicable
 			uint8_t *frame_data;
