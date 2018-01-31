@@ -213,7 +213,7 @@ DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL c
 }
 
 void DABLiveETISource::PrintSource() {
-	fprintf(stderr, "ETISource: playing from %u kHz via DAB live source (gain: %s)\n", channel.freq, channel.GainToString().c_str());
+	fprintf(stderr, "ETISource: playing from channel %s (%u kHz) via DAB live source (gain: %s)\n", channel.block.c_str(), channel.freq, channel.GainToString().c_str());
 }
 
 DABLiveETISource::~DABLiveETISource() {

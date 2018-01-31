@@ -360,7 +360,7 @@ void DABlinGTK::AddChannel(dab_channels_t::const_iterator &it, int gain) {
 	Gtk::ListStore::iterator row_it = combo_channels_liststore->append();
 	Gtk::TreeModel::Row row = *row_it;
 	row[combo_channels_cols.col_string] = it->first;
-	row[combo_channels_cols.col_channel] = DAB_LIVE_SOURCE_CHANNEL(it->second, gain);
+	row[combo_channels_cols.col_channel] = DAB_LIVE_SOURCE_CHANNEL(it->first, it->second, gain);
 
 	if(it->first == options.initial_channel)
 		initial_channel_it = row_it;

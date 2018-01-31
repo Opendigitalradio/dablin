@@ -38,6 +38,7 @@ struct ETI_PROGRESS {
 };
 
 struct DAB_LIVE_SOURCE_CHANNEL {
+	std::string block;
 	uint32_t freq;
 	int gain;
 
@@ -46,7 +47,7 @@ struct DAB_LIVE_SOURCE_CHANNEL {
 	std::string GainToString() {return HasAutoGain() ? "auto" : std::to_string(gain);}
 
 	DAB_LIVE_SOURCE_CHANNEL() : freq(-1), gain(auto_gain) {}
-	DAB_LIVE_SOURCE_CHANNEL(uint32_t freq, int gain) : freq(freq), gain(gain) {}
+	DAB_LIVE_SOURCE_CHANNEL(std::string block, uint32_t freq, int gain) : block(block), freq(freq), gain(gain) {}
 
 	bool operator<(const DAB_LIVE_SOURCE_CHANNEL & ch) const {
 		return freq < ch.freq;
