@@ -90,6 +90,8 @@ bool ETISource::UpdateTotalFrames() {
 }
 
 int ETISource::Main() {
+	Init();
+
 	if(!input_file) {
 		if(!OpenFile())
 			return 1;
@@ -195,25 +197,25 @@ std::string ETISource::FramecountToTimecode(size_t value) {
 }
 
 
-
 // --- DABLiveETISource -----------------------------------------------------------------
-DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : ETISource("", observer) {
+DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer, std::string source_name) : ETISource("", observer) {
 	this->channel = channel;
+	this->binary = binary;
+	this->source_name = source_name;
 
 	// it doesn't matter whether there is a prefixed path or not
 	binary_name = binary.substr(binary.find_last_of('/') + 1);
+}
 
-	std::string cmdline = binary + " " + std::to_string(channel.freq * 1000);
-	if(!channel.HasAutoGain())
-		cmdline += " " + std::to_string(channel.gain);
-	
+void DABLiveETISource::Init() {
+	std::string cmdline = binary + " " + GetParams();
 	input_file = popen(cmdline.c_str(), "r");
 	if(!input_file)
 		perror("ETISource: error starting DAB live source");
 }
 
 void DABLiveETISource::PrintSource() {
-	fprintf(stderr, "ETISource: playing from channel %s (%u kHz) via DAB live source (gain: %s)\n", channel.block.c_str(), channel.freq, channel.GainToString().c_str());
+	fprintf(stderr, "ETISource: playing from channel %s (%u kHz) via %s (gain: %s)\n", channel.block.c_str(), channel.freq, source_name.c_str(), channel.GainToString().c_str());
 }
 
 DABLiveETISource::~DABLiveETISource() {
@@ -221,8 +223,17 @@ DABLiveETISource::~DABLiveETISource() {
 	std::string cmd_killall = "killall " + binary_name;
 	int result = system(cmd_killall.c_str());
 	if(result != 0)
-		fprintf(stderr, "ETISource: error killing DAB live source\n");
+		fprintf(stderr, "ETISource: error killing %s\n", source_name.c_str());
 
 	pclose(input_file);
 	input_file = nullptr;
+}
+
+
+// --- DAB2ETIETISource -----------------------------------------------------------------
+std::string DAB2ETIETISource::GetParams() {
+	std::string result = std::to_string(channel.freq * 1000);
+	if(!channel.HasAutoGain())
+		result += " " + std::to_string(channel.gain);
+	return result;
 }

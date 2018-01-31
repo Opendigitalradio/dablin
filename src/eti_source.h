@@ -82,6 +82,7 @@ protected:
 
 	bool OpenFile();
 	bool UpdateTotalFrames();
+	virtual void Init() {}
 	virtual void PrintSource();
 
 	static std::string FramecountToTimecode(size_t value);
@@ -96,17 +97,27 @@ public:
 
 // --- DABLiveETISource -----------------------------------------------------------------
 class DABLiveETISource : public ETISource {
-private:
+protected:
 	DAB_LIVE_SOURCE_CHANNEL channel;
+	std::string binary;
 	std::string binary_name;
+	std::string source_name;
 
+	void Init();
 	void PrintSource();
+	virtual std::string GetParams() = 0;
 public:
-	DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer);
+	DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer, std::string source_name);
 	~DABLiveETISource();
 };
 
 
-
+// --- DAB2ETIETISource -----------------------------------------------------------------
+class DAB2ETIETISource : public DABLiveETISource {
+protected:
+	std::string GetParams();
+public:
+	DAB2ETIETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : DABLiveETISource(binary, channel, observer, "dab2eti") {}
+};
 
 #endif /* ETI_SOURCE_H_ */

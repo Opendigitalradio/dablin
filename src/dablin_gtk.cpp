@@ -553,7 +553,7 @@ void DABlinGTK::on_combo_channels() {
 	}
 
 	// append
-	eti_source = new DABLiveETISource(options.dab_live_source_binary, channel, this);
+	eti_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
 	eti_source_thread = std::thread(&ETISource::Main, eti_source);
 }
 
