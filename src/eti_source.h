@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -109,6 +109,9 @@ protected:
 public:
 	DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer, std::string source_name);
 	~DABLiveETISource();
+
+	static const std::string TYPE_DAB2ETI;
+	static const std::string TYPE_ETI_CMDLINE;
 };
 
 
@@ -118,6 +121,15 @@ protected:
 	std::string GetParams();
 public:
 	DAB2ETIETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : DABLiveETISource(binary, channel, observer, "dab2eti") {}
+};
+
+
+// --- EtiCmdlineETISource -----------------------------------------------------------------
+class EtiCmdlineETISource : public DABLiveETISource {
+protected:
+	std::string GetParams();
+public:
+	EtiCmdlineETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : DABLiveETISource(binary, channel, observer, "eti-cmdline") {}
 };
 
 #endif /* ETI_SOURCE_H_ */

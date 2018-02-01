@@ -201,9 +201,8 @@ dab2eti 216928000 | dablin_gtk
 
 It is possible to let DABlin invoke `dab2eti` or any other DAB live
 source that outputs ETI-NI. The respective binary is then called with
-one or two parameters:
-* center frequency in Hz
-* gain value (optional; instead of auto gain)
+the necessary parameters, including the frequency and an optional gain
+value.
 
 You therefore just have to specify the path to the `dab2eti` binary and
 the desired channel.
@@ -215,6 +214,18 @@ dablin -d ~/bin/dab2eti -c 11D -s 0xd911
 Using `dab2eti` the E4000 tuner is recommended as auto gain is supported
 with it. If you want/have to use a gain value you can specify it using
 `-g`.
+
+Instead of `dab2eti` the tool `eti-cmdline` by Jan van Katwijk can be
+used, as it has more sensitive reception (however the CPU load is higher
+compared to `dab2eti`) and does not require a E4000 tuner for auto gain.
+It is part of his [eti-stuff](https://github.com/JvanKatwijk/eti-stuff).
+
+In addition to specifying the path to the respective binary you also
+have to change the DAB live source type accordingly by using `-D`.
+
+```
+dablin -d ~/bin/eti-cmdline-rtlsdr -D eti-cmdline -c 11D -s 0xd911
+```
 
 In case of the GTK GUI version the desired channel may not be specified. To
 avoid the huge channel list containing all possible DAB channels, one

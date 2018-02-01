@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -198,6 +198,9 @@ std::string ETISource::FramecountToTimecode(size_t value) {
 
 
 // --- DABLiveETISource -----------------------------------------------------------------
+const std::string DABLiveETISource::TYPE_DAB2ETI = "dab2eti";
+const std::string DABLiveETISource::TYPE_ETI_CMDLINE = "eti-cmdline";
+
 DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer, std::string source_name) : ETISource("", observer) {
 	this->channel = channel;
 	this->binary = binary;
@@ -236,4 +239,15 @@ std::string DAB2ETIETISource::GetParams() {
 	if(!channel.HasAutoGain())
 		result += " " + std::to_string(channel.gain);
 	return result;
+}
+
+
+// --- EtiCmdlineETISource -----------------------------------------------------------------
+std::string EtiCmdlineETISource::GetParams() {
+	std::string cmdline = "-C " + channel.block + " -S -B " + (channel.freq < 1000000 ? "BAND_III" : "L_BAND");
+	if(channel.HasAutoGain())
+		cmdline += " -Q";
+	else
+		cmdline += " -G " + std::to_string(channel.gain);
+	return cmdline;
 }

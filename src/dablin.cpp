@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ static void usage(const char* exe) {
 	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
 	fprintf(stderr, "  -h            Show this help\n"
 					"  -d <binary>   Use DAB live source (using the mentioned binary)\n"
+					"  -D <type>     DAB live source type: \"%s\" (default), \"%s\"\n"
 					"  -c <ch>       Channel to be played (requires DAB live source)\n"
 					"  -s <sid>      ID of the service to be played\n"
 					"  -x <scids>    ID of the service component to be played (requires service ID)\n"
@@ -39,7 +40,9 @@ static void usage(const char* exe) {
 					"  -R <subchid>  ID of the sub-channel (DAB+) to be played\n"
 					"  -g <gain>     USB stick gain to pass to DAB live source (auto gain is default)\n"
 					"  -p            Output PCM to stdout instead of using SDL\n"
-					"  file          Input file to be played (stdin, if not specified)\n"
+					"  file          Input file to be played (stdin, if not specified)\n",
+					DABLiveETISource::TYPE_DAB2ETI.c_str(),
+					DABLiveETISource::TYPE_ETI_CMDLINE.c_str()
 			);
 	exit(1);
 }
@@ -61,13 +64,16 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hc:d:g:s:x:pr:R:")) != -1) {
+	while((c = getopt(argc, argv, "hc:d:D:g:s:x:pr:R:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
 			break;
 		case 'd':
 			options.dab_live_source_binary = optarg;
+			break;
+		case 'D':
+			options.dab_live_source_type = optarg;
 			break;
 		case 'c':
 			options.initial_channel = optarg;
@@ -129,6 +135,10 @@ int main(int argc, char **argv) {
 			fprintf(stderr, "The channel '%s' is not supported!\n", options.initial_channel.c_str());
 			usage(argv[0]);
 		}
+		if(options.dab_live_source_type != DABLiveETISource::TYPE_DAB2ETI && options.dab_live_source_type != DABLiveETISource::TYPE_ETI_CMDLINE) {
+			fprintf(stderr, "The DAB live source type '%s' is not supported!\n", options.dab_live_source_type.c_str());
+			usage(argv[0]);
+		}
 	}
 	if(options.initial_scids != LISTED_SERVICE::scids_none && options.initial_sid == LISTED_SERVICE::sid_none) {
 		fprintf(stderr, "The service component ID requires the service ID to be specified!\n");
@@ -183,10 +193,16 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 		fprintf(stderr, "\x1B]0;" "Sub-channel %d (DAB+) - DABlin" "\a", options.initial_subchid_dab_plus);
 	}
 
-	if(options.dab_live_source_binary.empty())
+	if(options.dab_live_source_binary.empty()) {
 		eti_source = new ETISource(options.filename, this);
-	else
-		eti_source = new DAB2ETIETISource(options.dab_live_source_binary, DAB_LIVE_SOURCE_CHANNEL(options.initial_channel, dab_channels.at(options.initial_channel), options.gain), this);
+	} else {
+		DAB_LIVE_SOURCE_CHANNEL channel(options.initial_channel, dab_channels.at(options.initial_channel), options.gain);
+
+		if(options.dab_live_source_type == DABLiveETISource::TYPE_ETI_CMDLINE)
+			eti_source = new EtiCmdlineETISource(options.dab_live_source_binary, channel, this);
+		else
+			eti_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
+	}
 
 	fic_decoder = new FICDecoder(this);
 }
