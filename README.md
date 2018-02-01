@@ -175,19 +175,29 @@ You just should specify the service ID (SID) of the desired service
 using `-s` - otherwise initially no service is played. The GUI version
 of course does not necessarily need this.
 
+You can replay an existing ETI-NI recording as follows:
+
+```
+dablin -s 0xd911 mux.eti
+```
+
+In this case a progress indicator and the current position is displayed.
+
+With the console version, instead of the desired service it is also
+possible to directly request a specific sub-channel by using `-r` (for
+DAB) or `-R` (for DAB+).
+
+In addition to the respective button, the GTK GUI version also allows the
+keyboard shortcut `m` to toggle muting the audio.
+
+### DAB live reception
+
 If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/Opendigitalradio/dabtools)
 (ODR maintained fork) and transfer the ETI live stream via pipe, e.g.:
 
 ```
 dab2eti 216928000 | dablin_gtk
 ```
-
-You can also replay an existing ETI-NI recording, e.g.:
-
-```
-dablin -s 0xd911 mux.eti
-```
-
 
 It is possible to let DABlin invoke `dab2eti` or any other DAB live
 source that outputs ETI-NI. The respective binary is then called with
@@ -201,10 +211,6 @@ the desired channel.
 ```
 dablin -d ~/bin/dab2eti -c 11D -s 0xd911
 ```
-
-With the console version, instead of the desired service it is also
-possible to directly request a specific sub-channel by using `-r` (for
-DAB) or `-R` (for DAB+).
 
 Using `dab2eti` the E4000 tuner is recommended as auto gain is supported
 with it. If you want/have to use a gain value you can specify it using
@@ -220,9 +226,6 @@ after a colon, e.g. `5C:-54`.
 ```
 dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 ```
-
-In addition to the respective button, the GTK GUI version also allows the
-keyboard shortcut `m` to toggle muting the audio.
 
 ### Secondary component audio services
 
@@ -322,7 +325,7 @@ This software is licensed under the GNU General Public License Version 3
 *Please note that the included FEC lib by KA9Q has a separate license!*
 
 DABlin - capital DAB experience
-Copyright (C) 2015-2017 Stefan Pöschel
+Copyright (C) 2015-2018 Stefan Pöschel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
