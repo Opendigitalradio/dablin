@@ -208,6 +208,10 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 
 	ConnectKeyPressEventHandler(*this);
 	ConnectKeyPressEventHandler(slideshow_window);
+
+	// add window config event handler (before default handler)
+	signal_configure_event().connect(sigc::mem_fun(*this, &DABlinGTK::HandleConfigureEvent), false);
+	add_events(Gdk::STRUCTURE_MASK);
 }
 
 DABlinGTK::~DABlinGTK() {
@@ -466,6 +470,13 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 	return false;
 }
 
+bool DABlinGTK::HandleConfigureEvent(GdkEventConfigure* /*configure_event*/) {
+	// move together with slideshow window
+	if(slideshow_window.get_visible())
+		slideshow_window.AlignToParent();
+	return false;
+}
+
 void DABlinGTK::ETIUpdateProgressEmitted() {
 //	fprintf(stderr, "### ETIUpdateProgressEmitted\n");
 
@@ -625,6 +636,10 @@ Glib::ustring DABlinGTK::DeriveShortLabel(Glib::ustring long_label, uint16_t sho
 
 // --- DABlinGTKSlideshowWindow -----------------------------------------------------------------
 DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
+	// align to the right of parent
+	offset_x = 20;	// add some horizontal padding for WM decoration
+	offset_y = 0;
+
 	set_title("Slideshow");
 	set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
 	set_resizable(false);
@@ -636,6 +651,10 @@ DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
 	top_grid.attach_next_to(link_button, image, Gtk::POS_BOTTOM, 1, 1);
 
 	show_all_children();
+
+	// add window config event handler (before default handler)
+	signal_configure_event().connect(sigc::mem_fun(*this, &DABlinGTKSlideshowWindow::HandleConfigureEvent), false);
+	add_events(Gdk::STRUCTURE_MASK);
 }
 
 void DABlinGTKSlideshowWindow::TryToShow() {
@@ -643,13 +662,31 @@ void DABlinGTKSlideshowWindow::TryToShow() {
 	if(get_visible() || image.get_storage_type() == Gtk::ImageType::IMAGE_EMPTY)
 		return;
 
-	// arrange to the right of parent
+	AlignToParent();
+	show();
+}
+
+void DABlinGTKSlideshowWindow::AlignToParent() {
 	int x, y, w, h;
 	get_transient_for()->get_position(x, y);
 	get_transient_for()->get_size(w, h);
-	move(x + w + 20, y);	// add some horizontal padding for WM decoration
 
-	show();
+	// TODO: fix multi head issue
+	move(x + w + offset_x, y + offset_y);
+}
+
+bool DABlinGTKSlideshowWindow::HandleConfigureEvent(GdkEventConfigure* /*configure_event*/) {
+	// update window offset, if visible
+	if(get_visible()) {
+		int x, y, w, h, sls_x, sls_y;
+		get_transient_for()->get_position(x, y);
+		get_transient_for()->get_size(w, h);
+		get_position(sls_x, sls_y);	// event position doesn't work!
+
+		offset_x = sls_x - w - x;
+		offset_y = sls_y - y;
+	}
+	return false;
 }
 
 void DABlinGTKSlideshowWindow::UpdateSlide(const MOT_FILE& slide) {

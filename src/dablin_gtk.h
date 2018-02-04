@@ -45,10 +45,17 @@ private:
 	Gtk::Grid top_grid;
 	Gtk::Image image;
 	Gtk::LinkButton link_button;
+
+	std::atomic<int> offset_x;
+	std::atomic<int> offset_y;
+
+	bool HandleConfigureEvent(GdkEventConfigure* configure_event);
 public:
 	DABlinGTKSlideshowWindow();
 
 	void TryToShow();
+	void AlignToParent();
+
 	void UpdateSlide(const MOT_FILE& slide);
 	void ClearSlide() {image.clear();}
 };
@@ -212,6 +219,7 @@ private:
 
 	void ConnectKeyPressEventHandler(Gtk::Widget& widget);
 	bool HandleKeyPressEvent(GdkEventKey* key_event);
+	bool HandleConfigureEvent(GdkEventConfigure* configure_event);
 
 	// FIC data change
 	GTKDispatcherQueue<FIC_ENSEMBLE> fic_change_ensemble;
