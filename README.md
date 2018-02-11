@@ -45,6 +45,9 @@ The GTK GUI version in addition requires:
 
 * gtkmm
 
+Usually the `glibc` implementation of `iconv` is available. If this is
+not the case, in addition `libiconv` is required.
+
 On Debian or Ubuntu, mpg123, FAAD2, SDL2 and gtkmm are packaged and installed
 with:
 

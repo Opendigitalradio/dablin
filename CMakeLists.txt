@@ -131,6 +131,14 @@ else()
     add_definitions(-DDABLIN_AAC_FAAD2)
 endif()
 
+# iconv
+pkg_check_modules(ICONV iconv)
+if(NOT ICONV_FOUND)
+    message(STATUS "iconv not found; assuming built-in implementation")
+else()
+    include_directories(${ICONV_INCLUDE_DIRS})
+    link_directories(${ICONV_LIBRARY_DIRS})
+endif()
 
 ########################################################################
 # Setup DABlin application build

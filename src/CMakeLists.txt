@@ -25,7 +25,7 @@ set(dablin_gtk_sources
 
 set(common_link_list
     fec
-    ${CMAKE_THREAD_LIBS_INIT} ${MPG123_LIBRARIES} ${SDL2_LIBRARIES} ${AAC_LIB}
+    ${CMAKE_THREAD_LIBS_INIT} ${MPG123_LIBRARIES} ${SDL2_LIBRARIES} ${AAC_LIB} ${ICONV_LIBRARIES}
     )
 
 include_directories(../fec)
