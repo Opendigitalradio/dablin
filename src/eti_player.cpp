@@ -109,6 +109,11 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 		return;
 	}
 
+	if(eti_frame[4] == 0xFF && eti_frame[5] == 0xFF && eti_frame[6] == 0xFF && eti_frame[7] == 0xFF) {
+		fprintf(stderr, "ETIPlayer: ignored ETI frame with null transmission\n");
+		return;
+	}
+
 	bool ficf = eti_frame[5] & 0x80;
 	int nst = eti_frame[5] & 0x7F;
 	int mid = (eti_frame[6] & 0x18) >> 3;
