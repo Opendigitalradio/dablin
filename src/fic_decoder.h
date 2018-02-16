@@ -109,26 +109,27 @@ struct FIC_ENSEMBLE {
 	}
 };
 
-typedef std::map<int,AUDIO_SERVICE> sec_comps_t;
+typedef std::map<int,AUDIO_SERVICE> audio_comps_t;
 typedef std::map<int,int> comp_defs_t;
 typedef std::map<int,FIC_LABEL> comp_labels_t;
 
 struct FIC_SERVICE {
 	int sid;
-
-	// primary component
-	AUDIO_SERVICE audio_service;
+	int pri_comp_subchid;
 	FIC_LABEL label;
 
-	// secondary components (if present)
-	sec_comps_t sec_comps;		// from FIG 0/2: SubChId -> AUDIO_SERVICE
+	// components
+	audio_comps_t audio_comps;	// from FIG 0/2: SubChId -> AUDIO_SERVICE
 	comp_defs_t comp_defs;		// from FIG 0/8: SCIdS -> SubChId
 	comp_labels_t comp_labels;	// from FIG 1/4: SCIdS -> FIC_LABEL
 
 	static const int sid_none = -1;
 	bool IsNone() const {return sid == sid_none;}
 
-	FIC_SERVICE() : sid(sid_none) {}
+	static const int pri_comp_subchid_none = -1;
+	bool HasNoPriCompSubchid() const {return pri_comp_subchid == pri_comp_subchid_none;}
+
+	FIC_SERVICE() : sid(sid_none), pri_comp_subchid(pri_comp_subchid_none) {}
 };
 
 struct LISTED_SERVICE {

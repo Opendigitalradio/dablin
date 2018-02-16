@@ -193,9 +193,11 @@ void FICDecoder::ProcessFIG0_2(const uint8_t *data, size_t len) {
 						AUDIO_SERVICE audio_service(subchid, dab_plus);
 
 						FIC_SERVICE& service = GetService(sid);
-						AUDIO_SERVICE& current_audio_service = ps ? service.audio_service : service.sec_comps[subchid];
-						if(current_audio_service != audio_service) {
+						AUDIO_SERVICE& current_audio_service = service.audio_comps[subchid];
+						if(current_audio_service != audio_service || ps != (service.pri_comp_subchid == subchid)) {
 							current_audio_service = audio_service;
+							if(ps)
+								service.pri_comp_subchid = subchid;
 
 							fprintf(stderr, "FICDecoder: SId 0x%04X: audio service (SubChId %2d, %-4s, %s)\n", sid, subchid, dab_plus ? "DAB+" : "DAB", ps ? "primary" : "secondary");
 
@@ -405,7 +407,7 @@ void FICDecoder::UpdateSubchannel(int subchid) {
 	// update services that consist of this sub-channel
 	for(fic_services_t::const_iterator it = services.cbegin(); it != services.cend(); it++) {
 		const FIC_SERVICE& s = it->second;
-		if(s.audio_service.subchid == subchid || s.sec_comps.find(subchid) != s.sec_comps.end())
+		if(s.audio_comps.find(subchid) != s.audio_comps.end())
 			UpdateService(s);
 	}
 }
@@ -420,14 +422,14 @@ FIC_SERVICE& FICDecoder::GetService(uint16_t sid) {
 }
 
 void FICDecoder::UpdateService(const FIC_SERVICE& service) {
-	// abort update, if audio service or label not yet present
-	if(service.audio_service.IsNone() || service.label.IsNone())
+	// abort update, if primary component or label not yet present
+	if(service.HasNoPriCompSubchid() || service.label.IsNone())
 		return;
 
 	// secondary components (if both component and definition are present)
 	bool multi_comps = false;
 	for(comp_defs_t::const_iterator it = service.comp_defs.cbegin(); it != service.comp_defs.cend(); it++) {
-		if(service.sec_comps.find(it->second) == service.sec_comps.end())
+		if(it->second == service.pri_comp_subchid || service.audio_comps.find(it->second) == service.audio_comps.end())
 			continue;
 		UpdateListedService(service, it->first, true);
 		multi_comps = true;
@@ -443,13 +445,13 @@ void FICDecoder::UpdateListedService(const FIC_SERVICE& service, int scids, bool
 	ls.sid = service.sid;
 	ls.scids = scids;
 	ls.label = service.label;
-	ls.pri_comp_subchid = service.audio_service.subchid;
+	ls.pri_comp_subchid = service.pri_comp_subchid;
 	ls.multi_comps = multi_comps;
 
 	if(scids == LISTED_SERVICE::scids_none) {	// primary component
-		ls.audio_service = service.audio_service;
+		ls.audio_service = service.audio_comps.at(service.pri_comp_subchid);
 	} else {									// secondary component
-		ls.audio_service = service.sec_comps.at(service.comp_defs.at(scids));
+		ls.audio_service = service.audio_comps.at(service.comp_defs.at(scids));
 
 		// use component label, if available
 		comp_labels_t::const_iterator cl_it = service.comp_labels.find(scids);
