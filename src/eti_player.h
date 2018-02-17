@@ -44,7 +44,6 @@ public:
 	virtual void ETIChangeFormat(const std::string& /*format*/) {};
 	virtual void ETIProcessFIC(const uint8_t* /*data*/, size_t /*len*/) {};
 	virtual void ETIProcessPAD(const uint8_t* /*xpad_data*/, size_t /*xpad_len*/, bool /*exact_xpad_len*/, const uint8_t* /*fpad_data*/) {}
-	virtual void ETIResetPAD() {};
 };
 
 
@@ -55,9 +54,8 @@ private:
 
 	std::chrono::steady_clock::time_point next_frame_time;
 
-	std::mutex status_mutex;
-	AUDIO_SERVICE audio_service_now;
-	AUDIO_SERVICE audio_service_next;
+	std::mutex audio_service_mutex;
+	AUDIO_SERVICE audio_service;
 
 	SubchannelSink *dec;
 	AudioOutput *out;

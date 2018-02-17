@@ -418,6 +418,11 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 
 	// if the audio service changed, reset format/DL/slide + switch
 	if(!eti_player->IsSameAudioService(service.audio_service)) {
+		// stop playback of old service
+		eti_player->SetAudioService(AUDIO_SERVICE());
+
+		pad_decoder->Reset();
+
 		label_format.set_label("");
 
 		frame_label_dl.set_sensitive(false);
@@ -427,6 +432,7 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		slideshow_window.hide();
 		slideshow_window.ClearSlide();
 
+		// start playback of new service
 		eti_player->SetAudioService(service.audio_service);
 	}
 }
