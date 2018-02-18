@@ -319,9 +319,10 @@ Aided Data (PAD) features.
 
 ### Slideshow
 
-The GTK GUI version supports the MOT Slideshow if used by the selected
-service. The slide window is initially hidden but appears as soon as the
-first slide has been received completely and without errors.
+The GTK GUI version supports the MOT Slideshow. If Slideshow is enabled
+and the current service signals to transmit a Slideshow, the Slideshow
+window is displayed. It shows a slide after it has been received
+completely and without errors.
 
 Currently the following limitations apply:
 

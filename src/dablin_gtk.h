@@ -46,6 +46,7 @@ private:
 	Gtk::Image image;
 	Gtk::LinkButton link_button;
 
+	Glib::RefPtr<Gdk::Pixbuf> pixbuf_waiting;
 	std::atomic<int> offset_x;
 	std::atomic<int> offset_y;
 
@@ -56,6 +57,7 @@ public:
 	void TryToShow();
 	void AlignToParent();
 
+	void AwaitSlide();
 	void UpdateSlide(const MOT_FILE& slide);
 	void ClearSlide() {image.clear();}
 };

@@ -429,15 +429,21 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		label_dl.set_label("");
 		frame_label_dl.set_tooltip_text("");
 
-		slideshow_window.hide();
-		slideshow_window.ClearSlide();
+		if(!service.HasSLS()) {
+			slideshow_window.hide();
+			slideshow_window.ClearSlide();
+		}
 
 		// start playback of new service
 		eti_player->SetAudioService(service.audio_service);
 	}
 
-	if(service.HasSLS())
+	if(service.HasSLS()) {
+		slideshow_window.AwaitSlide();
+		if(tglbtn_slideshow.get_active())
+			slideshow_window.TryToShow();
 		pad_decoder->SetMOTAppType(service.sls_app_type);
+	}
 }
 
 
@@ -645,11 +651,13 @@ Glib::ustring DABlinGTK::DeriveShortLabel(Glib::ustring long_label, uint16_t sho
 
 // --- DABlinGTKSlideshowWindow -----------------------------------------------------------------
 DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
+	pixbuf_waiting = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB, false, 8, 320, 240);	// default slide size
+	pixbuf_waiting->fill(0x003000FF);
+
 	// align to the right of parent
 	offset_x = 20;	// add some horizontal padding for WM decoration
 	offset_y = 0;
 
-	set_title("Slideshow");
 	set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
 	set_resizable(false);
 	set_deletable(false);
@@ -667,7 +675,7 @@ DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
 }
 
 void DABlinGTKSlideshowWindow::TryToShow() {
-	// if already visible or no slide, abort
+	// if already visible or no slide (awaiting), abort
 	if(get_visible() || image.get_storage_type() == Gtk::ImageType::IMAGE_EMPTY)
 		return;
 
@@ -696,6 +704,15 @@ bool DABlinGTKSlideshowWindow::HandleConfigureEvent(GdkEventConfigure* /*configu
 		offset_y = sls_y - y;
 	}
 	return false;
+}
+
+void DABlinGTKSlideshowWindow::AwaitSlide() {
+	set_title("Slideshow...");
+
+	image.set(pixbuf_waiting);
+	image.set_tooltip_text("Waiting for slide...");
+
+	link_button.hide();
 }
 
 void DABlinGTKSlideshowWindow::UpdateSlide(const MOT_FILE& slide) {
