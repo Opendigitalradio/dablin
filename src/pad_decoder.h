@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <atomic>
 #include <list>
 #include <map>
 #include <string>
@@ -181,6 +182,7 @@ class PADDecoder {
 private:
 	PADDecoderObserver *observer;
 	bool loose;
+	std::atomic<int> mot_app_type;
 
 	uint8_t xpad[196];	// longest possible X-PAD
 	XPAD_CI last_xpad_ci;
@@ -190,8 +192,9 @@ private:
 	MOTDecoder mot_decoder;
 	MOTManager mot_manager;
 public:
-	PADDecoder(PADDecoderObserver *observer, bool loose) : observer(observer), loose(loose) {}
+	PADDecoder(PADDecoderObserver *observer, bool loose) : observer(observer), loose(loose), mot_app_type(-1) {}
 
+	void SetMOTAppType(int mot_app_type) {this-> mot_app_type = mot_app_type;}
 	void Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data);
 	void Reset();
 };

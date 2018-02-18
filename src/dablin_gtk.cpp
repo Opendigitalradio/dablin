@@ -423,6 +423,9 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 
 		pad_decoder->Reset();
 
+		// TODO: don't use hardcoded X-PAD Application Type for MOT Slideshow
+		pad_decoder->SetMOTAppType(12);
+
 		label_format.set_label("");
 
 		frame_label_dl.set_sensitive(false);
