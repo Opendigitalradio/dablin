@@ -149,7 +149,6 @@ struct XPAD_CI {
 	int type;
 
 	static const size_t lens[];
-	static int GetContinuedLastCIType(int last_ci_type);
 
 	XPAD_CI() {Reset();}
 	XPAD_CI(uint8_t ci_raw) {

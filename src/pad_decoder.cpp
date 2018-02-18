@@ -22,22 +22,6 @@
 // --- XPAD_CI -----------------------------------------------------------------
 const size_t XPAD_CI::lens[] = {4, 6, 8, 12, 16, 24, 32, 48};
 
-int XPAD_CI::GetContinuedLastCIType(int last_ci_type) {
-	switch(last_ci_type) {
-	case 1:		// Data group length indicator
-		return 1;
-	case 2:		// Dynamic Label segment
-	case 3:
-		return 3;
-	case 12:	// MOT, X-PAD data group
-	case 13:
-		return 13;
-	case -1:
-	default:
-		return -1;
-	}
-}
-
 
 // --- PADDecoder -----------------------------------------------------------------
 void PADDecoder::Reset() {
@@ -140,6 +124,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 
 	// process CIs
 	size_t xpad_offset = xpad_cis_len;
+	int xpad_ci_type_continued = -1;
 	for(xpad_cis_t::const_iterator it = xpad_cis.cbegin(); it != xpad_cis.cend(); it++) {
 		// len only valid for the *immediate* next data group after the DGLI!
 		size_t dgli_len = dgli_decoder.GetDGLILen();
@@ -148,6 +133,8 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 		switch(it->type) {
 		case 1:		// Data Group Length Indicator
 			dgli_decoder.ProcessDataSubfield(ci_flag, xpad + xpad_offset, it->len);
+
+			xpad_ci_type_continued = 1;
 			break;
 
 		case 2:		// Dynamic Label segment (start)
@@ -155,6 +142,8 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 			// if new label available, append it
 			if(dl_decoder.ProcessDataSubfield(it->type == 2, xpad + xpad_offset, it->len))
 				observer->PADChangeDynamicLabel(dl_decoder.GetLabel());
+
+			xpad_ci_type_continued = 3;
 			break;
 
 		// TODO: don't use hardcoded X-PAD Application Types for MOT
@@ -184,6 +173,8 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 						observer->PADChangeSlide(new_slide);
 				}
 			}
+
+			xpad_ci_type_continued = 13;
 			break;
 		}
 //		fprintf(stderr, "PADDecoder: Data Subfield: type: %2d, len: %2zu\n", it->type, it->len);
@@ -193,7 +184,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 
 	// set last CI
 	last_xpad_ci.len = xpad_offset;
-	last_xpad_ci.type = XPAD_CI::GetContinuedLastCIType(xpad_cis.back().type);
+	last_xpad_ci.type = xpad_ci_type_continued;
 }
 
 
