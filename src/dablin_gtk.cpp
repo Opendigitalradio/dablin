@@ -423,9 +423,6 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 
 		pad_decoder->Reset();
 
-		// TODO: don't use hardcoded X-PAD Application Type for MOT Slideshow
-		pad_decoder->SetMOTAppType(12);
-
 		label_format.set_label("");
 
 		frame_label_dl.set_sensitive(false);
@@ -438,6 +435,9 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		// start playback of new service
 		eti_player->SetAudioService(service.audio_service);
 	}
+
+	if(service.HasSLS())
+		pad_decoder->SetMOTAppType(service.sls_app_type);
 }
 
 

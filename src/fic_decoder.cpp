@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -97,6 +97,9 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 		break;
 	case 8:
 		ProcessFIG0_8(data, len);
+		break;
+	case 13:
+		ProcessFIG0_13(data, len);
 		break;
 //	default:
 //		fprintf(stderr, "FICDecoder: received unsupported FIG 0/%d with %zu field bytes\n", header.extension, len);
@@ -294,6 +297,46 @@ void FICDecoder::ProcessFIG0_8(const uint8_t *data, size_t len) {
 	}
 }
 
+void FICDecoder::ProcessFIG0_13(const uint8_t *data, size_t len) {
+	// FIG 0/13 - User application information
+	// programme services only
+
+	// iterate through all service components
+	for(size_t offset = 0; offset < len;) {
+		uint16_t sid = data[offset] << 8 | data[offset + 1];
+		offset += 2;
+
+		int scids = data[offset] >> 4;
+		size_t num_scids_uas = data[offset] & 0x0F;
+		offset++;
+
+		// iterate through all user applications
+		for(size_t scids_ua = 0; scids_ua < num_scids_uas; scids_ua++) {
+			int ua_type = data[offset] << 3 | data[offset + 1] >> 5;
+			size_t ua_data_length = data[offset + 1] & 0x1F;
+			offset += 2;
+
+			// handle only Slideshow
+			if(ua_type == 0x002) {
+				FIC_SERVICE& service = GetService(sid);
+				if(service.comp_sls_uas.find(scids) == service.comp_sls_uas.end()) {
+					ua_data_t& sls_ua_data = service.comp_sls_uas[scids];
+
+					sls_ua_data.resize(ua_data_length);
+					if(ua_data_length)
+						memcpy(&sls_ua_data[0], data + offset, ua_data_length);
+
+					fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: Slideshow (%zu bytes UA data)\n", sid, scids, ua_data_length);
+
+					UpdateService(service);
+				}
+			}
+
+			offset += ua_data_length;
+		}
+	}
+}
+
 void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	if(len < 1) {
 		fprintf(stderr, "FICDecoder: received empty FIG 1\n");
@@ -464,8 +507,46 @@ void FICDecoder::UpdateListedService(const FIC_SERVICE& service, int scids, bool
 	if(sc_it != subchannels.end())
 		ls.subchannel = sc_it->second;
 
+	/* check (for) Slideshow; currently only supported in X-PAD
+	 * - derive the required SCIdS (if not yet known)
+	 * - derive app type from UA data (if present)
+	 */
+	int sls_scids = scids;
+	if(sls_scids == LISTED_SERVICE::scids_none) {
+		for(comp_defs_t::const_iterator it = service.comp_defs.cbegin(); it != service.comp_defs.cend(); it++) {
+			if(it->second == ls.audio_service.subchid) {
+				sls_scids = it->first;
+				break;
+			}
+		}
+	}
+	if(sls_scids != LISTED_SERVICE::scids_none && service.comp_sls_uas.find(sls_scids) != service.comp_sls_uas.end())
+		ls.sls_app_type = GetSLSAppType(service.comp_sls_uas.at(sls_scids));
+
 	// forward to observer
 	observer->FICChangeService(ls);
+}
+
+int FICDecoder::GetSLSAppType(const ua_data_t& ua_data) {
+	// default values, if no UA data present
+	bool ca_flag = false;
+	int xpad_app_type = 12;
+	bool dg_flag = false;
+	int dscty = 60;	// MOT
+
+	// if UA data present, parse X-PAD data
+	if(ua_data.size() >= 2) {
+		ca_flag = ua_data[0] & 0x80;
+		xpad_app_type = ua_data[0] & 0x1F;
+		dg_flag = ua_data[1] & 0x80;
+		dscty = ua_data[1] & 0x3F;
+	}
+
+	// if no CA is used, but DGs and MOT, enable Slideshow
+	if(!ca_flag && !dg_flag && dscty == 60)
+		return xpad_app_type;
+	else
+		return LISTED_SERVICE::sls_app_type_none;
 }
 
 std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {

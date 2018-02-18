@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -112,6 +112,8 @@ struct FIC_ENSEMBLE {
 typedef std::map<int,AUDIO_SERVICE> audio_comps_t;
 typedef std::map<int,int> comp_defs_t;
 typedef std::map<int,FIC_LABEL> comp_labels_t;
+typedef std::vector<uint8_t> ua_data_t;
+typedef std::map<int,ua_data_t> comp_sls_uas_t;
 
 struct FIC_SERVICE {
 	int sid;
@@ -119,9 +121,10 @@ struct FIC_SERVICE {
 	FIC_LABEL label;
 
 	// components
-	audio_comps_t audio_comps;	// from FIG 0/2: SubChId -> AUDIO_SERVICE
-	comp_defs_t comp_defs;		// from FIG 0/8: SCIdS -> SubChId
-	comp_labels_t comp_labels;	// from FIG 1/4: SCIdS -> FIC_LABEL
+	audio_comps_t audio_comps;		// from FIG 0/2 : SubChId -> AUDIO_SERVICE
+	comp_defs_t comp_defs;			// from FIG 0/8 : SCIdS -> SubChId
+	comp_labels_t comp_labels;		// from FIG 1/4 : SCIdS -> FIC_LABEL
+	comp_sls_uas_t comp_sls_uas;	// from FIG 0/13: SCIdS -> UA data
 
 	static const int sid_none = -1;
 	bool IsNone() const {return sid == sid_none;}
@@ -138,6 +141,7 @@ struct LISTED_SERVICE {
 	FIC_SUBCHANNEL subchannel;
 	AUDIO_SERVICE audio_service;
 	FIC_LABEL label;
+	int sls_app_type;
 
 	int pri_comp_subchid;	// only used for sorting
 	bool multi_comps;
@@ -148,9 +152,13 @@ struct LISTED_SERVICE {
 	static const int scids_none = -1;
 	bool IsPrimary() const {return scids == scids_none;}
 
+	static const int sls_app_type_none = -1;
+	bool HasSLS() const {return sls_app_type != sls_app_type_none;}
+
 	LISTED_SERVICE() :
 		sid(sid_none),
 		scids(scids_none),
+		sls_app_type(sls_app_type_none),
 		pri_comp_subchid(AUDIO_SERVICE::subchid_none),
 		multi_comps(false)
 	{}
@@ -189,6 +197,7 @@ private:
 	void ProcessFIG0_2(const uint8_t *data, size_t len);
 	void ProcessFIG0_5(const uint8_t *data, size_t len);
 	void ProcessFIG0_8(const uint8_t *data, size_t len);
+	void ProcessFIG0_13(const uint8_t *data, size_t len);
 
 	void ProcessFIG1(const uint8_t *data, size_t len);
 	void ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label);
@@ -200,6 +209,7 @@ private:
 	FIC_SERVICE& GetService(uint16_t sid);
 	void UpdateService(const FIC_SERVICE& service);
 	void UpdateListedService(const FIC_SERVICE& service, int scids, bool multi_comps);
+	int GetSLSAppType(const ua_data_t& ua_data);
 
 	FIC_ENSEMBLE ensemble;
 	fic_services_t services;

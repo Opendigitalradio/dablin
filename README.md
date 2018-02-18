@@ -326,8 +326,7 @@ first slide has been received completely and without errors.
 Currently the following limitations apply:
 
 * slideshows in a separate sub-channel are not supported (just X-PAD);
-* for MOT the hardcoded (default) X-PAD Application Types 12/13 are used;
-* the TriggerTime field is not processed (except the value Now)
+* the TriggerTime field does not support values other than Now
 
 
 ## License
