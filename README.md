@@ -119,7 +119,7 @@ moment.
 ## Precompiled packages and source-based Linux distributions
 
 Official precompiled packages are available for the following Linux
-distributions:
+distributions (kindly maintained by Gürkan Myczko):
 
 * [Debian](https://packages.debian.org/dablin)
 * [Ubuntu](https://launchpad.net/ubuntu/+source/dablin)
@@ -128,6 +128,8 @@ Some users kindly provide precompiled packages on their own:
 
 * [openSUSE](https://build.opensuse.org/package/show/home:mnhauke:ODR-mmbTools/dablin) (by Martin Hauke)
 * [CentOS](https://build.opensuse.org/package/show/home:radiorabe:dab/dablin) (by [Radio Bern RaBe 95.6](http://rabe.ch)); [more info](https://github.com/radiorabe/centos-rpm-dablin)
+
+For other distributions you may also want to check the [Repology page](https://repology.org/metapackage/dablin/versions).
 
 Source-based Linux distributions:
 
