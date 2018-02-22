@@ -142,6 +142,7 @@ link_directories(${ICONV_LIBRARY_DIRS})
 ########################################################################
 
 add_subdirectory(src)
+add_subdirectory(doc)
 
 ########################################################################
 # Print Summary
