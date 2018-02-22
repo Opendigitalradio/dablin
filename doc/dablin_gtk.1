@@ -1,21 +1,22 @@
-.TH dablin 1 "January 18 2018"
+.TH DABLIN_GTK 1 "2018-02-22"
+.\"------------------------------------------------------------------------
 .SH NAME
-dablin \- DAB & DAB+ receiver client
+dablin_gtk \- GTK DAB/DAB+ receiver for Linux
+.\"------------------------------------------------------------------------
 .SH SYNOPSIS
-.B dablin
-.SH DESCRIPTION
-This manual page documents briefly the
-.B dablin
-and
 .B dablin_gtk
-commands.
+.RI ( options )
+.RI [ file ]
+.\"------------------------------------------------------------------------
+.SH DESCRIPTION
+.B DABlin
+plays a DAB/DAB+ audio service – either from a received live transmission
+or from a stored ensemble recording (frame-aligned ETI-NI). Both DAB (MP2)
+and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are supported.
 .PP
-\fBdablin\fP plays a DAB and DAB+ audio service – either from a received live
-transmission or from a stored ensemble recording (frame-aligned ETI-
-NI). Both DAB (MP2) and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are
-supported by DABlin.
-.TP
-dablin_gtk is the GUI version for the same audio service.
+The GTK GUI version in addition supports the data applications Dynamic
+Label and MOT Slideshow (if used by the selected service).
+.\"------------------------------------------------------------------------
 .SH OPTIONS
 .TP
 .B \-h
@@ -23,6 +24,12 @@ Show summary of options
 .TP
 .B \-d <binary>
 Use DAB live source (using the mentioned binary)
+.TP
+.B \-D <type>
+DAB live source type: "dab2eti" (default), "eti-cmdline"
+.TP
+.B \-C <ch>,...
+Channels to be listed (comma separated; requires DAB live source; an optional gain can also be specified, e.g. "5C:-54")
 .TP
 .B \-c <ch>
 Channel to be played (requires DAB live source)
@@ -33,17 +40,20 @@ ID of the service to be played
 .B \-x <scids>
 ID of the service component to be played (requires service ID)
 .TP
-.B \-r <subchid>
-ID of the sub-channel (DAB) to be played
-.TP
-.B \-R <subchid>
-ID of the sub-channel (DAB+) to be played
-.TP
 .B \-g <gain>
 USB stick gain to pass to DAB live source (auto gain is default)
 .TP
 .B \-p
 Output PCM to stdout instead of using SDL
 .TP
+.B \-S
+Initially disable slideshow
+.TP
+.B \-L
+Enable loose behaviour (e.g. PAD conformance)
+.TP
 .B file
 Input file to be played (stdin, if not specified)
+.\"------------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR dablin (1)

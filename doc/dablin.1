@@ -1,21 +1,19 @@
-.TH dablin 1 "January 18 2018"
+.TH DABLIN 1 "2018-02-22"
+.\"------------------------------------------------------------------------
 .SH NAME
-dablin \- DAB & DAB+ receiver client
+dablin \- CLI DAB/DAB+ receiver for Linux
+.\"------------------------------------------------------------------------
 .SH SYNOPSIS
 .B dablin
+.RI ( options )
+.RI [ file ]
+.\"------------------------------------------------------------------------
 .SH DESCRIPTION
-This manual page documents briefly the
-.B dablin
-and
-.B dablin_gtk
-commands.
-.PP
-\fBdablin\fP plays a DAB and DAB+ audio service – either from a received live
-transmission or from a stored ensemble recording (frame-aligned ETI-
-NI). Both DAB (MP2) and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are
-supported by DABlin.
-.TP
-dablin_gtk is the GUI version for the same audio service.
+.B DABlin
+plays a DAB/DAB+ audio service – either from a received live transmission
+or from a stored ensemble recording (frame-aligned ETI-NI). Both DAB (MP2)
+and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are supported.
+.\"------------------------------------------------------------------------
 .SH OPTIONS
 .TP
 .B \-h
@@ -23,6 +21,9 @@ Show summary of options
 .TP
 .B \-d <binary>
 Use DAB live source (using the mentioned binary)
+.TP
+.B \-D <type>
+DAB live source type: "dab2eti" (default), "eti-cmdline"
 .TP
 .B \-c <ch>
 Channel to be played (requires DAB live source)
@@ -47,3 +48,6 @@ Output PCM to stdout instead of using SDL
 .TP
 .B file
 Input file to be played (stdin, if not specified)
+.\"------------------------------------------------------------------------
+.SH "SEE ALSO"
+.BR dablin_gtk (1)
