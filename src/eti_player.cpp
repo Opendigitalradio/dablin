@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -86,8 +86,6 @@ void ETIPlayer::ProcessFrame(const uint8_t *data) {
 }
 
 void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
-	std::lock_guard<std::mutex> lock(audio_service_mutex);
-
 	// ERR
 	if(eti_frame[0] != 0xFF) {
 		fprintf(stderr, "ETIPlayer: ignored ETI frame with ERR = 0x%02X\n", eti_frame[0]);
@@ -137,6 +135,9 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 		ProcessFIC(eti_frame + subch_offset, ficl * 4);
 		subch_offset += ficl * 4;
 	}
+
+	// lock only now, as due to the FIC, the audio service may be set
+	std::lock_guard<std::mutex> lock(audio_service_mutex);
 
 	// abort here, if ATM no sub-channel selected
 	if(audio_service.IsNone())
