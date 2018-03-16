@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -110,18 +110,14 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 	if(announced_xpad_len > xpad_len)
 		return;
 
-	if(exact_xpad_len && announced_xpad_len < xpad_len) {
+	if(exact_xpad_len && !loose && announced_xpad_len < xpad_len) {
 		/* If the announced X-PAD len falls below the available one (which can
 		 * only happen with DAB+), a decoder shall discard the X-PAD (see §5.4.3
 		 * in ETSI TS 102 563).
 		 * This behaviour can be disabled in order to process the X-PAD anyhow.
 		 */
-		if(loose) {
-			fprintf(stderr, "\x1B[33m" "[X-PAD len]" "\x1B[0m" " ");
-		} else {
-			fprintf(stderr, "\x1B[31m" "[X-PAD len]" "\x1B[0m" " ");
-			return;
-		}
+		fprintf(stderr, "\x1B[31m" "[X-PAD len]" "\x1B[0m" " ");
+		return;
 	}
 
 	// process CIs

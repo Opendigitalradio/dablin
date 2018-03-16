@@ -292,9 +292,10 @@ may output audio samples anyway.
 If the announced X-PAD length of a DAB+ service does not match the available
 X-PAD length i.e. if it falls below, a red `[X-PAD len]` message is shown and
 the X-PAD is discarded. However not all X-PADs may be affected and hence it may
-happen that the Dynamic Label can be processed but the MOT Slideshow cannot. To
-anyhow process affected X-PADs, a loose mode can be enabled by using `-L`. Thus
-the mentioned message will be shown in yellow then.
+happen that the Dynamic Label can be processed but the MOT Slideshow cannot.
+
+To anyhow process affected X-PADs, a loose mode can be enabled by using
+the `-L` parameter.
 
 
 ## Standards
