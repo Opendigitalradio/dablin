@@ -48,6 +48,10 @@ The GTK GUI version in addition requires:
 Usually the `glibc` implementation of `iconv` is available. If this is
 not the case, in addition `libiconv` is required.
 
+In rare cases, the target architecture does not support *atomics*. To
+address such a case, DABlin is also linked against GCC's `libatomic` if
+needed. This lib usually is an (indirect) dependency of GCC itself.
+
 On Debian or Ubuntu, mpg123, FAAD2, SDL2 and gtkmm are packaged and installed
 with:
 

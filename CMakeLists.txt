@@ -52,9 +52,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
-    add_definitions(-std=c++0x)
-    add_definitions(-Wall)
-    add_definitions(-Wextra)
+    add_compile_options(-std=c++0x)
+    add_compile_options(-Wall)
+    add_compile_options(-Wextra)
 elseif(MSVC)
     # TODO
 endif()
