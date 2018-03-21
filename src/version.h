@@ -23,7 +23,7 @@
 
 // usually externally derived from git
 #ifndef DABLIN_VERSION
-#define DABLIN_VERSION "1.8.1"
+#define DABLIN_VERSION "1.8.2"
 #endif
 
 
