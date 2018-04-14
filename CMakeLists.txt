@@ -14,6 +14,8 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
+include(CheckCXXSourceCompiles)
+
 enable_testing()
 
 
@@ -136,6 +138,22 @@ if(NOT ICONV_FOUND)
 endif()
 include_directories(${ICONV_INCLUDE_DIRS})
 link_directories(${ICONV_LIBRARY_DIRS})
+
+# atomic
+list(APPEND CMAKE_REQUIRED_FLAGS -std=c++0x)
+check_cxx_source_compiles("
+    #include <atomic>
+    std::atomic<double> x(1.0);
+    int main() {return x;}"
+    NATIVE_ATOMICS_SUPPORT
+    )
+if(NOT NATIVE_ATOMICS_SUPPORT)
+    find_package(ATOMIC REQUIRED)
+    if(NOT ATOMIC_FOUND)
+        message(FATAL_ERROR "atomic required to compile dablin\n")
+    endif()
+    link_directories(${ATOMIC_LIBRARY_DIRS})
+endif()
 
 ########################################################################
 # Setup DABlin application build
