@@ -199,6 +199,12 @@ DAB) or `-R` (for DAB+).
 In addition to the respective button, the GTK GUI version also allows the
 keyboard shortcut `m` to toggle muting the audio.
 
+To switch to the previous/next service, the `-`/`+` keys can be used.
+To switch to the 1st, 2nd, ..., 10th service in the service list, the
+keys `1`, `2`, ..., `0` can be used. In both cases also the respective
+keys on the NumPad are supported.
+
+
 ### DAB live reception
 
 If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/Opendigitalradio/dabtools)

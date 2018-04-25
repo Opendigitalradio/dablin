@@ -221,6 +221,7 @@ private:
 	void ConnectKeyPressEventHandler(Gtk::Widget& widget);
 	bool HandleKeyPressEvent(GdkEventKey* key_event);
 	bool HandleConfigureEvent(GdkEventConfigure* configure_event);
+	void TryServiceSwitch(int index);
 
 	// FIC data change
 	GTKDispatcherQueue<FIC_ENSEMBLE> fic_change_ensemble;

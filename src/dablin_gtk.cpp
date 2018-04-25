@@ -480,9 +480,63 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 			// toggle mute
 			tglbtn_mute.clicked();
 			return true;
+		// try to switch service
+		case GDK_KEY_1:
+		case GDK_KEY_KP_1:
+			TryServiceSwitch(0);
+			return true;
+		case GDK_KEY_2:
+		case GDK_KEY_KP_2:
+			TryServiceSwitch(1);
+			return true;
+		case GDK_KEY_3:
+		case GDK_KEY_KP_3:
+			TryServiceSwitch(2);
+			return true;
+		case GDK_KEY_4:
+		case GDK_KEY_KP_4:
+			TryServiceSwitch(3);
+			return true;
+		case GDK_KEY_5:
+		case GDK_KEY_KP_5:
+			TryServiceSwitch(4);
+			return true;
+		case GDK_KEY_6:
+		case GDK_KEY_KP_6:
+			TryServiceSwitch(5);
+			return true;
+		case GDK_KEY_7:
+		case GDK_KEY_KP_7:
+			TryServiceSwitch(6);
+			return true;
+		case GDK_KEY_8:
+		case GDK_KEY_KP_8:
+			TryServiceSwitch(7);
+			return true;
+		case GDK_KEY_9:
+		case GDK_KEY_KP_9:
+			TryServiceSwitch(8);
+			return true;
+		case GDK_KEY_0:
+		case GDK_KEY_KP_0:
+			TryServiceSwitch(9);
+			return true;
+		case GDK_KEY_minus:
+		case GDK_KEY_KP_Subtract:
+			TryServiceSwitch(combo_services.get_active_row_number() - 1);
+			return true;
+		case GDK_KEY_plus:
+		case GDK_KEY_KP_Add:
+			TryServiceSwitch(combo_services.get_active_row_number() + 1);
+			return true;
 		}
 	}
 	return false;
+}
+
+void DABlinGTK::TryServiceSwitch(int index) {
+	if(index >= 0 && index < (signed) combo_services_liststore->children().size())
+		combo_services.set_active(index);
 }
 
 bool DABlinGTK::HandleConfigureEvent(GdkEventConfigure* /*configure_event*/) {
