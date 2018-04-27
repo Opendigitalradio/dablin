@@ -128,6 +128,13 @@ distributions (kindly maintained by Gürkan Myczko):
 * [Debian](https://packages.debian.org/dablin)
 * [Ubuntu](https://launchpad.net/ubuntu/+source/dablin)
 
+On Ubuntu 18.04 you can simply install DABlin from the official package
+sources (note that the GitHub version may be newer):
+
+```
+sudo apt-get install dablin
+```
+
 Some users kindly provide precompiled packages on their own:
 
 * [openSUSE](https://build.opensuse.org/package/show/home:mnhauke:ODR-mmbTools/dablin) (by Martin Hauke)
