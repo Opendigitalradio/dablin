@@ -695,7 +695,7 @@ void DABlinGTK::PADChangeSlideEmitted() {
 Glib::ustring DABlinGTK::DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask) {
 	Glib::ustring short_label;
 
-	for(int i = 0; i < 16; i++)
+	for(size_t i = 0; i < long_label.length(); i++)		// consider discarded trailing spaces
 		if(short_label_mask & (0x8000 >> i))
 			short_label += long_label[i];
 
