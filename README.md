@@ -199,6 +199,14 @@ dablin -s 0xd911 mux.eti
 
 In this case a progress indicator and the current position is displayed.
 
+As an alternative a service label can be specified with the `-l` option.
+Note that if the label contains spaces, it has to be enclosed by quotes
+(or the spaces be properly escaped):
+
+```
+dablin -l "SWR1 RP" mux.eti
+```
+
 With the console version, instead of the desired service it is also
 possible to directly request a specific sub-channel by using `-r` (for
 DAB) or `-R` (for DAB+).

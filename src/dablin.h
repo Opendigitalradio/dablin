@@ -32,6 +32,7 @@
 // --- DABlinTextOptions -----------------------------------------------------------------
 struct DABlinTextOptions {
 	std::string filename;
+	std::string initial_label;
 	int initial_sid;
 	int initial_scids;
 	int initial_subchid_dab;

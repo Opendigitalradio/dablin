@@ -92,6 +92,7 @@ public:
 // --- DABlinGTKOptions -----------------------------------------------------------------
 struct DABlinGTKOptions {
 	std::string filename;
+	std::string initial_label;
 	int initial_sid;
 	int initial_scids;
 	std::string dab_live_source_binary;

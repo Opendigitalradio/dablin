@@ -36,6 +36,7 @@ static void usage(const char* exe) {
 					"  -C <ch>,...  Channels to be listed (comma separated; requires DAB live source;\n"
 					"               an optional gain can also be specified, e.g. \"5C:-54\")\n"
 					"  -c <ch>      Channel to be played (requires DAB live source)\n"
+					"  -l <label>   Label of the service to be played\n"
 					"  -s <sid>     ID of the service to be played\n"
 					"  -x <scids>   ID of the service component to be played (requires service ID)\n"
 					"  -g <gain>    USB stick gain to pass to DAB live source (auto gain is default)\n"
@@ -62,10 +63,11 @@ int main(int argc, char **argv) {
 	}
 
 	DABlinGTKOptions options;
+	int initial_param_count = 0;
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hd:D:C:c:g:s:x:pSL")) != -1) {
+	while((c = getopt(argc, argv, "hd:D:C:c:l:g:s:x:pSL")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -82,8 +84,13 @@ int main(int argc, char **argv) {
 		case 'c':
 			options.initial_channel = optarg;
 			break;
+		case 'l':
+			options.initial_label = optarg;
+			initial_param_count++;
+			break;
 		case 's':
 			options.initial_sid = strtol(optarg, nullptr, 0);
+			initial_param_count++;
 			break;
 		case 'x':
 			options.initial_scids = strtol(optarg, nullptr, 0);
@@ -151,6 +158,13 @@ int main(int argc, char **argv) {
 		usage(argv[0]);
 	}
 #endif
+
+
+	// at most one initial param needed!
+	if(initial_param_count > 1) {
+		fprintf(stderr, "At most one initial parameter shall be specified!\n");
+		usage(argv[0]);
+	}
 
 
 	fprint_dablin_banner(stderr);
@@ -583,9 +597,10 @@ void DABlinGTK::FICChangeServiceEmitted() {
 
 	LISTED_SERVICE new_service = fic_change_service.Pop();
 
-	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(new_service.label);
+	std::string label = FICDecoder::ConvertLabelToUTF8(new_service.label);
+	Glib::ustring combo_label = label;
 	if(new_service.multi_comps)
-		label = (!new_service.IsPrimary() ? "» " : "") + label + (new_service.IsPrimary() ? " »" : "");
+		combo_label = (!new_service.IsPrimary() ? "» " : "") + combo_label + (new_service.IsPrimary() ? " »" : "");
 
 	// get row (add new one, if needed)
 	Gtk::ListStore::Children children = combo_services_liststore->children();
@@ -601,12 +616,12 @@ void DABlinGTK::FICChangeServiceEmitted() {
 		row_it = combo_services_liststore->append();
 
 	Gtk::TreeModel::Row row = *row_it;
-	row[combo_services_cols.col_string] = label;
+	row[combo_services_cols.col_string] = combo_label;
 	row[combo_services_cols.col_service] = new_service;
 
 	if(add_new_row) {
 		// set (initial) service
-		if(new_service.sid == options.initial_sid && new_service.scids == options.initial_scids)
+		if(label == options.initial_label || (new_service.sid == options.initial_sid && new_service.scids == options.initial_scids))
 			combo_services.set_active(row_it);
 	} else {
 		// set (updated) service
@@ -636,8 +651,9 @@ void DABlinGTK::on_combo_channels() {
 			"Gain: " + channel.GainToString()
 	);
 
-	// prevent re-use of initial SID
+	// prevent re-use of initial params
 	if(initial_channel_appended) {
+		options.initial_label = "";
 		options.initial_sid = LISTED_SERVICE::sid_none;
 		options.initial_scids = LISTED_SERVICE::scids_none;
 	}
