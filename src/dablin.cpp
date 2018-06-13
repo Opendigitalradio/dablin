@@ -1,6 +1,7 @@
 /*
     DABlin - capital DAB experience
     Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2018 Andy Mace (Windows/Network Additions)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,7 +41,8 @@ static void usage(const char* exe) {
 					"  -R <subchid>  ID of the sub-channel (DAB+) to be played\n"
 					"  -g <gain>     USB stick gain to pass to DAB live source (auto gain is default)\n"
 					"  -p            Output PCM to stdout instead of using SDL\n"
-					"  file          Input file to be played (stdin, if not specified)\n",
+					"  -u <url>      Host of ETI-NA Mux. (RAW) eg mygeneratedmux:8181\n"
+					"  -f            Input file to be played ('stdin' if stdin is required)\n",
 					DABLiveETISource::TYPE_DAB2ETI.c_str(),
 					DABLiveETISource::TYPE_ETI_CMDLINE.c_str()
 			);
@@ -64,7 +66,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hc:d:D:g:s:x:pr:R:")) != -1) {
+	while((c = getopt(argc, argv, "hc:d:D:g:s:x:pr:R:u:f:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -99,23 +101,24 @@ int main(int argc, char **argv) {
 		case 'p':
 			options.pcm_output = true;
 			break;
-		case '?':
+		case 'u':
+			options.url_input = optarg;
+			break;
+		case 'f':
+			options.filename = optarg;
+			break;
+	 case '?':
 		default:
 			usage(argv[0]);
 		}
 	}
 
-	// non-option args
-	switch(argc - optind) {
-	case 0:
-		break;
-	case 1:
-		options.filename = argv[optind];
-		break;
-	default:
-		usage(argv[0]);
-	}
-
+	if(options.filename.empty() && options.url_input.empty()) {
+			fprintf(stderr, "You must set an input type\n");
+			usage(argv[0]);
+		}
+	
+	
 	// ensure valid options
 	if(options.dab_live_source_binary.empty()) {
 		if(!options.initial_channel.empty()) {
@@ -123,6 +126,7 @@ int main(int argc, char **argv) {
 			usage(argv[0]);
 		}
 	} else {
+		
 		if(!options.filename.empty()) {
 			fprintf(stderr, "Both a file and DAB live source cannot be used as source!\n");
 			usage(argv[0]);
@@ -194,7 +198,16 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	}
 
 	if(options.dab_live_source_binary.empty()) {
-		eti_source = new ETISource(options.filename, this);
+		//Needs some logic around where to pull the input from
+		
+		if(!options.filename.empty()) {
+			fprintf(stderr, "Using File Input: %s\n", options.filename.c_str());
+			eti_source = new ETISource(options.filename, this, false);
+		} else {
+			fprintf(stderr, "Using URL Input: %s\n", options.url_input.c_str());
+			eti_source = new ETISource(options.url_input, this, true);
+		}
+		
 	} else {
 		DAB_LIVE_SOURCE_CHANNEL channel(options.initial_channel, dab_channels.at(options.initial_channel), options.gain);
 
@@ -224,6 +237,8 @@ void DABlinText::ETIUpdateProgress(const ETI_PROGRESS progress) {
 
 void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
+
+
 
 	// abort, if no/not initial service
 	if(options.initial_sid == LISTED_SERVICE::sid_none || service.sid != options.initial_sid || service.scids != options.initial_scids)

@@ -26,10 +26,18 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <atomic>
-#include <string>
+#include <string.h>
 #include <thread>
 #include <unistd.h>
 #include <fcntl.h>
+
+
+#include<sys/socket.h>    //socket
+#include<arpa/inet.h>
+#include<netdb.h>
+#include <netinet/in.h>
+
+
 
 
 struct ETI_PROGRESS {
@@ -70,7 +78,11 @@ class ETISource {
 protected:
 	std::string filename;
 	ETISourceObserver *observer;
-
+	bool isURL;
+	
+	int sock;
+	struct sockaddr_in server;
+    
 	std::atomic<bool> do_exit;
 
 	FILE *input_file;
@@ -87,7 +99,7 @@ protected:
 
 	static std::string FramecountToTimecode(size_t value);
 public:
-	ETISource(std::string filename, ETISourceObserver *observer);
+	ETISource(std::string filename, ETISourceObserver *observer, bool isURL);
 	virtual ~ETISource();
 
 	int Main();

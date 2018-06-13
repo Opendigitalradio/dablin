@@ -1,6 +1,7 @@
 /*
     DABlin - capital DAB experience
     Copyright (C) 2015-2018 Stefan Pöschel
+	Copyright (C) 2018 Andy Mace (Windows/Network Additions)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +21,8 @@
 
 
 // --- ETISource -----------------------------------------------------------------
-ETISource::ETISource(std::string filename, ETISourceObserver *observer) {
+ETISource::ETISource(std::string filename, ETISourceObserver *observer, bool isUrl) {
+	this->isURL = isUrl;
 	this->filename = filename;
 	this->observer = observer;
 
@@ -34,8 +36,14 @@ ETISource::ETISource(std::string filename, ETISourceObserver *observer) {
 
 ETISource::~ETISource() {
 	// cleanup
+if (isURL)
+{
+	puts("Cleaning up Socket");
+	close(sock);
+} else {
 	if(input_file && input_file != stdin)
 		fclose(input_file);
+}
 }
 
 void ETISource::PrintSource() {
@@ -43,7 +51,7 @@ void ETISource::PrintSource() {
 }
 
 bool ETISource::OpenFile() {
-	if(filename.empty()) {
+	if(filename == "stdin") {
 		input_file = stdin;
 		filename = "stdin";
 	} else {
@@ -91,16 +99,93 @@ bool ETISource::UpdateTotalFrames() {
 
 int ETISource::Main() {
 	Init();
+	
+	if (isURL)
+	{
+	sock = socket(AF_INET , SOCK_STREAM , 0);
+    
+	if (sock == -1)
+    {
+        printf("Could not create socket");
+		exit(1);
+    }
+    //puts("Socket created");
+     
+	 char *token = strtok((char *)filename.c_str(), ":");
+	 char *hostname = token;
+	 token = strtok(NULL, ":");
+	 char* port = token;
+	 
+   char ip[100];
+   
+   struct hostent *he;     
+   struct in_addr **addr_list;     
+   int i;     
+   if ( (he = gethostbyname( hostname ) ) == NULL)     
+   {
+	   herror("gethostbyname");         
+		exit(1);
+   }     
+   
+    addr_list = (struct in_addr **) he->h_addr_list;
+    for(i = 0; addr_list[i] != NULL; i++)
+    {
+		strcpy(ip , inet_ntoa(*addr_list[i]) ); 
+		fprintf(stderr, "IP: %s P:%s\n", ip, port);
+	}
+    
+    
+    server.sin_addr.s_addr = inet_addr(ip);
+    server.sin_family = AF_INET;
+    server.sin_port = htons( atoi(port) );
+	
+	
+	//Connect to remote server
+    if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
+    {
+        perror("connect failed. Error");
+        return 1;
+    }
+	
+	puts("Connected\n");
+	size_t filled = 0;
+	int bytes;
+	
+	while(!do_exit)
+    {
+		if((bytes =  recv(sock , eti_frame + filled , sizeof(eti_frame) - filled , 0) ) < 0)
+        {
+            break;
+        }
+        else
+        {
+		
+		if(bytes > 0)
+			filled += bytes;
+		if(bytes == 0) {
+				fprintf(stderr, "ETISource: EOF reached!\n");
+				break;
+			}
+		
 
-	if(!input_file) {
+		if(filled < sizeof(eti_frame))
+			continue;
+
+		observer->ETIProcessFrame(eti_frame);
+		//eti_frame_count++;
+		filled = 0;
+				
+        }
+	}
+	} else if(!input_file) {
 		if(!OpenFile())
 			return 1;
-	}
-
-	PrintSource();
-
+		
+		PrintSource();
+	
+	
 	int file_no = fileno(input_file);
-
+	
 	// set non-blocking mode
 	int old_flags = fcntl(file_no, F_GETFL);
 	if(old_flags == -1) {
@@ -168,6 +253,8 @@ int ETISource::Main() {
 		filled = 0;
 	}
 
+	}	
+	
 	return 0;
 }
 
@@ -201,7 +288,7 @@ std::string ETISource::FramecountToTimecode(size_t value) {
 const std::string DABLiveETISource::TYPE_DAB2ETI = "dab2eti";
 const std::string DABLiveETISource::TYPE_ETI_CMDLINE = "eti-cmdline";
 
-DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer, std::string source_name) : ETISource("", observer) {
+DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer, std::string source_name) : ETISource("", observer, false) {
 	this->channel = channel;
 	this->binary = binary;
 	this->source_name = source_name;

@@ -102,6 +102,10 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 	desired.callback = sdl_audio_callback;
 	desired.userdata = (AudioSource*) this;
 
+	#ifdef _WIN32
+	CoInitialize(NULL);
+	#endif
+	
 	audio_device = SDL_OpenAudioDevice(nullptr, 0, &desired, &obtained, 0);
 	if(!audio_device)
 		throw std::runtime_error("SDLOutput: error while SDL_OpenAudioDevice: " + std::string(SDL_GetError()));

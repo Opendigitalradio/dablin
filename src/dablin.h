@@ -41,6 +41,7 @@ struct DABlinTextOptions {
 	std::string initial_channel;
 	bool pcm_output;
 	int gain;
+	std::string url_input;
 DABlinTextOptions() :
 	initial_sid(LISTED_SERVICE::sid_none),
 	initial_scids(LISTED_SERVICE::scids_none),

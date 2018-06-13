@@ -187,7 +187,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	if(!options.dab_live_source_binary.empty()) {
 		eti_source = nullptr;
 	} else {
-		eti_source = new ETISource(options.filename, this);
+		eti_source = new ETISource(options.filename, this, false);
 		eti_source_thread = std::thread(&ETISource::Main, eti_source);
 	}
 

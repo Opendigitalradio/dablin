@@ -86,6 +86,9 @@ void ETIPlayer::ProcessFrame(const uint8_t *data) {
 }
 
 void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
+	
+	
+	
 	// ERR
 	if(eti_frame[0] != 0xFF) {
 		fprintf(stderr, "ETIPlayer: ignored ETI frame with ERR = 0x%02X\n", eti_frame[0]);
