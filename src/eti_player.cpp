@@ -23,8 +23,6 @@
 ETIPlayer::ETIPlayer(bool pcm_output, ETIPlayerObserver *observer) {
 	this->observer = observer;
 
-	next_frame_time = std::chrono::steady_clock::now();
-
 	dec = nullptr;
 
 #ifndef DABLIN_DISABLE_SDL
@@ -78,6 +76,10 @@ void ETIPlayer::SetAudioService(const AUDIO_SERVICE& audio_service) {
 }
 
 void ETIPlayer::ProcessFrame(const uint8_t *data) {
+	// init flow control at first frame, to prevent overflow upon multiple frames after idle on startup
+	if(next_frame_time.time_since_epoch().count() == 0)
+		next_frame_time = std::chrono::steady_clock::now();
+
 	// flow control
 	std::this_thread::sleep_until(next_frame_time);
 	next_frame_time += std::chrono::milliseconds(24);
