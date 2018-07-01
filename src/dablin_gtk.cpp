@@ -707,6 +707,10 @@ void DABlinGTK::PADChangeSlideEmitted() {
 		slideshow_window.TryToShow();
 }
 
+void DABlinGTK::PADLengthError(size_t /*announced_xpad_len*/, size_t /*xpad_len*/) {
+	fprintf(stderr, "\x1B[31m" "[X-PAD len]" "\x1B[0m" " ");
+}
+
 
 Glib::ustring DABlinGTK::DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask) {
 	Glib::ustring short_label;

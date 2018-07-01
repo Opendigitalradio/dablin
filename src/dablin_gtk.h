@@ -242,6 +242,8 @@ private:
 	void PADChangeSlide(const MOT_FILE& slide) {pad_change_slide.PushAndEmit(slide);}
 	void PADChangeSlideEmitted();
 
+	void PADLengthError(size_t announced_xpad_len, size_t xpad_len);
+
 	Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
 public:
 	DABlinGTK(DABlinGTKOptions options);
