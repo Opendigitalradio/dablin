@@ -35,7 +35,7 @@
 // --- AudioSource -----------------------------------------------------------------
 class AudioSource {
 public:
-	virtual ~AudioSource() {};
+	virtual ~AudioSource() {}
 
 	virtual void AudioCallback(Uint8* /*stream*/, int /*len*/) = 0;
 };

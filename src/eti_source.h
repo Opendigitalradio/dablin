@@ -58,10 +58,10 @@ struct DAB_LIVE_SOURCE_CHANNEL {
 // --- ETISourceObserver -----------------------------------------------------------------
 class ETISourceObserver {
 public:
-	virtual ~ETISourceObserver() {};
+	virtual ~ETISourceObserver() {}
 
-	virtual void ETIProcessFrame(const uint8_t* /*data*/) {};
-	virtual void ETIUpdateProgress(const ETI_PROGRESS /*progress*/) {};
+	virtual void ETIProcessFrame(const uint8_t* /*data*/) {}
+	virtual void ETIUpdateProgress(const ETI_PROGRESS /*progress*/) {}
 };
 
 

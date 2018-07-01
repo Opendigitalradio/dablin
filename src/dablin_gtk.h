@@ -164,8 +164,8 @@ private:
 
 	// ETI data change
 	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;
-	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);};
-	void ETIUpdateProgress(const ETI_PROGRESS progress) {eti_update_progress.PushAndEmit(progress);};
+	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);}
+	void ETIUpdateProgress(const ETI_PROGRESS progress) {eti_update_progress.PushAndEmit(progress);}
 	void ETIUpdateProgressEmitted();
 
 	GTKDispatcherQueue<std::string> eti_change_format;
@@ -173,7 +173,7 @@ private:
 	void ETIChangeFormatEmitted();
 
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
-	void ETIResetFIC() {fic_decoder->Reset();};
+	void ETIResetFIC() {fic_decoder->Reset();}
 	void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data) {pad_decoder->Process(xpad_data, xpad_len, exact_xpad_len, fpad_data);}
 
 

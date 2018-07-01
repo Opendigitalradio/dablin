@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ public:
 
 	void StartAudio(int samplerate, int channels, bool float32);
 	void PutAudio(const uint8_t *data, size_t len);
-	void SetAudioMute(bool audio_mute) {this->audio_mute = audio_mute;};
+	void SetAudioMute(bool audio_mute) {this->audio_mute = audio_mute;}
 	void SetAudioVolume(double) {}
 	bool HasAudioVolumeControl() {return false;}
 };

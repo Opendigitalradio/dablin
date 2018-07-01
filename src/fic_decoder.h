@@ -178,10 +178,10 @@ typedef std::map<int, FIC_SUBCHANNEL> fic_subchannels_t;
 // --- FICDecoderObserver -----------------------------------------------------------------
 class FICDecoderObserver {
 public:
-	virtual ~FICDecoderObserver() {};
+	virtual ~FICDecoderObserver() {}
 
-	virtual void FICChangeEnsemble(const FIC_ENSEMBLE& /*ensemble*/) {};
-	virtual void FICChangeService(const LISTED_SERVICE& /*service*/) {};
+	virtual void FICChangeEnsemble(const FIC_ENSEMBLE& /*ensemble*/) {}
+	virtual void FICChangeService(const LISTED_SERVICE& /*service*/) {}
 };
 
 

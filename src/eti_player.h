@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,10 +39,10 @@
 // --- ETIPlayerObserver -----------------------------------------------------------------
 class ETIPlayerObserver {
 public:
-	virtual ~ETIPlayerObserver() {};
+	virtual ~ETIPlayerObserver() {}
 
-	virtual void ETIChangeFormat(const std::string& /*format*/) {};
-	virtual void ETIProcessFIC(const uint8_t* /*data*/, size_t /*len*/) {};
+	virtual void ETIChangeFormat(const std::string& /*format*/) {}
+	virtual void ETIProcessFIC(const uint8_t* /*data*/, size_t /*len*/) {}
 	virtual void ETIProcessPAD(const uint8_t* /*xpad_data*/, size_t /*xpad_len*/, bool /*exact_xpad_len*/, const uint8_t* /*fpad_data*/) {}
 };
 
