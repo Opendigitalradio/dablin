@@ -2,7 +2,7 @@
 # Project setup
 ########################################################################
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.4)
 project(dablin C CXX)
 
 # Select the release build type by default to get optimization flags
@@ -60,6 +60,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
 elseif(MSVC)
     # TODO
 endif()
+
+# support 2GB+ files on 32bit systems
+add_definitions(-D_FILE_OFFSET_BITS=64)
+
+# enable newer POSIX API
+add_definitions(-D_POSIX_C_SOURCE=200809L)
 
 
 ########################################################################

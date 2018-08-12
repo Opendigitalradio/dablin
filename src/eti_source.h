@@ -19,9 +19,7 @@
 #ifndef ETI_SOURCE_H_
 #define ETI_SOURCE_H_
 
-// support 2GB+ files on 32bit systems
-#define _FILE_OFFSET_BITS 64
-
+#include <sys/select.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
