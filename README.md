@@ -177,6 +177,42 @@ sudo make install
 ```
 
 
+### Windows (Cygwin)
+
+DABlin can also be compiled on Windows using [Cygwin](https://cygwin.com/). The following
+Cygwin packages are required:
+
+General:
+- git
+- make
+- cmake
+- gcc-core
+- gcc-g++
+
+DABlin specific (using FDK-AAC for DAB+ services):
+- libmpg123-devel
+- libfdk-aac-devel
+- libSDL2-devel
+- libiconv-devel
+
+In addition for the GTK version:
+- libgtkmm3.0-devel
+
+Note that the GTK version requires an X server to run e.g. Cygwin/X!
+
+Unfortunately the Cygwin package of FDK-AAC doesn't seem to have been
+compiled with SBR support, so using FAAD2 for DAB+ services is
+recommended. However FAAD2 has to be compiled and installed by hand, as
+there is no Cygwin package. This requires the following additional
+packages to be installed:
+- autoconf
+- automake
+- libtool
+
+![Screenshot of the console version on Windows (Cygwin)](https://basicmaster.de/dab/DABlin_console_cygwin.png)
+
+
+
 ## Usage
 
 The console executable is called `dablin`, the GTK GUI executable
