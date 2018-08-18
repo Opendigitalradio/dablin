@@ -288,7 +288,7 @@ std::string ETISource::FramecountToTimecode(size_t value) {
 const std::string DABLiveETISource::TYPE_DAB2ETI = "dab2eti";
 const std::string DABLiveETISource::TYPE_ETI_CMDLINE = "eti-cmdline";
 
-DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer, std::string source_name) : ETISource("", observer, false) {
+DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer, std::string source_name) : ETISource("", observer) {
 	this->channel = channel;
 	this->binary = binary;
 	this->source_name = source_name;

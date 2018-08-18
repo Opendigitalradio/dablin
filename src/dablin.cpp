@@ -35,6 +35,7 @@ static void usage(const char* exe) {
 					"  -d <binary>   Use DAB live source (using the mentioned binary)\n"
 					"  -D <type>     DAB live source type: \"%s\" (default), \"%s\"\n"
 					"  -c <ch>       Channel to be played (requires DAB live source)\n"
+					"  -l <label>    Label of the service to be played\n"
 					"  -s <sid>      ID of the service to be played\n"
 					"  -x <scids>    ID of the service component to be played (requires service ID)\n"
 					"  -r <subchid>  ID of the sub-channel (DAB) to be played\n"
@@ -62,11 +63,11 @@ int main(int argc, char **argv) {
 	}
 
 	DABlinTextOptions options;
-	int id_param_count = 0;
+	int initial_param_count = 0;
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hc:d:D:g:s:x:pr:R:u:f:")) != -1) {
+	while((c = getopt(argc, argv, "hc:l:d:D:g:s:x:pr:R:u:f:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -80,20 +81,24 @@ int main(int argc, char **argv) {
 		case 'c':
 			options.initial_channel = optarg;
 			break;
+		case 'l':
+			options.initial_label = optarg;
+			initial_param_count++;
+			break;
 		case 's':
 			options.initial_sid = strtol(optarg, nullptr, 0);
-			id_param_count++;
+			initial_param_count++;
 			break;
 		case 'x':
 			options.initial_scids = strtol(optarg, nullptr, 0);
 			break;
 		case 'r':
 			options.initial_subchid_dab = strtol(optarg, nullptr, 0);
-			id_param_count++;
+			initial_param_count++;
 			break;
 		case 'R':
 			options.initial_subchid_dab_plus = strtol(optarg, nullptr, 0);
-			id_param_count++;
+			initial_param_count++;
 			break;
 		case 'g':
 			options.gain = strtol(optarg, nullptr, 0);
@@ -156,9 +161,9 @@ int main(int argc, char **argv) {
 #endif
 
 
-	// at most one SId/SubChId needed!
-	if(id_param_count > 1) {
-		fprintf(stderr, "At most one SId or SubChId shall be specified!\n");
+	// at most one initial param needed!
+	if(initial_param_count > 1) {
+		fprintf(stderr, "At most one initial parameter shall be specified!\n");
 		usage(argv[0]);
 	}
 
@@ -238,10 +243,10 @@ void DABlinText::ETIUpdateProgress(const ETI_PROGRESS progress) {
 void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
 
-
+	std::string label = FICDecoder::ConvertLabelToUTF8(service.label);
 
 	// abort, if no/not initial service
-	if(options.initial_sid == LISTED_SERVICE::sid_none || service.sid != options.initial_sid || service.scids != options.initial_scids)
+	if(!(label == options.initial_label || (service.sid == options.initial_sid && service.scids == options.initial_scids)))
 		return;
 
 	// if the audio service changed, switch
@@ -249,6 +254,5 @@ void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 		eti_player->SetAudioService(service.audio_service);
 
 	// set XTerm window title to service name
-	std::string label = FICDecoder::ConvertLabelToUTF8(service.label);
 	fprintf(stderr, "\x1B]0;" "%s - DABlin" "\a", label.c_str());
 }

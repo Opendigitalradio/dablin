@@ -48,9 +48,9 @@ The GTK GUI version in addition requires:
 Usually the `glibc` implementation of `iconv` is available. If this is
 not the case, in addition `libiconv` is required.
 
-In rare cases, the target architecture does not support *atomics*. To
-address such a case, DABlin is also linked against GCC's `libatomic` if
-needed. This lib usually is an (indirect) dependency of GCC itself.
+In rare cases, the target architecture does not support *atomics*. In
+such a case, DABlin is linked against GCC's `libatomic`. This lib
+usually is an (indirect) dependency of GCC itself.
 
 On Debian or Ubuntu, mpg123, FAAD2, SDL2 and gtkmm are packaged and installed
 with:
@@ -128,6 +128,13 @@ distributions (kindly maintained by Gürkan Myczko):
 * [Debian](https://packages.debian.org/dablin)
 * [Ubuntu](https://launchpad.net/ubuntu/+source/dablin)
 
+On Ubuntu 18.04 you can simply install DABlin from the official package
+sources (note that the GitHub version may be newer):
+
+```
+sudo apt-get install dablin
+```
+
 Some users kindly provide precompiled packages on their own:
 
 * [openSUSE](https://build.opensuse.org/package/show/home:mnhauke:ODR-mmbTools/dablin) (by Martin Hauke)
@@ -170,6 +177,42 @@ sudo make install
 ```
 
 
+### Windows (Cygwin)
+
+DABlin can also be compiled on Windows using [Cygwin](https://cygwin.com/). The following
+Cygwin packages are required:
+
+General:
+- git
+- make
+- cmake
+- gcc-core
+- gcc-g++
+
+DABlin specific (using FDK-AAC for DAB+ services):
+- libmpg123-devel
+- libfdk-aac-devel
+- libSDL2-devel
+- libiconv-devel
+
+In addition for the GTK version:
+- libgtkmm3.0-devel
+
+Note that the GTK version requires an X server to run e.g. Cygwin/X!
+
+Unfortunately the Cygwin package of FDK-AAC doesn't seem to have been
+compiled with SBR support, so using FAAD2 for DAB+ services is
+recommended. However FAAD2 has to be compiled and installed by hand, as
+there is no Cygwin package. This requires the following additional
+packages to be installed:
+- autoconf
+- automake
+- libtool
+
+![Screenshot of the console version on Windows (Cygwin)](https://basicmaster.de/dab/DABlin_console_cygwin.png)
+
+
+
 ## Usage
 
 The console executable is called `dablin`, the GTK GUI executable
@@ -192,12 +235,26 @@ dablin -s 0xd911 mux.eti
 
 In this case a progress indicator and the current position is displayed.
 
+As an alternative a service label can be specified with the `-l` option.
+Note that if the label contains spaces, it has to be enclosed by quotes
+(or the spaces be properly escaped):
+
+```
+dablin -l "SWR1 RP" mux.eti
+```
+
 With the console version, instead of the desired service it is also
 possible to directly request a specific sub-channel by using `-r` (for
 DAB) or `-R` (for DAB+).
 
 In addition to the respective button, the GTK GUI version also allows the
 keyboard shortcut `m` to toggle muting the audio.
+
+To switch to the previous/next service, the `-`/`+` keys can be used.
+To switch to the 1st, 2nd, ..., 10th service in the service list, the
+keys `1`, `2`, ..., `0` can be used. In both cases also the respective
+keys on the NumPad are supported.
+
 
 ### DAB live reception
 

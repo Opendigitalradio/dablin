@@ -19,14 +19,12 @@
 #ifndef ETI_SOURCE_H_
 #define ETI_SOURCE_H_
 
-// support 2GB+ files on 32bit systems
-#define _FILE_OFFSET_BITS 64
-
+#include <sys/select.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <atomic>
-#include <string.h>
+#include <string>
 #include <thread>
 #include <unistd.h>
 #include <fcntl.h>
@@ -66,10 +64,10 @@ struct DAB_LIVE_SOURCE_CHANNEL {
 // --- ETISourceObserver -----------------------------------------------------------------
 class ETISourceObserver {
 public:
-	virtual ~ETISourceObserver() {};
+	virtual ~ETISourceObserver() {}
 
-	virtual void ETIProcessFrame(const uint8_t* /*data*/) {};
-	virtual void ETIUpdateProgress(const ETI_PROGRESS /*progress*/) {};
+	virtual void ETIProcessFrame(const uint8_t* /*data*/) {}
+	virtual void ETIUpdateProgress(const ETI_PROGRESS /*progress*/) {}
 };
 
 

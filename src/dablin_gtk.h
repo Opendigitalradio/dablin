@@ -92,6 +92,7 @@ public:
 // --- DABlinGTKOptions -----------------------------------------------------------------
 struct DABlinGTKOptions {
 	std::string filename;
+	std::string initial_label;
 	int initial_sid;
 	int initial_scids;
 	std::string dab_live_source_binary;
@@ -163,8 +164,8 @@ private:
 
 	// ETI data change
 	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;
-	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);};
-	void ETIUpdateProgress(const ETI_PROGRESS progress) {eti_update_progress.PushAndEmit(progress);};
+	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);}
+	void ETIUpdateProgress(const ETI_PROGRESS progress) {eti_update_progress.PushAndEmit(progress);}
 	void ETIUpdateProgressEmitted();
 
 	GTKDispatcherQueue<std::string> eti_change_format;
@@ -172,7 +173,7 @@ private:
 	void ETIChangeFormatEmitted();
 
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
-	void ETIResetFIC() {fic_decoder->Reset();};
+	void ETIResetFIC() {fic_decoder->Reset();}
 	void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data) {pad_decoder->Process(xpad_data, xpad_len, exact_xpad_len, fpad_data);}
 
 
@@ -221,6 +222,7 @@ private:
 	void ConnectKeyPressEventHandler(Gtk::Widget& widget);
 	bool HandleKeyPressEvent(GdkEventKey* key_event);
 	bool HandleConfigureEvent(GdkEventConfigure* configure_event);
+	void TryServiceSwitch(int index);
 
 	// FIC data change
 	GTKDispatcherQueue<FIC_ENSEMBLE> fic_change_ensemble;
@@ -239,6 +241,8 @@ private:
 	GTKDispatcherQueue<MOT_FILE> pad_change_slide;
 	void PADChangeSlide(const MOT_FILE& slide) {pad_change_slide.PushAndEmit(slide);}
 	void PADChangeSlideEmitted();
+
+	void PADLengthError(size_t announced_xpad_len, size_t xpad_len);
 
 	Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
 public:

@@ -116,7 +116,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 		 * in ETSI TS 102 563).
 		 * This behaviour can be disabled in order to process the X-PAD anyhow.
 		 */
-		fprintf(stderr, "\x1B[31m" "[X-PAD len]" "\x1B[0m" " ");
+		observer->PADLengthError(announced_xpad_len, xpad_len);
 		return;
 	}
 

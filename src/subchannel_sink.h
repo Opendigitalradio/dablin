@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 // --- SubchannelSinkObserver -----------------------------------------------------------------
 class SubchannelSinkObserver {
 public:
-	virtual ~SubchannelSinkObserver() {};
+	virtual ~SubchannelSinkObserver() {}
 
 	virtual void FormatChange(const std::string& /*format*/) {}
 	virtual void StartAudio(int /*samplerate*/, int /*channels*/, bool /*float32*/) {}
@@ -42,7 +42,7 @@ protected:
 	SubchannelSinkObserver* observer;
 public:
 	SubchannelSink(SubchannelSinkObserver* observer) : observer(observer) {}
-	virtual ~SubchannelSink() {};
+	virtual ~SubchannelSink() {}
 
 	virtual void Feed(const uint8_t *data, size_t len) = 0;
 };

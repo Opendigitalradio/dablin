@@ -2,7 +2,7 @@
 # Project setup
 ########################################################################
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.4)
 project(dablin C CXX)
 
 # Select the release build type by default to get optimization flags
@@ -13,6 +13,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
+
+include(CheckCXXSourceCompiles)
 
 enable_testing()
 
@@ -52,13 +54,18 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
-    add_compile_options(--std=gnu++11)
+    add_compile_options(-std=c++0x)
     add_compile_options(-Wall)
     add_compile_options(-Wextra)
 elseif(MSVC)
     # TODO
 endif()
 
+# support 2GB+ files on 32bit systems
+add_definitions(-D_FILE_OFFSET_BITS=64)
+
+# enable newer POSIX API
+add_definitions(-D_POSIX_C_SOURCE=200809L)
 
 
 ########################################################################
@@ -71,9 +78,6 @@ find_package(Threads REQUIRED)
 # SDL2
 if(NOT DISABLE_SDL)
     pkg_check_modules(SDL2 sdl2 REQUIRED)
-    if(NOT SDL2_FOUND)
-        message(FATAL_ERROR "SDL2 required to compile dablin\n")
-    endif()
 	include_directories(${SDL2_INCLUDE_DIRS})
 	link_directories(${SDL2_LIBRARY_DIRS})
 	list(APPEND dablin_sources sdl_output.cpp)
@@ -83,9 +87,6 @@ endif()
 
 # libmpg123
 pkg_check_modules(MPG123 libmpg123 REQUIRED)
-if(NOT MPG123_FOUND)
-    message(FATAL_ERROR "libmpg123 required to compile dablin\n")
-endif()
 include_directories(${MPG123_INCLUDE_DIRS})
 link_directories(${MPG123_LIBRARY_DIRS})
 
@@ -96,17 +97,10 @@ if(GTKMM_FOUND)
     link_directories(${GTKMM_LIBRARY_DIRS})
 endif()
 
-# libfaad2
-find_package(FAAD)
-
-
-# fdk-aac
-pkg_check_modules(FDKAAC fdk-aac)
-
-# fdk-aac-dabplus
-pkg_check_modules(FDKAAC-DABPLUS fdk-aac-dabplus)
-
 if(USE_FDK-AAC)
+    # fdk-aac / fdk-aac-dabplus
+    pkg_check_modules(FDKAAC fdk-aac)
+    pkg_check_modules(FDKAAC-DABPLUS fdk-aac-dabplus)
     if(NOT(FDKAAC_FOUND OR FDKAAC-DABPLUS_FOUND))
         message(FATAL_ERROR "fdk-aac or fdk-aac-dabplus required to compile dablin with USE_FDK-AAC\n")
     endif()
@@ -121,9 +115,8 @@ if(USE_FDK-AAC)
     endif()
     add_definitions(-DDABLIN_AAC_FDKAAC)
 else()
-    if(NOT FAAD_FOUND)
-        message(FATAL_ERROR "libfaad required to compile dablin\n")
-    endif()
+    # libfaad2
+    find_package(FAAD REQUIRED)
     include_directories(${FAAD_INCLUDE_DIRS})
     link_directories(${FAAD_LIBRARY_DIRS})
     list(APPEND AAC_LIB ${FAAD_LIBRARIES})
@@ -132,11 +125,21 @@ endif()
 
 # iconv
 find_package(ICONV REQUIRED)
-if(NOT ICONV_FOUND)
-    message(FATAL_ERROR "iconv required to compile dablin\n")
-endif()
 include_directories(${ICONV_INCLUDE_DIRS})
 link_directories(${ICONV_LIBRARY_DIRS})
+
+# atomic
+list(APPEND CMAKE_REQUIRED_FLAGS -std=c++0x)
+check_cxx_source_compiles("
+    #include <atomic>
+    std::atomic<double> x(1.0);
+    int main() {return x;}"
+    NATIVE_ATOMICS_SUPPORT
+    )
+if(NOT NATIVE_ATOMICS_SUPPORT)
+    find_package(ATOMIC REQUIRED)
+    link_directories(${ATOMIC_LIBRARY_DIRS})
+endif()
 
 ########################################################################
 # Setup DABlin application build

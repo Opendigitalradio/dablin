@@ -98,14 +98,10 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 	desired.freq = samplerate;
 	desired.format = float32 ? AUDIO_F32SYS : AUDIO_S16SYS;
 	desired.channels = channels;
-	desired.samples = 0;
+	desired.samples = samplerate * 0.024 * channels;	// DAB frame
 	desired.callback = sdl_audio_callback;
 	desired.userdata = (AudioSource*) this;
 
-	#ifdef _WIN32
-	CoInitialize(NULL);
-	#endif
-	
 	audio_device = SDL_OpenAudioDevice(nullptr, 0, &desired, &obtained, 0);
 	if(!audio_device)
 		throw std::runtime_error("SDLOutput: error while SDL_OpenAudioDevice: " + std::string(SDL_GetError()));
@@ -124,8 +120,8 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 }
 
 void SDLOutput::SetAudioStartBufferSize() {
-	// start audio when 1/2 filled
-	audio_start_buffer_size = audio_buffer->Capacity() / 2;
+	// start audio when 1/4 filled
+	audio_start_buffer_size = audio_buffer->Capacity() / 4;
 }
 
 void SDLOutput::PutAudio(const uint8_t *data, size_t len) {

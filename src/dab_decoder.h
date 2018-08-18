@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include <sstream>
 #include <string>
 
+#define MPG123_NO_LARGENAME	// disable large file API here
 #include "mpg123.h"
 #if MPG123_API_VERSION < 36
 #	error "At least version 1.14.0 (API version 36) of mpg123 is required!"

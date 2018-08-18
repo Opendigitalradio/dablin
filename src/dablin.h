@@ -32,6 +32,7 @@
 // --- DABlinTextOptions -----------------------------------------------------------------
 struct DABlinTextOptions {
 	std::string filename;
+	std::string initial_label;
 	int initial_sid;
 	int initial_scids;
 	int initial_subchid_dab;
@@ -63,7 +64,7 @@ private:
 	ETIPlayer *eti_player;
 	FICDecoder *fic_decoder;
 
-	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);};
+	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);}
 	void ETIUpdateProgress(const ETI_PROGRESS progress);
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
 	void FICChangeService(const LISTED_SERVICE& service);
