@@ -200,8 +200,11 @@ In addition for the GTK version:
 
 Note that the GTK version requires an X server to run e.g. Cygwin/X!
 
+Also note that Cygwin neither needs nor allows to `sudo` commands, so
+just execute them without that prefix.
+
 Unfortunately the Cygwin package of FDK-AAC doesn't seem to have been
-compiled with SBR support, so using FAAD2 for DAB+ services is
+compiled with SBR support, so using [FAAD2](http://www.audiocoding.com/faad2.html) for DAB+ services is
 recommended. However FAAD2 has to be compiled and installed by hand, as
 there is no Cygwin package. This requires the following additional
 packages to be installed:
@@ -211,6 +214,13 @@ packages to be installed:
 
 ![Screenshot of the console version on Windows (Cygwin)](https://basicmaster.de/dab/DABlin_console_cygwin.png)
 
+When Cygwin is installed, all the aforementioned packages can be
+pre-selected for installation by calling Cygwin's `setup-<arch>.exe`
+with the following parameter:
+
+```
+-P git,make,cmake,gcc-core,gcc-g++,libmpg123-devel,libfdk-aac-devel,libSDL2-devel,libiconv-devel,libgtkmm3.0-devel,autoconf,automake,libtool
+```
 
 
 ## Usage
