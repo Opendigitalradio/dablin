@@ -101,6 +101,7 @@ above is no longer required.
 After installing the library, to use FDK-AAC instead of FAAD2, you have to
 have `-DUSE_FDK-AAC=1` as part of the `cmake` command.
 
+
 ### Audio output
 
 The SDL2 library is used for audio output, but you can instead choose to
@@ -319,6 +320,34 @@ after a colon, e.g. `5C:-54`.
 ```
 dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 ```
+
+
+### Recording a service
+
+With the GTK GUI version the current service can be recorded into a
+file. To start/stop a recording, the red record button has to be
+clicked, or instead the keyboard shortcut `r` be pressed. During a
+recording neither can channel/service be changed, nor can DABlin be
+closed.
+
+By default all recordings are stored to `/tmp`. This can be changed by
+using the `-r` parameter. The filename of a recording contains the
+timestamp of the start of the recording and the service name, e.g.
+`2018-09-02 - 17-53-54 - SWR3.aac`.
+
+All recordings are lossless: A DAB service is directly stored in MP2
+format. A DAB+ service is packaged into the LATM/LOAS container format.
+This format is necessary in order to signal the special 960 samples per
+frame transformation to the AAC decoder for playback.
+
+As both formats are streamable, a recording can already be played while
+the actual recording is still in progress.
+
+The AAC recordings can be player e.g. by VLC player. FFmpeg will play
+them as well, but currently does not support the SBR extension together
+with the 960 samples per frame transformation and will thus only play
+the AAC core then.
+
 
 ### Secondary component audio services
 

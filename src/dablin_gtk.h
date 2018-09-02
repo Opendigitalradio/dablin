@@ -25,6 +25,7 @@
 #include <signal.h>
 #include <string>
 #include <thread>
+#include <time.h>
 
 #include <gtkmm.h>
 
@@ -99,6 +100,7 @@ struct DABlinGTKOptions {
 	std::string dab_live_source_type;
 	std::string displayed_channels;
 	std::string initial_channel;
+	std::string recordings_path;
 	bool pcm_output;
 	bool untouched_output;
 	int gain;
@@ -109,6 +111,7 @@ DABlinGTKOptions() :
 	initial_sid(LISTED_SERVICE::sid_none),
 	initial_scids(LISTED_SERVICE::scids_none),
 	dab_live_source_type(DABLiveETISource::TYPE_DAB2ETI),
+	recordings_path("/tmp"),
 	pcm_output(false),
 	untouched_output(false),
 	gain(DAB_LIVE_SOURCE_CHANNEL::auto_gain),
@@ -147,7 +150,7 @@ public:
 
 
 // --- DABlinGTK -----------------------------------------------------------------
-class DABlinGTK : public Gtk::Window, ETISourceObserver, ETIPlayerObserver, FICDecoderObserver, PADDecoderObserver {
+class DABlinGTK : public Gtk::Window, ETISourceObserver, ETIPlayerObserver, FICDecoderObserver, PADDecoderObserver, UntouchedStreamConsumer {
 private:
 	DABlinGTKOptions options;
 
@@ -164,6 +167,9 @@ private:
 	FICDecoder *fic_decoder;
 	PADDecoder *pad_decoder;
 
+	std::mutex rec_file_mutex;
+	FILE* rec_file;
+
 	// ETI data change
 	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;
 	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);}
@@ -177,6 +183,8 @@ private:
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
 	void ETIResetFIC() {fic_decoder->Reset();}
 	void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data) {pad_decoder->Process(xpad_data, xpad_len, exact_xpad_len, fpad_data);}
+
+	void ProcessUntouchedStream(const uint8_t* data, size_t len);
 
 
 	Gtk::Grid top_grid;
@@ -199,6 +207,7 @@ private:
 	Gtk::Frame frame_label_format;
 	Gtk::Label label_format;
 
+	Gtk::ToggleButton tglbtn_record;
 	Gtk::ToggleButton tglbtn_mute;
 	Gtk::VolumeButton vlmbtn;
 	Gtk::ToggleButton tglbtn_slideshow;
@@ -215,11 +224,13 @@ private:
 
 	void SetService(const LISTED_SERVICE& service);
 
+	void on_tglbtn_record();
 	void on_tglbtn_mute();
 	void on_vlmbtn(double value);
 	void on_tglbtn_slideshow();
 	void on_combo_channels();
 	void on_combo_services();
+	bool on_window_delete_event(GdkEventAny* any_event);
 
 	void ConnectKeyPressEventHandler(Gtk::Widget& widget);
 	bool HandleKeyPressEvent(GdkEventKey* key_event);

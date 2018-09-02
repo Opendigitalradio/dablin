@@ -28,6 +28,8 @@ static void break_handler(int) {
 
 
 static void usage(const char* exe) {
+	DABlinGTKOptions options_default;
+
 	fprint_dablin_banner(stderr);
 	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
 	fprintf(stderr, "  -h           Show this help\n"
@@ -40,13 +42,15 @@ static void usage(const char* exe) {
 					"  -s <sid>     ID of the service to be played\n"
 					"  -x <scids>   ID of the service component to be played (requires service ID)\n"
 					"  -g <gain>    USB stick gain to pass to DAB live source (auto gain is default)\n"
+					"  -r <path>    Path for recordings (default: %s)\n"
 					"  -p           Output PCM to stdout instead of using SDL\n"
 					"  -u           Output untouched audio stream to stdout instead of using SDL\n"
 					"  -S           Initially disable slideshow\n"
 					"  -L           Enable loose behaviour (e.g. PAD conformance)\n"
 					"  file         Input file to be played (stdin, if not specified)\n",
 					DABLiveETISource::TYPE_DAB2ETI.c_str(),
-					DABLiveETISource::TYPE_ETI_CMDLINE.c_str()
+					DABLiveETISource::TYPE_ETI_CMDLINE.c_str(),
+					options_default.recordings_path.c_str()
 			);
 	exit(1);
 }
@@ -68,7 +72,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hd:D:C:c:l:g:s:x:puSL")) != -1) {
+	while((c = getopt(argc, argv, "hd:D:C:c:l:g:r:s:x:puSL")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -98,6 +102,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'g':
 			options.gain = strtol(optarg, nullptr, 0);
+			break;
+		case 'r':
+			options.recordings_path = optarg;
 			break;
 		case 'p':
 			options.pcm_output = true;
@@ -195,6 +202,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	this->options = options;
 
 	initial_channel_appended = false;
+	rec_file = nullptr;
 
 	slideshow_window.set_transient_for(*this);
 
@@ -273,6 +281,8 @@ int DABlinGTK::ComboServicesSlotCompare(const Gtk::TreeModel::iterator& a, const
 }
 
 void DABlinGTK::InitWidgets() {
+	this->signal_delete_event().connect(sigc::mem_fun(*this, &DABlinGTK::on_window_delete_event));
+
 	// init widgets
 	frame_combo_channels.set_label("Channel");
 	frame_combo_channels.set_size_request(75, -1);
@@ -318,6 +328,10 @@ void DABlinGTK::InitWidgets() {
 	label_format.set_halign(Gtk::ALIGN_START);
 	label_format.set_padding(WIDGET_SPACE, WIDGET_SPACE);
 
+	tglbtn_record.set_image_from_icon_name("media-record");
+	tglbtn_record.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_record));
+	tglbtn_record.set_sensitive(false);
+
 	tglbtn_mute.set_label("Mute");
 	tglbtn_mute.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_mute));
 
@@ -353,11 +367,12 @@ void DABlinGTK::InitWidgets() {
 	top_grid.attach_next_to(frame_label_ensemble, frame_combo_channels, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(frame_combo_services, frame_label_ensemble, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(frame_label_format, frame_combo_services, Gtk::POS_RIGHT, 1, 2);
-	top_grid.attach_next_to(tglbtn_mute, frame_label_format, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach_next_to(tglbtn_record, frame_label_format, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach_next_to(tglbtn_mute, tglbtn_record, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(vlmbtn, tglbtn_mute, Gtk::POS_RIGHT, 1, 1);
-	top_grid.attach_next_to(tglbtn_slideshow, tglbtn_mute, Gtk::POS_BOTTOM, 2, 1);
-	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 6, 1);
-	top_grid.attach_next_to(progress_position, frame_label_dl, Gtk::POS_BOTTOM, 6, 1);
+	top_grid.attach_next_to(tglbtn_slideshow, tglbtn_record, Gtk::POS_BOTTOM, 3, 1);
+	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 7, 1);
+	top_grid.attach_next_to(progress_position, frame_label_dl, Gtk::POS_BOTTOM, 7, 1);
 
 	show_all_children();
 	progress_position.hide();	// invisible until progress updated
@@ -404,7 +419,7 @@ void DABlinGTK::AddChannel(dab_channels_t::const_iterator &it, int gain) {
 }
 
 void DABlinGTK::SetService(const LISTED_SERVICE& service) {
-	// (re)set labels/tooltips
+	// (re)set labels/tooltips/record button
 	if(!service.IsNone()) {
 		char sid_string[7];
 		snprintf(sid_string, sizeof(sid_string), "0x%04X", service.sid);
@@ -433,10 +448,12 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 			}
 			frame_label_format.set_tooltip_text(tooltip_text);
 		}
+		tglbtn_record.set_sensitive(true);
 	} else {
 		set_title("DABlin");
 		frame_combo_services.set_tooltip_text("");
 		frame_label_format.set_tooltip_text("");
+		tglbtn_record.set_sensitive(false);
 	}
 
 	// if the audio service changed, reset format/DL/slide + switch
@@ -470,6 +487,86 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 }
 
 
+void DABlinGTK::on_tglbtn_record() {
+	if(tglbtn_record.get_active()) {
+		// get timestamp
+		const time_t now = time(nullptr);
+		if(now == (time_t) -1)
+			perror("DABlinGTK: error while getting time");
+		struct tm* now_tm = localtime(&now);
+		if(!now_tm)
+			perror("DABlinGTK: error while getting local time");
+		char now_string[22];
+		strftime(now_string, sizeof(now_string), "%F - %H-%M-%S", now_tm);
+
+		// get station name
+		LISTED_SERVICE service;	// default: none
+		Gtk::TreeModel::iterator row_it = combo_services.get_active();
+		if(combo_services_liststore->iter_is_valid(row_it)) {
+			Gtk::TreeModel::Row row = *row_it;
+			service = row[combo_services_cols.col_service];
+		}
+		std::string label = FICDecoder::ConvertLabelToUTF8(service.label);
+
+		// escape forbidden '/' character
+		std::string label_cleaned = label;
+		for(size_t i = 0; i < label_cleaned.length(); i++)
+			if(label_cleaned[i] == '/')
+				label_cleaned[i] = '_';
+
+		std::string rec_filename = options.recordings_path + "/" + std::string(now_string) + " - " + label_cleaned + "." + eti_player->GetUntouchedStreamFileExtension();
+		FILE* new_rec_file = fopen(rec_filename.c_str(), "wb");
+		if(new_rec_file) {
+			// disable channel/service switch
+			combo_channels.set_sensitive(false);	// parent frame already non-sensitive, if channels not available
+			combo_services.set_sensitive(false);
+
+			fprintf(stderr, "DABlinGTK: recording started into '%s'\n", rec_filename.c_str());
+
+			{
+				std::lock_guard<std::mutex> lock(rec_file_mutex);
+				rec_file = new_rec_file;
+			}
+
+			eti_player->AddUntouchedStreamConsumer(this);
+		} else {
+			int fopen_errno = errno;	// save before overwrite
+			tglbtn_record.set_active(false);
+
+			Gtk::MessageDialog hint(*this, "Could not start recording!", false, Gtk::MESSAGE_ERROR);
+			hint.set_title("DABlinGTK");
+			hint.set_secondary_text(strerror(fopen_errno), false);
+			hint.run();
+		}
+	} else {
+		std::lock_guard<std::mutex> lock(rec_file_mutex);
+
+		// only stop recording, if active (handles error on recording start)
+		if(rec_file) {
+			eti_player->RemoveUntouchedStreamConsumer(this);
+
+			fclose(rec_file);
+			rec_file = nullptr;
+
+			fprintf(stderr, "DABlinGTK: recording stopped\n");
+
+			// enable channel/service switch
+			combo_channels.set_sensitive(true);		// parent frame already non-sensitive, if channels not available
+			combo_services.set_sensitive(true);
+		}
+	}
+}
+
+void DABlinGTK::ProcessUntouchedStream(const uint8_t* data, size_t len) {
+	std::lock_guard<std::mutex> lock(rec_file_mutex);
+
+	if(rec_file) {
+		if(fwrite(data, len, 1, rec_file) != 1)
+			perror("DABlinGTK: error while writing untouched stream to file");
+	}
+}
+
+
 void DABlinGTK::on_tglbtn_mute() {
 	eti_player->SetAudioMute(tglbtn_mute.get_active());
 }
@@ -489,6 +586,19 @@ void DABlinGTK::on_tglbtn_slideshow() {
 		slideshow_window.hide();
 }
 
+bool DABlinGTK::on_window_delete_event(GdkEventAny* /*any_event*/) {
+	// prevent exit while recording
+	if(tglbtn_record.get_active()) {
+		Gtk::MessageDialog hint(*this, "Cannot exit while recording!", false, Gtk::MESSAGE_ERROR);
+		hint.set_title("DABlinGTK");
+		hint.set_secondary_text("The recording has to be stopped first.", false);
+		hint.run();
+		return true;
+	} else {
+		return false;
+	}
+}
+
 void DABlinGTK::ConnectKeyPressEventHandler(Gtk::Widget& widget) {
 	widget.signal_key_press_event().connect(sigc::mem_fun(*this, &DABlinGTK::HandleKeyPressEvent));
 	widget.add_events(Gdk::KEY_PRESS_MASK);
@@ -502,6 +612,12 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 		case GDK_KEY_M:
 			// toggle mute
 			tglbtn_mute.clicked();
+			return true;
+		case GDK_KEY_r:
+		case GDK_KEY_R:
+			// toggle record, if allowed
+			if(tglbtn_record.get_sensitive())
+				tglbtn_record.clicked();
 			return true;
 		// try to switch service
 		case GDK_KEY_1:
@@ -558,7 +674,8 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 }
 
 void DABlinGTK::TryServiceSwitch(int index) {
-	if(index >= 0 && index < (signed) combo_services_liststore->children().size())
+	// switch service, if allowed and index valid
+	if(combo_services.is_sensitive() && index >= 0 && index < (signed) combo_services_liststore->children().size())
 		combo_services.set_active(index);
 }
 
