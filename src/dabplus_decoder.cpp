@@ -20,7 +20,7 @@
 
 
 // --- SuperframeFilter -----------------------------------------------------------------
-SuperframeFilter::SuperframeFilter(SubchannelSinkObserver* observer, bool decode_audio) : SubchannelSink(observer) {
+SuperframeFilter::SuperframeFilter(SubchannelSinkObserver* observer, bool decode_audio) : SubchannelSink(observer, "aac") {
 	this->decode_audio = decode_audio;
 
 	aac_dec = nullptr;

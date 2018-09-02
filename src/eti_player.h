@@ -78,6 +78,7 @@ public:
 	bool IsSameAudioService(const AUDIO_SERVICE& audio_service);
 	void SetAudioService(const AUDIO_SERVICE& audio_service);
 
+	std::string GetUntouchedStreamFileExtension() {return dec ? dec->GetUntouchedStreamFileExtension() : "";}
 	void AddUntouchedStreamConsumer(UntouchedStreamConsumer* consumer) {if(dec) dec->AddUntouchedStreamConsumer(consumer);};
 	void RemoveUntouchedStreamConsumer(UntouchedStreamConsumer* consumer) {if(dec) dec->RemoveUntouchedStreamConsumer(consumer);};
 

@@ -48,7 +48,7 @@ const int MP2Decoder::sblimits[] = {
 };
 
 
-MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer) : SubchannelSink(observer) {
+MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer) : SubchannelSink(observer, "mp2") {
 	scf_crc_len = -1;
 
 	int mpg_result;

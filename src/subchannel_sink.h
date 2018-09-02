@@ -51,6 +51,7 @@ public:
 class SubchannelSink {
 protected:
 	SubchannelSinkObserver* observer;
+	std::string untouched_stream_file_extension;
 
 	std::mutex uscs_mutex;
 	std::set<UntouchedStreamConsumer*> uscs;
@@ -61,10 +62,12 @@ protected:
 			usc->ProcessUntouchedStream(data, len);
 	}
 public:
-	SubchannelSink(SubchannelSinkObserver* observer) : observer(observer) {}
+	SubchannelSink(SubchannelSinkObserver* observer, std::string untouched_stream_file_extension) :
+		observer(observer), untouched_stream_file_extension(untouched_stream_file_extension) {}
 	virtual ~SubchannelSink() {}
 
 	virtual void Feed(const uint8_t *data, size_t len) = 0;
+	std::string GetUntouchedStreamFileExtension() {return untouched_stream_file_extension;}
 	void AddUntouchedStreamConsumer(UntouchedStreamConsumer* consumer) {
 		std::lock_guard<std::mutex> lock(uscs_mutex);
 		uscs.insert(consumer);
