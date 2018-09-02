@@ -29,6 +29,7 @@
 
 #include <gtkmm.h>
 
+#include "dablin_gtk_sls.h"
 #include "eti_source.h"
 #include "eti_player.h"
 #include "fic_decoder.h"
@@ -38,30 +39,6 @@
 
 #define WIDGET_SPACE 5
 
-
-
-// --- DABlinGTKSlideshowWindow -----------------------------------------------------------------
-class DABlinGTKSlideshowWindow : public Gtk::Window {
-private:
-	Gtk::Grid top_grid;
-	Gtk::Image image;
-	Gtk::LinkButton link_button;
-
-	Glib::RefPtr<Gdk::Pixbuf> pixbuf_waiting;
-	std::atomic<int> offset_x;
-	std::atomic<int> offset_y;
-
-	bool HandleConfigureEvent(GdkEventConfigure* configure_event);
-public:
-	DABlinGTKSlideshowWindow();
-
-	void TryToShow();
-	void AlignToParent();
-
-	void AwaitSlide();
-	void UpdateSlide(const MOT_FILE& slide);
-	void ClearSlide() {image.clear();}
-};
 
 
 // --- DABlinGTKChannelColumns -----------------------------------------------------------------
