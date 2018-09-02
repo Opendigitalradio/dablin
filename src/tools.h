@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -118,6 +118,23 @@ private:
 public:
 	BitReader(const uint8_t *data, size_t data_bytes) : data(data), data_bytes(data_bytes), data_bits(0) {}
 	bool GetBits(int& result, size_t count);
+};
+
+
+// --- BitWriter -----------------------------------------------------------------
+class BitWriter {
+private:
+	std::vector<uint8_t> data;
+	size_t byte_bits;
+public:
+	BitWriter() {Reset();}
+
+	void Reset();
+	void AddBits(int data_new, size_t count);
+	void AddBytes(const uint8_t *data, size_t len);
+	const std::vector<uint8_t> GetData() {return data;}
+
+	void WriteAudioMuxLengthBytes();	// needed for LATM
 };
 
 

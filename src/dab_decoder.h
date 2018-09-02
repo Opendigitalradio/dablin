@@ -42,8 +42,10 @@ private:
 	mpg123_handle *handle;
 
 	int scf_crc_len;
+	std::vector<uint8_t> frame;
 
 	void ProcessFormat();
+	void ProcessUntouchedStream(const unsigned long& header, const uint8_t *body_data, size_t body_bytes);
 	size_t DecodeFrame(uint8_t **data);
 	bool CheckCRC(const unsigned long& header, const uint8_t *body_data, const size_t& body_bytes);
 

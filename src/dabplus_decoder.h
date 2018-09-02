@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -61,6 +61,9 @@ struct SuperframeFormat {
 	}
 	int GetExtensionSrIndex() {
 		return dac_rate ? 3 : 5;	// 48/32 kHz
+	}
+	bool IsSBR() {
+		return sbr_flag;
 	}
 };
 
@@ -146,8 +149,11 @@ private:
 	int num_aus;
 	int au_start[6+1]; // +1 for end of last AU
 
+	BitWriter au_bw;
+
 	bool CheckSync();
 	void ProcessFormat();
+	void ProcessUntouchedStream(const uint8_t *data, size_t len);
 	void CheckForPAD(const uint8_t *data, size_t len);
 	void ResetPAD();
 public:

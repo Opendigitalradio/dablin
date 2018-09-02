@@ -20,6 +20,8 @@
 #define SUBCHANNEL_SINK_H_
 
 #include <stdint.h>
+#include <mutex>
+#include <set>
 #include <string>
 
 #define FPAD_LEN 2
@@ -36,15 +38,41 @@ public:
 };
 
 
+// --- UntouchedStreamConsumer -----------------------------------------------------------------
+class UntouchedStreamConsumer {
+public:
+	virtual ~UntouchedStreamConsumer() {}
+
+	virtual void ProcessUntouchedStream(const uint8_t* /*data*/, size_t /*len*/) {}
+};
+
+
 // --- SubchannelSink -----------------------------------------------------------------
 class SubchannelSink {
 protected:
 	SubchannelSinkObserver* observer;
+
+	std::mutex uscs_mutex;
+	std::set<UntouchedStreamConsumer*> uscs;
+
+	void ForwardUntouchedStream(const uint8_t *data, size_t len) {
+		// mutex must already be locked!
+		for(UntouchedStreamConsumer* usc : uscs)
+			usc->ProcessUntouchedStream(data, len);
+	}
 public:
 	SubchannelSink(SubchannelSinkObserver* observer) : observer(observer) {}
 	virtual ~SubchannelSink() {}
 
 	virtual void Feed(const uint8_t *data, size_t len) = 0;
+	void AddUntouchedStreamConsumer(UntouchedStreamConsumer* consumer) {
+		std::lock_guard<std::mutex> lock(uscs_mutex);
+		uscs.insert(consumer);
+	}
+	void RemoveUntouchedStreamConsumer(UntouchedStreamConsumer* consumer) {
+		std::lock_guard<std::mutex> lock(uscs_mutex);
+		uscs.erase(consumer);
+	}
 };
 
 #endif /* SUBCHANNEL_SINK_H_ */

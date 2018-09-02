@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -156,12 +156,34 @@ size_t MP2Decoder::DecodeFrame(uint8_t **data) {
 		return 0;
 	}
 
+	ProcessUntouchedStream(header, body_data, body_bytes);
+
 	size_t frame_len;
 	mpg_result = mpg123_framebyframe_decode(handle, nullptr, data, &frame_len);
 	if(mpg_result != MPG123_OK)
 		throw std::runtime_error("MP2Decoder: error while mpg123_framebyframe_decode: " + std::string(mpg123_plain_strerror(mpg_result)));
 
 	return frame_len;
+}
+
+void MP2Decoder::ProcessUntouchedStream(const unsigned long& header, const uint8_t *body_data, size_t body_bytes) {
+	std::lock_guard<std::mutex> lock(uscs_mutex);
+
+	if(uscs.empty())
+		return;
+
+	// adjust buffer size, if needed
+	if(frame.size() != body_bytes + 4)
+		frame.resize(body_bytes + 4);
+
+	// reassemble MP2 frame
+	frame[0] = (header >> 24) & 0xFF;
+	frame[1] = (header >> 16) & 0xFF;
+	frame[2] = (header >> 8) & 0xFF;
+	frame[3] = header & 0xFF;
+	memcpy(&frame[4], body_data, body_bytes);
+
+	ForwardUntouchedStream(&frame[0], frame.size());
 }
 
 bool MP2Decoder::CheckCRC(const unsigned long& header, const uint8_t *body_data, const size_t& body_bytes) {

@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -161,6 +161,40 @@ bool BitReader::GetBits(int& result, size_t count) {
 	return true;
 }
 
+
+// --- BitWriter -----------------------------------------------------------------
+void BitWriter::Reset() {
+	data.clear();
+	byte_bits = 0;
+}
+
+void BitWriter::AddBits(int data_new, size_t count) {
+	while(count) {
+		// add new byte, if needed
+		if(byte_bits == 0)
+			data.push_back(0x00);
+
+		size_t copy_bits = std::min(count, 8 - byte_bits);
+		uint8_t copy_data = (data_new >> (count - copy_bits)) & (0xFF >> (8 - copy_bits));
+		data.back() |= copy_data << (8 - byte_bits - copy_bits);
+
+//		fprintf(stderr, "data_new: 0x%04X, count: %zu / byte_bits: %zu, copy_bits: %zu, copy_data: 0x%02X\n", data_new, count, byte_bits, copy_bits, copy_data);
+
+		byte_bits = (byte_bits + copy_bits) % 8;
+		count -= copy_bits;
+	}
+}
+
+void BitWriter::AddBytes(const uint8_t *data, size_t len) {
+	for(size_t i = 0; i < len; i++)
+		AddBits(data[i], 8);
+}
+
+void BitWriter::WriteAudioMuxLengthBytes() {
+	size_t len = data.size() - 3;
+	data[1] |= (len >> 8) & 0x1F;
+	data[2] = len & 0xFF;
+}
 
 const dab_channels_t dab_channels {
 	{ "5A",  174928},

@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2017 Stefan Pöschel
+    Copyright (C) 2015-2018 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -124,6 +124,7 @@ void SuperframeFilter::Feed(const uint8_t *data, size_t len) {
 		au_len -= 2;
 		aac_dec->DecodeFrame(au_data, au_len);
 		CheckForPAD(au_data, au_len);
+		ProcessUntouchedStream(au_data, au_len);
 	}
 
 	// ensure getting a complete new Superframe
@@ -247,6 +248,64 @@ void SuperframeFilter::ProcessFormat() {
 #ifdef DABLIN_AAC_FDKAAC
 	aac_dec = new AACDecoderFDKAAC(observer, sf_format);
 #endif
+}
+
+
+void SuperframeFilter::ProcessUntouchedStream(const uint8_t *data, size_t len) {
+	std::lock_guard<std::mutex> lock(uscs_mutex);
+
+	if(uscs.empty())
+		return;
+
+	au_bw.Reset();
+
+	// AudioSyncStream()
+	au_bw.AddBits(0x2B7, 11);	// syncword
+	au_bw.AddBits(0, 13);		// audioMuxLengthBytes - written later
+
+	// AudioMuxElement(1)
+	au_bw.AddBits(0, 1);		// useSameStreamMux
+
+	// StreamMuxConfig()
+	au_bw.AddBits(0, 1);		// audioMuxVersion
+	au_bw.AddBits(1, 1);		// allStreamsSameTimeFraming
+	au_bw.AddBits(0, 6);		// numSubFrames
+	au_bw.AddBits(0, 4);		// numProgram
+	au_bw.AddBits(0, 3);		// numLayer
+
+	// AudioSpecificConfig() - PS signalling only implicit
+	if(sf_format.IsSBR()) {
+		au_bw.AddBits(0b00101, 5);							// SBR
+		au_bw.AddBits(sf_format.GetCoreSrIndex(), 4);		// samplingFrequencyIndex
+		au_bw.AddBits(sf_format.GetCoreChConfig(), 4);		// channelConfiguration
+		au_bw.AddBits(sf_format.GetExtensionSrIndex(), 4);	// extensionSamplingFrequencyIndex
+		au_bw.AddBits(0b00010, 5);							// AAC LC
+		au_bw.AddBits(0b100, 3);							// GASpecificConfig() with 960 transform
+	} else {
+		au_bw.AddBits(0b00010, 5);							// AAC LC
+		au_bw.AddBits(sf_format.GetCoreSrIndex(), 4);		// samplingFrequencyIndex
+		au_bw.AddBits(sf_format.GetCoreChConfig(), 4);		// channelConfiguration
+		au_bw.AddBits(0b100, 3);							// GASpecificConfig() with 960 transform
+	}
+
+	au_bw.AddBits(0b000, 3);	// frameLengthType
+	au_bw.AddBits(0xFF, 8);		// latmBufferFullness
+	au_bw.AddBits(0, 1);		// otherDataPresent
+	au_bw.AddBits(0, 1);		// crcCheckPresent
+
+	// PayloadLengthInfo()
+	for(size_t i = 0; i < len / 255; i++)
+		au_bw.AddBits(0xFF, 8);
+	au_bw.AddBits(len % 255, 8);
+
+	// PayloadMux()
+	au_bw.AddBytes(data, len);
+
+	// catch up on LATM frame len
+	au_bw.WriteAudioMuxLengthBytes();
+
+	const std::vector<uint8_t> latm_data = au_bw.GetData();
+	ForwardUntouchedStream(&latm_data[0], latm_data.size());
 }
 
 
