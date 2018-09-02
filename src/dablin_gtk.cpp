@@ -41,6 +41,7 @@ static void usage(const char* exe) {
 					"  -x <scids>   ID of the service component to be played (requires service ID)\n"
 					"  -g <gain>    USB stick gain to pass to DAB live source (auto gain is default)\n"
 					"  -p           Output PCM to stdout instead of using SDL\n"
+					"  -u           Output untouched audio stream to stdout instead of using SDL\n"
 					"  -S           Initially disable slideshow\n"
 					"  -L           Enable loose behaviour (e.g. PAD conformance)\n"
 					"  file         Input file to be played (stdin, if not specified)\n",
@@ -67,7 +68,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hd:D:C:c:l:g:s:x:pSL")) != -1) {
+	while((c = getopt(argc, argv, "hd:D:C:c:l:g:s:x:puSL")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -100,6 +101,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'p':
 			options.pcm_output = true;
+			break;
+		case 'u':
+			options.untouched_output = true;
 			break;
 		case 'S':
 			options.initially_disable_slideshow = true;
@@ -159,6 +163,11 @@ int main(int argc, char **argv) {
 	}
 #endif
 
+	if(options.pcm_output && options.untouched_output) {
+		fprintf(stderr, "No more than one output option can be specified!\n");
+		usage(argv[0]);
+	}
+
 
 	// at most one initial param needed!
 	if(initial_param_count > 1) {
@@ -196,7 +205,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	pad_change_dynamic_label.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 	pad_change_slide.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
 
-	eti_player = new ETIPlayer(options.pcm_output, this);
+	eti_player = new ETIPlayer(options.pcm_output, options.untouched_output, this);
 
 	if(!options.dab_live_source_binary.empty()) {
 		eti_source = nullptr;

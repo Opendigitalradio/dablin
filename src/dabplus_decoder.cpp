@@ -20,7 +20,9 @@
 
 
 // --- SuperframeFilter -----------------------------------------------------------------
-SuperframeFilter::SuperframeFilter(SubchannelSinkObserver* observer) : SubchannelSink(observer) {
+SuperframeFilter::SuperframeFilter(SubchannelSinkObserver* observer, bool decode_audio) : SubchannelSink(observer) {
+	this->decode_audio = decode_audio;
+
 	aac_dec = nullptr;
 
 	frame_len = 0;
@@ -122,7 +124,8 @@ void SuperframeFilter::Feed(const uint8_t *data, size_t len) {
 		}
 
 		au_len -= 2;
-		aac_dec->DecodeFrame(au_data, au_len);
+		if(aac_dec)
+			aac_dec->DecodeFrame(au_data, au_len);
 		CheckForPAD(au_data, au_len);
 		ProcessUntouchedStream(au_data, au_len);
 	}
@@ -240,14 +243,15 @@ void SuperframeFilter::ProcessFormat() {
 	ss << "@ " << bitrate << " kBit/s";
 	observer->FormatChange(ss.str());
 
-	if(aac_dec)
+	if(decode_audio) {
 		delete aac_dec;
 #ifdef DABLIN_AAC_FAAD2
-	aac_dec = new AACDecoderFAAD2(observer, sf_format);
+		aac_dec = new AACDecoderFAAD2(observer, sf_format);
 #endif
 #ifdef DABLIN_AAC_FDKAAC
-	aac_dec = new AACDecoderFDKAAC(observer, sf_format);
+		aac_dec = new AACDecoderFDKAAC(observer, sf_format);
 #endif
+	}
 }
 
 

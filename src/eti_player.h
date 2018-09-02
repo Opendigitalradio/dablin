@@ -48,8 +48,9 @@ public:
 
 
 // --- ETIPlayer -----------------------------------------------------------------
-class ETIPlayer : SubchannelSinkObserver {
+class ETIPlayer : SubchannelSinkObserver, UntouchedStreamConsumer {
 private:
+	bool untouched_output;
 	ETIPlayerObserver *observer;
 
 	std::chrono::steady_clock::time_point next_frame_time;
@@ -63,12 +64,13 @@ private:
 	void DecodeFrame(const uint8_t *eti_frame);
 
 	void FormatChange(const std::string& format);
-	void StartAudio(int samplerate, int channels, bool float32) {out->StartAudio(samplerate, channels, float32);}
-	void PutAudio(const uint8_t *data, size_t len) {out->PutAudio(data, len);}
+	void StartAudio(int samplerate, int channels, bool float32) {if(out) out->StartAudio(samplerate, channels, float32);}
+	void PutAudio(const uint8_t *data, size_t len) {if(out) out->PutAudio(data, len);}
 	void ProcessFIC(const uint8_t *data, size_t len);
 	void ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t *fpad_data);
+	void ProcessUntouchedStream(const uint8_t* data, size_t len);
 public:
-	ETIPlayer(bool pcm_output, ETIPlayerObserver *observer);
+	ETIPlayer(bool pcm_output, bool untouched_output, ETIPlayerObserver *observer);
 	~ETIPlayer();
 
 	void ProcessFrame(const uint8_t *data);
@@ -79,9 +81,9 @@ public:
 	void AddUntouchedStreamConsumer(UntouchedStreamConsumer* consumer) {if(dec) dec->AddUntouchedStreamConsumer(consumer);};
 	void RemoveUntouchedStreamConsumer(UntouchedStreamConsumer* consumer) {if(dec) dec->RemoveUntouchedStreamConsumer(consumer);};
 
-	void SetAudioMute(bool audio_mute) {out->SetAudioMute(audio_mute);}
-	void SetAudioVolume(double audio_volume) {out->SetAudioVolume(audio_volume);}
-	bool HasAudioVolumeControl() {return out->HasAudioVolumeControl();}
+	void SetAudioMute(bool audio_mute) {if(out) out->SetAudioMute(audio_mute);}
+	void SetAudioVolume(double audio_volume) {if(out) out->SetAudioVolume(audio_volume);}
+	bool HasAudioVolumeControl() {return out ? out->HasAudioVolumeControl() : false;}
 };
 
 

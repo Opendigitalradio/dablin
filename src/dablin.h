@@ -41,6 +41,7 @@ struct DABlinTextOptions {
 	std::string dab_live_source_type;
 	std::string initial_channel;
 	bool pcm_output;
+	bool untouched_output;
 	int gain;
 DABlinTextOptions() :
 	initial_sid(LISTED_SERVICE::sid_none),
@@ -49,6 +50,7 @@ DABlinTextOptions() :
 	initial_subchid_dab_plus(AUDIO_SERVICE::subchid_none),
 	dab_live_source_type(DABLiveETISource::TYPE_DAB2ETI),
 	pcm_output(false),
+	untouched_output(false),
 	gain(DAB_LIVE_SOURCE_CHANNEL::auto_gain)
 	{}
 };

@@ -20,17 +20,21 @@
 
 
 // --- ETIPlayer -----------------------------------------------------------------
-ETIPlayer::ETIPlayer(bool pcm_output, ETIPlayerObserver *observer) {
+ETIPlayer::ETIPlayer(bool pcm_output, bool untouched_output, ETIPlayerObserver *observer) {
+	this->untouched_output = untouched_output;
 	this->observer = observer;
 
 	dec = nullptr;
+	out = nullptr;
 
+	if(!untouched_output) {
 #ifndef DABLIN_DISABLE_SDL
-	if(!pcm_output)
-		out = new SDLOutput;
-	else
+		if(!pcm_output)
+			out = new SDLOutput;
+		else
 #endif
-		out = new PCMOutput;
+			out = new PCMOutput;
+	}
 }
 
 ETIPlayer::~ETIPlayer() {
@@ -67,9 +71,11 @@ void ETIPlayer::SetAudioService(const AUDIO_SERVICE& audio_service) {
 	// append
 	if(!audio_service.IsNone()) {
 		if(audio_service.dab_plus)
-			dec = new SuperframeFilter(this);
+			dec = new SuperframeFilter(this, !untouched_output);
 		else
 			dec = new MP2Decoder(this);
+		if(untouched_output)
+			dec->AddUntouchedStreamConsumer(this);
 	}
 
 	this->audio_service = audio_service;
@@ -180,4 +186,11 @@ void ETIPlayer::ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact
 //	fprintf(stderr, "Received %zu bytes X-PAD\n", xpad_len);
 	if(observer)
 		observer->ETIProcessPAD(xpad_data, xpad_len, exact_xpad_len, fpad_data);
+}
+
+void ETIPlayer::ProcessUntouchedStream(const uint8_t* data, size_t len) {
+	if(untouched_output) {
+		if(fwrite(data, len, 1, stdout) != 1)
+			perror("ETIPlayer: error while writing untouched stream to stdout");
+	}
 }

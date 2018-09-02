@@ -41,6 +41,7 @@ static void usage(const char* exe) {
 					"  -R <subchid>  ID of the sub-channel (DAB+) to be played\n"
 					"  -g <gain>     USB stick gain to pass to DAB live source (auto gain is default)\n"
 					"  -p            Output PCM to stdout instead of using SDL\n"
+					"  -u            Output untouched audio stream to stdout instead of using SDL\n"
 					"  file          Input file to be played (stdin, if not specified)\n",
 					DABLiveETISource::TYPE_DAB2ETI.c_str(),
 					DABLiveETISource::TYPE_ETI_CMDLINE.c_str()
@@ -65,7 +66,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hc:l:d:D:g:s:x:pr:R:")) != -1) {
+	while((c = getopt(argc, argv, "hc:l:d:D:g:s:x:pur:R:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -103,6 +104,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'p':
 			options.pcm_output = true;
+			break;
+		case 'u':
+			options.untouched_output = true;
 			break;
 		case '?':
 		default:
@@ -156,6 +160,11 @@ int main(int argc, char **argv) {
 	}
 #endif
 
+	if(options.pcm_output && options.untouched_output) {
+		fprintf(stderr, "No more than one output option can be specified!\n");
+		usage(argv[0]);
+	}
+
 
 	// at most one initial param needed!
 	if(initial_param_count > 1) {
@@ -182,7 +191,7 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	// set XTerm window title to version string
 	fprintf(stderr, "\x1B]0;" "DABlin v" DABLIN_VERSION "\a");
 
-	eti_player = new ETIPlayer(options.pcm_output, this);
+	eti_player = new ETIPlayer(options.pcm_output, options.untouched_output, this);
 
 	// set initial sub-channel, if desired
 	if(options.initial_subchid_dab != AUDIO_SERVICE::subchid_none) {

@@ -131,6 +131,8 @@ public:
 // --- SuperframeFilter -----------------------------------------------------------------
 class SuperframeFilter : public SubchannelSink {
 private:
+	bool decode_audio;
+
 	RSDecoder rs_dec;
 	AACDecoder *aac_dec;
 
@@ -157,7 +159,7 @@ private:
 	void CheckForPAD(const uint8_t *data, size_t len);
 	void ResetPAD();
 public:
-	SuperframeFilter(SubchannelSinkObserver* observer);
+	SuperframeFilter(SubchannelSinkObserver* observer, bool decode_audio);
 	~SuperframeFilter();
 
 	void Feed(const uint8_t *data, size_t len);

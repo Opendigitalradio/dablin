@@ -111,6 +111,12 @@ In case you only want PCM output, you can disable SDL output and
 therefore omit the SDL2 library prerequisite. You then also have to
 have `-DDISABLE_SDL=1` as part of the `cmake` command.
 
+To enable the PCM output to `stdout`, the `-p` parameter has to be used.
+
+It is also possible to disable the output of any decoded audio and
+instead output the current service as an untouched MP2/AAC stream to
+`stdout`. This can be achieved by using the `-u` parameter.
+
 
 ### Surround sound
 
