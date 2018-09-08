@@ -239,7 +239,7 @@ void DABlinText::ETIUpdateProgress(const ETI_PROGRESS progress) {
 void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
 
-	std::string label = FICDecoder::ConvertLabelToUTF8(service.label);
+	std::string label = FICDecoder::ConvertLabelToUTF8(service.label, nullptr);
 
 	// abort, if no/not initial service
 	if(!(label == options.initial_label || (service.sid == options.initial_sid && service.scids == options.initial_scids)))

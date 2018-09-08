@@ -407,7 +407,7 @@ void FICDecoder::ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label) {
 		ensemble.eid = eid;
 		ensemble.label = label;
 
-		std::string label_str = ConvertLabelToUTF8(label);
+		std::string label_str = ConvertLabelToUTF8(label, nullptr);
 		fprintf(stderr, "FICDecoder: EId 0x%04X: ensemble label '" "\x1B[32m" "%s" "\x1B[0m" "'\n", eid, label_str.c_str());
 
 		observer->FICChangeEnsemble(ensemble);
@@ -419,7 +419,7 @@ void FICDecoder::ProcessFIG1_1(uint16_t sid, const FIC_LABEL& label) {
 	if(service.label != label) {
 		service.label = label;
 
-		std::string label_str = ConvertLabelToUTF8(label);
+		std::string label_str = ConvertLabelToUTF8(label, nullptr);
 		fprintf(stderr, "FICDecoder: SId 0x%04X: programme service label '" "\x1B[32m" "%s" "\x1B[0m" "'\n", sid, label_str.c_str());
 
 		UpdateService(service);
@@ -434,7 +434,7 @@ void FICDecoder::ProcessFIG1_4(uint16_t sid, int scids, const FIC_LABEL& label) 
 	if(comp_label != label) {
 		comp_label = label;
 
-		std::string label_str = ConvertLabelToUTF8(label);
+		std::string label_str = ConvertLabelToUTF8(label, nullptr);
 		fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: service component label '" "\x1B[32m" "%s" "\x1B[0m" "'\n", sid, scids, label_str.c_str());
 
 		UpdateService(service);
@@ -549,8 +549,8 @@ int FICDecoder::GetSLSAppType(const ua_data_t& ua_data) {
 		return LISTED_SERVICE::sls_app_type_none;
 }
 
-std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label) {
-	std::string result = ConvertTextToUTF8(label.label, sizeof(label.label), label.charset, false, nullptr);
+std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label, std::string* charset_name) {
+	std::string result = ConvertTextToUTF8(label.label, sizeof(label.label), label.charset, false, charset_name);
 
 	// discard trailing spaces
 	size_t last_pos = result.find_last_not_of(' ');

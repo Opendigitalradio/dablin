@@ -236,7 +236,7 @@ public:
 	void Reset();
 
 	static std::string ConvertTextToUTF8(const uint8_t *data, size_t len, int charset, bool mot, std::string* charset_name);
-	static std::string ConvertLabelToUTF8(const FIC_LABEL& label);
+	static std::string ConvertLabelToUTF8(const FIC_LABEL& label, std::string* charset_name);
 	static std::string ConvertLanguageToString(const int value);
 };
 
