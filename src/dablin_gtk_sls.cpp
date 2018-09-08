@@ -118,10 +118,11 @@ void DABlinGTKSlideshowWindow::UpdateSlide(const MOT_FILE& slide) {
 	// update image
 	image.set(pixbuf);
 	image.set_tooltip_text(
-			"Resolution: " + std::to_string(pixbuf->get_width()) + "x" + std::to_string(pixbuf->get_height()) + " pixels\n" +
-			"Size: " + std::to_string(slide.data.size()) + " bytes\n" +
-			"Format: " + type_display + "\n" +
-			"Content name: " + slide.content_name);
+			"Resolution: " + std::to_string(pixbuf->get_width()) + "x" + std::to_string(pixbuf->get_height()) + " pixels\n"
+			"Size: " + std::to_string(slide.data.size()) + " bytes\n"
+			"Format: " + type_display + "\n"
+			"Content name: " + slide.content_name + "\n"
+			"Content name charset: " + slide.content_name_charset);
 
 	// update ClickThroughURL link
 	if(!slide.click_through_url.empty()) {
