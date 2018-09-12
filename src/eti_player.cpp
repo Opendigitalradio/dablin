@@ -73,7 +73,7 @@ void ETIPlayer::SetAudioService(const AUDIO_SERVICE& audio_service) {
 		if(audio_service.dab_plus)
 			dec = new SuperframeFilter(this, !untouched_output);
 		else
-			dec = new MP2Decoder(this);
+			dec = new MP2Decoder(this, true);	// use more precise float32 output
 		if(untouched_output)
 			dec->AddUntouchedStreamConsumer(this);
 	}
