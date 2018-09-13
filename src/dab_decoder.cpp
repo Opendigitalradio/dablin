@@ -154,7 +154,7 @@ size_t MP2Decoder::DecodeFrame(uint8_t **data) {
 
 	// check CRC (MP2's CRC only - not DAB's ScF-CRC)
 	if(!CheckCRC(header, body_data, body_bytes)) {
-		fprintf(stderr, "\x1B[31m" "(CRC)" "\x1B[0m" " ");
+		observer->AudioError("CRC");
 		// no PAD reset, as not covered by CRC
 		return 0;
 	}

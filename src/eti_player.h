@@ -66,9 +66,14 @@ private:
 	void FormatChange(const std::string& format);
 	void StartAudio(int samplerate, int channels, bool float32) {if(out) out->StartAudio(samplerate, channels, float32);}
 	void PutAudio(const uint8_t *data, size_t len) {if(out) out->PutAudio(data, len);}
+
 	void ProcessFIC(const uint8_t *data, size_t len);
 	void ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t *fpad_data);
 	void ProcessUntouchedStream(const uint8_t* data, size_t len);
+
+	void AudioError(const std::string& hint);
+	void AudioWarning(const std::string& hint);
+	void FECInfo(int total_corr_count, bool uncorr_errors);
 public:
 	ETIPlayer(bool pcm_output, bool untouched_output, ETIPlayerObserver *observer);
 	~ETIPlayer();

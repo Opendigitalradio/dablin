@@ -194,3 +194,15 @@ void ETIPlayer::ProcessUntouchedStream(const uint8_t* data, size_t len) {
 			perror("ETIPlayer: error while writing untouched stream to stdout");
 	}
 }
+
+void ETIPlayer::AudioError(const std::string& hint) {
+	fprintf(stderr, "\x1B[31m" "(%s)" "\x1B[0m" " ", hint.c_str());
+}
+
+void ETIPlayer::AudioWarning(const std::string& hint) {
+	fprintf(stderr, "\x1B[35m" "(%s)" "\x1B[0m" " ", hint.c_str());
+}
+
+void ETIPlayer::FECInfo(int total_corr_count, bool uncorr_errors) {
+	fprintf(stderr, "\x1B[36m" "(%d%s)" "\x1B[0m" " ", total_corr_count, uncorr_errors ? "+" : "");
+}

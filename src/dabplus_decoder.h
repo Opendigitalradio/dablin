@@ -78,7 +78,7 @@ public:
 	RSDecoder();
 	~RSDecoder();
 
-	void DecodeSuperframe(uint8_t *sf, size_t sf_len);
+	void DecodeSuperframe(uint8_t *sf, size_t sf_len, int& total_corr_count, bool& uncorr_errors);
 };
 
 

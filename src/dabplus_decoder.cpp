@@ -85,9 +85,17 @@ void SuperframeFilter::Feed(const uint8_t *data, size_t len) {
 		return;
 
 
+	int total_corr_count;
+	bool uncorr_errors;
+
 	// append RS coding on copy
 	memcpy(sf, sf_raw, sf_len);
-	rs_dec.DecodeSuperframe(sf, sf_len);
+	rs_dec.DecodeSuperframe(sf, sf_len, total_corr_count, uncorr_errors);
+
+	// forward statistics if errors present
+	if(total_corr_count || uncorr_errors)
+		observer->FECInfo(total_corr_count, uncorr_errors);
+
 
 	if(!CheckSync()) {
 		if(sync_frames == 0)
@@ -119,7 +127,7 @@ void SuperframeFilter::Feed(const uint8_t *data, size_t len) {
 		uint16_t au_crc_stored = au_data[au_len-2] << 8 | au_data[au_len-1];
 		uint16_t au_crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(au_data, au_len - 2);
 		if(au_crc_stored != au_crc_calced) {
-			fprintf(stderr, "\x1B[31m" "(AU #%d)" "\x1B[0m" " ", i);
+			observer->AudioError("AU #" + std::to_string(i));
 			ResetPAD();
 			continue;
 		}
@@ -325,15 +333,15 @@ RSDecoder::~RSDecoder() {
 	free_rs_char(rs_handle);
 }
 
-void RSDecoder::DecodeSuperframe(uint8_t *sf, size_t sf_len) {
+void RSDecoder::DecodeSuperframe(uint8_t *sf, size_t sf_len, int& total_corr_count, bool& uncorr_errors) {
 //	// insert errors for test
 //	sf[0] ^= 0xFF;
 //	sf[10] ^= 0xFF;
 //	sf[20] ^= 0xFF;
 
 	int subch_index = sf_len / 120;
-	int total_corr_count = 0;
-	bool uncorr_errors = false;
+	total_corr_count = 0;
+	uncorr_errors = false;
 
 	// process all RS packets
 	for(int i = 0; i < subch_index; i++) {
@@ -358,10 +366,6 @@ void RSDecoder::DecodeSuperframe(uint8_t *sf, size_t sf_len) {
 			sf[pos * subch_index + i] = rs_packet[pos];
 		}
 	}
-
-	// output statistics if errors present (using ANSI coloring)
-	if(total_corr_count || uncorr_errors)
-		fprintf(stderr, "\x1B[36m" "(%d%s)" "\x1B[0m" " ", total_corr_count, uncorr_errors ? "+" : "");
 }
 
 
@@ -458,7 +462,7 @@ void AACDecoderFAAD2::DecodeFrame(uint8_t *data, size_t len) {
 	// decode audio
 	uint8_t* output_frame = (uint8_t*) NeAACDecDecode(handle, &dec_frameinfo, data, len);
 	if(dec_frameinfo.error)
-		fprintf(stderr, "\x1B[35m" "(AAC)" "\x1B[0m" " ");
+		observer->AudioWarning("AAC");
 
 	// abort, if no output at all
 	if(dec_frameinfo.bytesconsumed == 0 && dec_frameinfo.samples == 0)
@@ -538,7 +542,7 @@ void AACDecoderFDKAAC::DecodeFrame(uint8_t *data, size_t len) {
 	// decode audio
 	result = aacDecoder_DecodeFrame(handle, (short int*) output_frame, output_frame_len / 2, 0);
 	if(result != AAC_DEC_OK)
-		fprintf(stderr, "\x1B[35m" "(AAC)" "\x1B[0m" " ");
+		observer->AudioWarning("AAC");
 	if(!IS_OUTPUT_VALID(result))
 		return;
 
