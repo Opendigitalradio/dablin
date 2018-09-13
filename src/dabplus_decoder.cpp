@@ -20,8 +20,9 @@
 
 
 // --- SuperframeFilter -----------------------------------------------------------------
-SuperframeFilter::SuperframeFilter(SubchannelSinkObserver* observer, bool decode_audio) : SubchannelSink(observer, "aac") {
+SuperframeFilter::SuperframeFilter(SubchannelSinkObserver* observer, bool decode_audio, bool enable_float32) : SubchannelSink(observer, "aac") {
 	this->decode_audio = decode_audio;
+	this->enable_float32 = enable_float32;
 
 	aac_dec = nullptr;
 
@@ -246,7 +247,7 @@ void SuperframeFilter::ProcessFormat() {
 	if(decode_audio) {
 		delete aac_dec;
 #ifdef DABLIN_AAC_FAAD2
-		aac_dec = new AACDecoderFAAD2(observer, sf_format);
+		aac_dec = new AACDecoderFAAD2(observer, sf_format, enable_float32);
 #endif
 #ifdef DABLIN_AAC_FDKAAC
 		aac_dec = new AACDecoderFDKAAC(observer, sf_format);
@@ -416,7 +417,9 @@ AACDecoder::AACDecoder(std::string decoder_name, SubchannelSinkObserver* observe
 
 #ifdef DABLIN_AAC_FAAD2
 // --- AACDecoderFAAD2 -----------------------------------------------------------------
-AACDecoderFAAD2::AACDecoderFAAD2(SubchannelSinkObserver* observer, SuperframeFormat sf_format) : AACDecoder("FAAD2", observer, sf_format) {
+AACDecoderFAAD2::AACDecoderFAAD2(SubchannelSinkObserver* observer, SuperframeFormat sf_format, bool float32) : AACDecoder("FAAD2", observer, sf_format) {
+	this->float32 = float32;
+
 	// ensure features
 	unsigned long cap = NeAACDecGetCapabilities();
 	if(!(cap & LC_DEC_CAP))
@@ -431,7 +434,7 @@ AACDecoderFAAD2::AACDecoderFAAD2(SubchannelSinkObserver* observer, SuperframeFor
 	if(!config)
 		throw std::runtime_error("AACDecoderFAAD2: error while NeAACDecGetCurrentConfiguration");
 
-	config->outputFormat = FAAD_FMT_FLOAT;
+	config->outputFormat = float32 ? FAAD_FMT_FLOAT : FAAD_FMT_16BIT;
 	config->dontUpSampleImplicitSBR = 0;
 
 	if(NeAACDecSetConfiguration(handle, config) != 1)
@@ -444,7 +447,7 @@ AACDecoderFAAD2::AACDecoderFAAD2(SubchannelSinkObserver* observer, SuperframeFor
 	if(init_result != 0)
 		throw std::runtime_error("AACDecoderFAAD2: error while NeAACDecInit2: " + std::string(NeAACDecGetErrorMessage(-init_result)));
 
-	observer->StartAudio(output_sr, output_ch, true);
+	observer->StartAudio(output_sr, output_ch, float32);
 }
 
 AACDecoderFAAD2::~AACDecoderFAAD2() {
@@ -464,7 +467,7 @@ void AACDecoderFAAD2::DecodeFrame(uint8_t *data, size_t len) {
 	if(dec_frameinfo.bytesconsumed != len)
 		throw std::runtime_error("AACDecoderFAAD2: NeAACDecDecode did not consume all bytes");
 
-	observer->PutAudio(output_frame, dec_frameinfo.samples * 4);
+	observer->PutAudio(output_frame, dec_frameinfo.samples * (float32 ? 4 : 2));
 }
 #endif
 

@@ -68,12 +68,12 @@ void ETIPlayer::SetAudioService(const AUDIO_SERVICE& audio_service) {
 	else
 		fprintf(stderr, "ETIPlayer: playing sub-channel %d (%s)\n", audio_service.subchid, audio_service.dab_plus ? "DAB+" : "DAB");
 
-	// append
+	// append - use more precise float32 output (if supported by decoder)
 	if(!audio_service.IsNone()) {
 		if(audio_service.dab_plus)
-			dec = new SuperframeFilter(this, !untouched_output);
+			dec = new SuperframeFilter(this, !untouched_output, true);
 		else
-			dec = new MP2Decoder(this, true);	// use more precise float32 output
+			dec = new MP2Decoder(this, true);
 		if(untouched_output)
 			dec->AddUntouchedStreamConsumer(this);
 	}
