@@ -560,7 +560,7 @@ void DABlinGTK::on_tglbtn_record() {
 	}
 }
 
-void DABlinGTK::ProcessUntouchedStream(const uint8_t* data, size_t len) {
+void DABlinGTK::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t /*duration_ms*/) {
 	std::lock_guard<std::mutex> lock(rec_file_mutex);
 
 	if(rec_file) {

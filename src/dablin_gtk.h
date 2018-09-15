@@ -161,7 +161,7 @@ private:
 	void ETIResetFIC() {fic_decoder->Reset();}
 	void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data) {pad_decoder->Process(xpad_data, xpad_len, exact_xpad_len, fpad_data);}
 
-	void ProcessUntouchedStream(const uint8_t* data, size_t len);
+	void ProcessUntouchedStream(const uint8_t* data, size_t len, size_t /*duration_ms*/);
 
 
 	Gtk::Grid top_grid;

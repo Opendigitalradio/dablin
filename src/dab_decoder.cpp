@@ -52,6 +52,7 @@ MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer, bool float32) : Subchan
 	this->float32 = float32;
 
 	scf_crc_len = -1;
+	lsf = false;
 
 
 	int mpg_result;
@@ -186,7 +187,7 @@ void MP2Decoder::ProcessUntouchedStream(const unsigned long& header, const uint8
 	frame[3] = header & 0xFF;
 	memcpy(&frame[4], body_data, body_bytes);
 
-	ForwardUntouchedStream(&frame[0], frame.size());
+	ForwardUntouchedStream(&frame[0], frame.size(), lsf ? 48 : 24);
 }
 
 bool MP2Decoder::CheckCRC(const unsigned long& header, const uint8_t *body_data, const size_t& body_bytes) {
@@ -269,6 +270,7 @@ void MP2Decoder::ProcessFormat() {
 		version = "2.5";
 		break;
 	}
+	lsf = info.version != MPG123_1_0;
 
 	const char* layer = "unknown";
 	switch(info.layer) {
