@@ -102,7 +102,7 @@ MP2Decoder::~MP2Decoder() {
 	if(handle) {
 		int mpg_result = mpg123_close(handle);
 		if(mpg_result != MPG123_OK)
-			throw std::runtime_error("MP2Decoder: error while mpg123_close: " + std::string(mpg123_plain_strerror(mpg_result)));
+			fprintf(stderr, "MP2Decoder: error while mpg123_close: %s\n", mpg123_plain_strerror(mpg_result));
 	}
 
 	mpg123_delete(handle);
