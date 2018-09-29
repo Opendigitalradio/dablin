@@ -182,6 +182,8 @@ public:
 
 	virtual void FICChangeEnsemble(const FIC_ENSEMBLE& /*ensemble*/) {}
 	virtual void FICChangeService(const LISTED_SERVICE& /*service*/) {}
+
+	virtual void FICDiscardedFIB() {}
 };
 
 

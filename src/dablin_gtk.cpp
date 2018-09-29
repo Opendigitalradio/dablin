@@ -763,6 +763,10 @@ void DABlinGTK::FICChangeServiceEmitted() {
 	}
 }
 
+void DABlinGTK::FICDiscardedFIB() {
+	fprintf(stderr, "\x1B[33m" "(FIB)" "\x1B[0m" " ");
+}
+
 void DABlinGTK::on_combo_channels() {
 	Gtk::TreeModel::Row row = *combo_channels.get_active();
 	DAB_LIVE_SOURCE_CHANNEL channel = row[combo_channels_cols.col_channel];

@@ -252,3 +252,7 @@ void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 	// set XTerm window title to service name
 	fprintf(stderr, "\x1B]0;" "%s - DABlin" "\a", label.c_str());
 }
+
+void DABlinText::FICDiscardedFIB() {
+	fprintf(stderr, "\x1B[33m" "(FIB)" "\x1B[0m" " ");
+}

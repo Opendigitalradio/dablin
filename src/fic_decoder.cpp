@@ -43,7 +43,7 @@ void FICDecoder::ProcessFIB(const uint8_t *data) {
 	uint16_t crc_stored = data[30] << 8 | data[31];
 	uint16_t crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(data, 30);
 	if(crc_stored != crc_calced) {
-		fprintf(stderr, "\x1B[33m" "(FIB)" "\x1B[0m" " ");
+		observer->FICDiscardedFIB();
 		return;
 	}
 

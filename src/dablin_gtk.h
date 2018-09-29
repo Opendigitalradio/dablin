@@ -223,6 +223,8 @@ private:
 	void FICChangeService(const LISTED_SERVICE& service) {fic_change_service.PushAndEmit(service);}
 	void FICChangeServiceEmitted();
 
+	void FICDiscardedFIB();
+
 	// PAD data change
 	GTKDispatcherQueue<DL_STATE> pad_change_dynamic_label;
 	void PADChangeDynamicLabel(const DL_STATE& dl) {pad_change_dynamic_label.PushAndEmit(dl);}

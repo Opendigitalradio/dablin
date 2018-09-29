@@ -67,11 +67,15 @@ private:
 
 	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);}
 	void ETIUpdateProgress(const ETI_PROGRESS progress);
+
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
+
 	void FICChangeService(const LISTED_SERVICE& service);
+	void FICDiscardedFIB();
 public:
 	DABlinText(DABlinTextOptions options);
 	~DABlinText();
+
 	void DoExit() {eti_source->DoExit();}
 	int Main() {return eti_source->Main();}
 };
