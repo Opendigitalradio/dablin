@@ -173,8 +173,8 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 	dec->Feed(eti_frame + subch_offset, subch_bytes);
 }
 
-void ETIPlayer::FormatChange(const std::string& format) {
-	fprintf(stderr, "ETIPlayer: format: %s\n", format.c_str());
+void ETIPlayer::FormatChange(const AUDIO_SERVICE_FORMAT& format) {
+	fprintf(stderr, "ETIPlayer: format: %s\n", format.GetSummary().c_str());
 	if(observer)
 		observer->ETIChangeFormat(format);
 }

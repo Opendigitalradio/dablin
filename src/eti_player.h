@@ -41,7 +41,7 @@ class ETIPlayerObserver {
 public:
 	virtual ~ETIPlayerObserver() {}
 
-	virtual void ETIChangeFormat(const std::string& /*format*/) {}
+	virtual void ETIChangeFormat(const AUDIO_SERVICE_FORMAT& /*format*/) {}
 	virtual void ETIProcessFIC(const uint8_t* /*data*/, size_t /*len*/) {}
 	virtual void ETIProcessPAD(const uint8_t* /*xpad_data*/, size_t /*xpad_len*/, bool /*exact_xpad_len*/, const uint8_t* /*fpad_data*/) {}
 };
@@ -64,7 +64,7 @@ private:
 
 	void DecodeFrame(const uint8_t *eti_frame);
 
-	void FormatChange(const std::string& format);
+	void FormatChange(const AUDIO_SERVICE_FORMAT& format);
 	void StartAudio(int samplerate, int channels, bool float32) {if(out) out->StartAudio(samplerate, channels, float32);}
 	void PutAudio(const uint8_t *data, size_t len) {if(out) out->PutAudio(data, len);}
 

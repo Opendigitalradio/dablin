@@ -703,7 +703,7 @@ void DABlinGTK::ETIUpdateProgressEmitted() {
 void DABlinGTK::ETIChangeFormatEmitted() {
 //	fprintf(stderr, "### ETIChangeFormatEmitted\n");
 
-	label_format.set_label(eti_change_format.Pop());
+	label_format.set_label(eti_change_format.Pop().GetSummary());
 }
 
 void DABlinGTK::FICChangeEnsembleEmitted() {

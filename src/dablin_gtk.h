@@ -150,11 +150,11 @@ private:
 	// ETI data change
 	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;
 	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);}
-	void ETIUpdateProgress(const ETI_PROGRESS progress) {eti_update_progress.PushAndEmit(progress);}
+	void ETIUpdateProgress(const ETI_PROGRESS& progress) {eti_update_progress.PushAndEmit(progress);}
 	void ETIUpdateProgressEmitted();
 
-	GTKDispatcherQueue<std::string> eti_change_format;
-	void ETIChangeFormat(const std::string& format) {eti_change_format.PushAndEmit(format);}
+	GTKDispatcherQueue<AUDIO_SERVICE_FORMAT> eti_change_format;
+	void ETIChangeFormat(const AUDIO_SERVICE_FORMAT& format) {eti_change_format.PushAndEmit(format);}
 	void ETIChangeFormatEmitted();
 
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
