@@ -24,6 +24,8 @@ ETIPlayer::ETIPlayer(bool pcm_output, bool untouched_output, ETIPlayerObserver *
 	this->untouched_output = untouched_output;
 	this->observer = observer;
 
+	prev_fsync = 0;
+
 	dec = nullptr;
 	out = nullptr;
 
@@ -95,10 +97,11 @@ void ETIPlayer::ProcessFrame(const uint8_t *data) {
 
 void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 	uint32_t fsync = eti_frame[1] << 16 | eti_frame[2] << 8 | eti_frame[3];
-	if(fsync != 0x073AB6 && fsync != 0xF8C549) {
+	if((fsync != 0x073AB6 && fsync != 0xF8C549) || fsync == prev_fsync) {
 		fprintf(stderr, "ETIPlayer: ignored ETI frame with FSYNC = 0x%06X\n", fsync);
 		return;
 	}
+	prev_fsync = fsync;
 
 	// ERR
 	if(eti_frame[0] != 0xFF) {

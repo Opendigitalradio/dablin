@@ -54,6 +54,7 @@ private:
 	ETIPlayerObserver *observer;
 
 	std::chrono::steady_clock::time_point next_frame_time;
+	uint32_t prev_fsync;
 
 	std::mutex audio_service_mutex;
 	AUDIO_SERVICE audio_service;
