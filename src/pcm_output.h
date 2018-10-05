@@ -19,7 +19,6 @@
 #ifndef PCM_OUTPUT_H_
 #define PCM_OUTPUT_H_
 
-#include <sstream>
 #include <stdint.h>
 #include <stdio.h>
 #include <atomic>
