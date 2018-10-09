@@ -118,7 +118,7 @@ class DAB2ETIETISource : public DABLiveETISource {
 protected:
 	std::string GetParams();
 public:
-	DAB2ETIETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : DABLiveETISource(binary, channel, observer, "dab2eti") {}
+	DAB2ETIETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : DABLiveETISource(binary, channel, observer, TYPE_DAB2ETI) {}
 };
 
 
@@ -127,7 +127,7 @@ class EtiCmdlineETISource : public DABLiveETISource {
 protected:
 	std::string GetParams();
 public:
-	EtiCmdlineETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : DABLiveETISource(binary, channel, observer, "eti-cmdline") {}
+	EtiCmdlineETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : DABLiveETISource(binary, channel, observer, TYPE_ETI_CMDLINE) {}
 };
 
 #endif /* ETI_SOURCE_H_ */
