@@ -59,7 +59,7 @@ public:
 	virtual ~ETISourceObserver() {}
 
 	virtual void ETIProcessFrame(const uint8_t* /*data*/) {}
-	virtual void ETIUpdateProgress(const ETI_PROGRESS /*progress*/) {}
+	virtual void ETIUpdateProgress(const ETI_PROGRESS& /*progress*/) {}
 };
 
 

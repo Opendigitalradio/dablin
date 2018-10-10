@@ -228,7 +228,7 @@ DABlinText::~DABlinText() {
 	delete fic_decoder;
 }
 
-void DABlinText::ETIUpdateProgress(const ETI_PROGRESS progress) {
+void DABlinText::ETIUpdateProgress(const ETI_PROGRESS& progress) {
 	// compensate cursor movement
 	std::string format = "\x1B[34m" "%s" "\x1B[0m";
 	format.append(progress.text.length(), '\b');

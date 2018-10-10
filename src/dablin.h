@@ -66,7 +66,7 @@ private:
 	FICDecoder *fic_decoder;
 
 	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);}
-	void ETIUpdateProgress(const ETI_PROGRESS progress);
+	void ETIUpdateProgress(const ETI_PROGRESS& progress);
 
 	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
 
