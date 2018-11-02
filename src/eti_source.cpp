@@ -187,6 +187,10 @@ std::string ETISource::FramecountToTimecode(size_t value) {
 	// generate output
 	char digits[3];
 
+	// just to silence recent GCC's truncation warnings
+	m &= 0x3F;
+	s &= 0x3F;
+
 	std::string result = std::to_string(h);
 	snprintf(digits, sizeof(digits), "%02d", m);
 	result += ":" + std::string(digits);
