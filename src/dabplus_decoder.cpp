@@ -107,7 +107,6 @@ void SuperframeFilter::Feed(const uint8_t *data, size_t len) {
 	if(sync_frames) {
 		fprintf(stderr, "SuperframeFilter: Superframe sync succeeded after %d frame(s)\n", sync_frames);
 		sync_frames = 0;
-		ResetPAD();
 	}
 
 
@@ -128,7 +127,6 @@ void SuperframeFilter::Feed(const uint8_t *data, size_t len) {
 		uint16_t au_crc_calced = CalcCRC::CalcCRC_CRC16_CCITT.Calc(au_data, au_len - 2);
 		if(au_crc_stored != au_crc_calced) {
 			observer->AudioError("AU #" + std::to_string(i));
-			ResetPAD();
 			continue;
 		}
 
@@ -162,14 +160,11 @@ void SuperframeFilter::CheckForPAD(const uint8_t *data, size_t len) {
 		}
 	}
 
-	if(!present)
-		ResetPAD();
-}
-
-void SuperframeFilter::ResetPAD() {
-	// required to reset internal state of PAD parser (in case of omitted CI list)
-	uint8_t zero_fpad[FPAD_LEN] = {0x00};
-	observer->ProcessPAD(nullptr, 0, true, zero_fpad);
+	// assume zero bytes F-PAD, if no DSE present
+	if(!present) {
+		uint8_t zero_fpad[FPAD_LEN] = {0x00};
+		observer->ProcessPAD(nullptr, 0, true, zero_fpad);
+	}
 }
 
 

@@ -161,7 +161,6 @@ private:
 	void ProcessFormat();
 	void ProcessUntouchedStream(const uint8_t *data, size_t len);
 	void CheckForPAD(const uint8_t *data, size_t len);
-	void ResetPAD();
 public:
 	SuperframeFilter(SubchannelSinkObserver* observer, bool decode_audio, bool enable_float32);
 	~SuperframeFilter();
