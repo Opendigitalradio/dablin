@@ -212,6 +212,7 @@ DABLiveETISource::DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL c
 
 	// it doesn't matter whether there is a prefixed path or not
 	binary_name = binary.substr(binary.find_last_of('/') + 1);
+	binary_name = binary_name.substr(0, binary_name.find_first_of(' '));
 }
 
 void DABLiveETISource::Init() {
