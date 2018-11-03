@@ -99,8 +99,18 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 	}
 
 //	fprintf(stderr, "PADDecoder: -----\n");
-	if(xpad_cis.empty())
+	if(xpad_cis.empty()) {
+		/* The CI list may be omitted if the (last) subfield of the X-PAD of the
+		 * previous frame/AU is continued (see §7.4.2.1f in ETSI EN 300 401).
+		 * However there are PAD encoders which wrongly assume that "previous"
+		 * only takes frames/AUs containing X-PAD into account.
+		 * This non-compliant encoding can generously be addressed by still
+		 * keeping the necessary CI info.
+		 */
+		if(loose)
+			last_xpad_ci = prev_xpad_ci;
 		return;
+	}
 
 	size_t announced_xpad_len = xpad_cis_len;
 	for(xpad_cis_t::const_iterator it = xpad_cis.cbegin(); it != xpad_cis.cend(); it++)
