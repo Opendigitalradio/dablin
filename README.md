@@ -310,6 +310,13 @@ have to change the DAB live source type accordingly by using `-D`.
 dablin -d ~/bin/eti-cmdline-rtlsdr -D eti-cmdline -c 11D -s 0xd911
 ```
 
+When enclosed in quotes, you can also pass command line parameters to the
+binary, e.g. to set some frequency correction (here: +40 ppm):
+
+```
+dablin -d "~/bin/eti-cmdline-rtlsdr -P 40" -D eti-cmdline -c 11D -s 0xd911
+```
+
 In case of the GTK GUI version the desired channel may not be specified. To
 avoid the huge channel list containing all possible DAB channels, one
 can also state the desired channels (separated by comma) which shall be
