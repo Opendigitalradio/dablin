@@ -64,7 +64,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 				// skip end marker
 				if(type != 0x00) {
 					xpad_cis_len = 1;
-					xpad_cis.push_back(XPAD_CI(3, type));
+					xpad_cis.emplace_back(3, type);
 				}
 				break; }
 			case 0b10:		// variable size X-PAD
@@ -80,7 +80,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 					if((ci_raw & 0x1F) == 0x00)
 						break;
 
-					xpad_cis.push_back(XPAD_CI(ci_raw));
+					xpad_cis.emplace_back(ci_raw);
 				}
 				break;
 			}
