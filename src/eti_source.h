@@ -29,6 +29,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include "tools.h"
+
 
 struct ETI_PROGRESS {
 	double value;
@@ -82,8 +84,6 @@ protected:
 	bool UpdateTotalFrames();
 	virtual void Init() {}
 	virtual void PrintSource();
-
-	static std::string FramecountToTimecode(size_t value);
 public:
 	ETISource(std::string filename, ETISourceObserver *observer);
 	virtual ~ETISource();

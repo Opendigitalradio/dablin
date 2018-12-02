@@ -157,7 +157,7 @@ int ETISource::Main() {
 
 			ETI_PROGRESS progress;
 			progress.value = (double) eti_frame_count / (double) eti_frame_total;
-			progress.text = FramecountToTimecode(eti_frame_count) + " / " + FramecountToTimecode(eti_frame_total);
+			progress.text = MiscTools::MsToTimecode(eti_frame_count * 24) + " / " + MiscTools::MsToTimecode(eti_frame_total * 24);
 			observer->ETIUpdateProgress(progress);
 
 			eti_progress_next_ms += 500;
@@ -169,35 +169,6 @@ int ETISource::Main() {
 	}
 
 	return 0;
-}
-
-std::string ETISource::FramecountToTimecode(size_t value) {
-	// frame count -> time code
-	long int tc_s = value * 24 / 1000;
-
-	// split
-	int h = tc_s / 3600;
-	tc_s -= h * 3600;
-
-	int m = tc_s / 60;
-	tc_s -= m * 60;
-
-	int s = tc_s;
-
-	// generate output
-	char digits[3];
-
-	// just to silence recent GCC's truncation warnings
-	m &= 0x3F;
-	s &= 0x3F;
-
-	std::string result = std::to_string(h);
-	snprintf(digits, sizeof(digits), "%02d", m);
-	result += ":" + std::string(digits);
-	snprintf(digits, sizeof(digits), "%02d", s);
-	result += ":" + std::string(digits);
-
-	return result;
 }
 
 

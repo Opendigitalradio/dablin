@@ -30,6 +30,36 @@ string_vector_t MiscTools::SplitString(const std::string &s, const char delimite
 	return result;
 }
 
+std::string MiscTools::MsToTimecode(long int value) {
+	// ignore milliseconds
+	long int tc_s = value / 1000;
+
+	// split
+	int h = tc_s / 3600;
+	tc_s -= h * 3600;
+
+	int m = tc_s / 60;
+	tc_s -= m * 60;
+
+	int s = tc_s;
+
+	// generate output
+	char digits[3];
+
+	// just to silence recent GCC's truncation warnings
+	m &= 0x3F;
+	s &= 0x3F;
+
+	std::string result = std::to_string(h);
+	snprintf(digits, sizeof(digits), "%02d", m);
+	result += ":" + std::string(digits);
+	snprintf(digits, sizeof(digits), "%02d", s);
+	result += ":" + std::string(digits);
+
+	return result;
+}
+
+
 
 // --- CalcCRC -----------------------------------------------------------------
 CalcCRC CalcCRC::CalcCRC_CRC16_CCITT(true, true, 0x1021);	// 0001 0000 0010 0001 (16, 12, 5, 0)

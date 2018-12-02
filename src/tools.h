@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <string>
 #include <sstream>
@@ -34,6 +35,7 @@ typedef std::vector<std::string> string_vector_t;
 class MiscTools {
 public:
 	static string_vector_t SplitString(const std::string &s, const char delimiter);
+	static std::string MsToTimecode(long int value);
 };
 
 
