@@ -203,6 +203,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 
 	initial_channel_appended = false;
 	rec_file = nullptr;
+	rec_duration_ms = 0;
 
 	slideshow_window.set_transient_for(*this);
 
@@ -517,18 +518,23 @@ void DABlinGTK::on_tglbtn_record() {
 			if(label_cleaned[i] == '/')
 				label_cleaned[i] = '_';
 
-		std::string rec_filename = options.recordings_path + "/" + std::string(now_string) + " - " + label_cleaned + "." + eti_player->GetUntouchedStreamFileExtension();
-		FILE* new_rec_file = fopen(rec_filename.c_str(), "wb");
+		std::string new_rec_filename = options.recordings_path + "/" + std::string(now_string) + " - " + label_cleaned + "." + eti_player->GetUntouchedStreamFileExtension();
+		FILE* new_rec_file = fopen(new_rec_filename.c_str(), "wb");
 		if(new_rec_file) {
 			// disable channel/service switch
 			combo_channels.set_sensitive(false);	// parent frame already non-sensitive, if channels not available
 			combo_services.set_sensitive(false);
 
-			fprintf(stderr, "DABlinGTK: recording started into '%s'\n", rec_filename.c_str());
+			fprintf(stderr, "DABlinGTK: recording started into '%s'\n", new_rec_filename.c_str());
 
 			{
 				std::lock_guard<std::mutex> lock(rec_file_mutex);
+
 				rec_file = new_rec_file;
+				rec_filename = new_rec_filename;
+				rec_duration_ms = 0;
+
+				UpdateRecStatus();
 			}
 
 			eti_player->AddUntouchedStreamConsumer(this);
@@ -552,6 +558,7 @@ void DABlinGTK::on_tglbtn_record() {
 			rec_file = nullptr;
 
 			fprintf(stderr, "DABlinGTK: recording stopped\n");
+			tglbtn_record.set_tooltip_text("");
 
 			// enable channel/service switch
 			combo_channels.set_sensitive(true);		// parent frame already non-sensitive, if channels not available
@@ -560,13 +567,28 @@ void DABlinGTK::on_tglbtn_record() {
 	}
 }
 
-void DABlinGTK::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t /*duration_ms*/) {
+void DABlinGTK::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t duration_ms) {
 	std::lock_guard<std::mutex> lock(rec_file_mutex);
 
 	if(rec_file) {
 		if(fwrite(data, len, 1, rec_file) != 1)
 			perror("DABlinGTK: error while writing untouched stream to file");
+
+		long int rec_duration_ms_old = rec_duration_ms;
+		rec_duration_ms += duration_ms;
+
+		// update status only on seconds change
+		if(rec_duration_ms / 1000 != rec_duration_ms_old / 1000)
+			UpdateRecStatus();
 	}
+}
+
+void DABlinGTK::UpdateRecStatus() {
+	// mutex must already be locked!
+	tglbtn_record.set_tooltip_text(
+			"File name: \"" + rec_filename + "\"\n"
+			"Duration: " + MiscTools::MsToTimecode(rec_duration_ms)
+	);
 }
 
 

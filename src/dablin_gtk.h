@@ -146,6 +146,8 @@ private:
 
 	std::mutex rec_file_mutex;
 	FILE* rec_file;
+	std::string rec_filename;
+	long int rec_duration_ms;
 
 	// ETI data change
 	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;
@@ -161,7 +163,7 @@ private:
 	void ETIResetFIC() {fic_decoder->Reset();}
 	void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data) {pad_decoder->Process(xpad_data, xpad_len, exact_xpad_len, fpad_data);}
 
-	void ProcessUntouchedStream(const uint8_t* data, size_t len, size_t /*duration_ms*/);
+	void ProcessUntouchedStream(const uint8_t* data, size_t len, size_t duration_ms);
 
 
 	Gtk::Grid top_grid;
@@ -213,6 +215,7 @@ private:
 	bool HandleKeyPressEvent(GdkEventKey* key_event);
 	bool HandleConfigureEvent(GdkEventConfigure* configure_event);
 	void TryServiceSwitch(int index);
+	void UpdateRecStatus();
 
 	// FIC data change
 	GTKDispatcherQueue<FIC_ENSEMBLE> fic_change_ensemble;
@@ -236,7 +239,7 @@ private:
 
 	void PADLengthError(size_t announced_xpad_len, size_t xpad_len);
 
-	Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
+	static Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
 public:
 	DABlinGTK(DABlinGTKOptions options);
 	~DABlinGTK();
