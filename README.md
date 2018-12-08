@@ -355,6 +355,13 @@ them as well, but currently does not support the SBR extension together
 with the 960 samples per frame transformation and will thus only play
 the AAC core then.
 
+It is possible to enable a recording prebuffer which continuously caches
+a certain period of time. This allows to record e.g. an already running
+song or bloopers. When an actual recording is started, the complete
+prebuffer content is initially written to the recording file. The
+prebuffer size in seconds is specified using `-P` e.g. `-P 600` for ten
+minutes.
+
 
 ### Secondary component audio services
 

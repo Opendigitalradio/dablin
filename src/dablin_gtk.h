@@ -20,6 +20,7 @@
 #define DABLIN_GTK_H_
 
 #include <algorithm>
+#include <list>
 #include <mutex>
 #include <queue>
 #include <signal.h>
@@ -78,6 +79,7 @@ struct DABlinGTKOptions {
 	std::string displayed_channels;
 	std::string initial_channel;
 	std::string recordings_path;
+	size_t rec_prebuffer_size_s;
 	bool pcm_output;
 	bool untouched_output;
 	int gain;
@@ -89,6 +91,7 @@ DABlinGTKOptions() :
 	initial_scids(LISTED_SERVICE::scids_none),
 	dab_live_source_type(DABLiveETISource::TYPE_DAB2ETI),
 	recordings_path("/tmp"),
+	rec_prebuffer_size_s(0),
 	pcm_output(false),
 	untouched_output(false),
 	gain(DAB_LIVE_SOURCE_CHANNEL::auto_gain),
@@ -126,6 +129,21 @@ public:
 };
 
 
+// --- RecSample -----------------------------------------------------------------
+struct RecSample {
+	std::vector<uint8_t> data;
+	size_t duration_ms;
+
+	RecSample(const uint8_t* data, size_t len, size_t duration_ms) {
+		this->data.resize(len);
+		memcpy(&this->data[0], data, len);
+		this->duration_ms = duration_ms;
+	}
+};
+
+typedef std::list<RecSample> rec_samples_t;
+
+
 // --- DABlinGTK -----------------------------------------------------------------
 class DABlinGTK : public Gtk::Window, ETISourceObserver, ETIPlayerObserver, FICDecoderObserver, PADDecoderObserver, UntouchedStreamConsumer {
 private:
@@ -144,10 +162,12 @@ private:
 	FICDecoder *fic_decoder;
 	PADDecoder *pad_decoder;
 
-	std::mutex rec_file_mutex;
+	std::mutex rec_mutex;
 	FILE* rec_file;
 	std::string rec_filename;
 	long int rec_duration_ms;
+	rec_samples_t rec_prebuffer;
+	long int rec_prebuffer_filled_ms;
 
 	// ETI data change
 	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;

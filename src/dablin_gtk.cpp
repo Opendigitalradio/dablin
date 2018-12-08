@@ -43,6 +43,7 @@ static void usage(const char* exe) {
 					"  -x <scids>   ID of the service component to be played (requires service ID)\n"
 					"  -g <gain>    USB stick gain to pass to DAB live source (auto gain is default)\n"
 					"  -r <path>    Path for recordings (default: %s)\n"
+					"  -P <size>    Recording prebuffer size in seconds (default: %zu)\n"
 					"  -p           Output PCM to stdout instead of using SDL\n"
 					"  -u           Output untouched audio stream to stdout instead of using SDL\n"
 					"  -S           Initially disable slideshow\n"
@@ -50,7 +51,8 @@ static void usage(const char* exe) {
 					"  file         Input file to be played (stdin, if not specified)\n",
 					DABLiveETISource::TYPE_DAB2ETI.c_str(),
 					DABLiveETISource::TYPE_ETI_CMDLINE.c_str(),
-					options_default.recordings_path.c_str()
+					options_default.recordings_path.c_str(),
+					options_default.rec_prebuffer_size_s
 			);
 	exit(1);
 }
@@ -72,7 +74,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hd:D:C:c:l:g:r:s:x:puSL")) != -1) {
+	while((c = getopt(argc, argv, "hd:D:C:c:l:g:r:P:s:x:puSL")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -105,6 +107,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'r':
 			options.recordings_path = optarg;
+			break;
+		case 'P':
+			options.rec_prebuffer_size_s = strtol(optarg, nullptr, 0);
 			break;
 		case 'p':
 			options.pcm_output = true;
@@ -463,6 +468,8 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 	// if the audio service changed, reset format/DL/slide + switch
 	if(!eti_player->IsSameAudioService(service.audio_service)) {
 		// stop playback of old service
+		if(options.rec_prebuffer_size_s > 0)
+			eti_player->RemoveUntouchedStreamConsumer(this);
 		eti_player->SetAudioService(AUDIO_SERVICE());
 
 		pad_decoder->Reset();
@@ -478,8 +485,18 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 			slideshow_window.ClearSlide();
 		}
 
+		if(options.rec_prebuffer_size_s > 0) {
+			std::lock_guard<std::mutex> lock(rec_mutex);
+
+			// clear prebuffer
+			rec_prebuffer.clear();
+			rec_prebuffer_filled_ms = 0;
+		}
+
 		// start playback of new service
 		eti_player->SetAudioService(service.audio_service);
+		if(options.rec_prebuffer_size_s > 0)
+			eti_player->AddUntouchedStreamConsumer(this);
 	}
 
 	if(service.HasSLS()) {
@@ -528,16 +545,26 @@ void DABlinGTK::on_tglbtn_record() {
 			fprintf(stderr, "DABlinGTK: recording started into '%s'\n", new_rec_filename.c_str());
 
 			{
-				std::lock_guard<std::mutex> lock(rec_file_mutex);
+				std::lock_guard<std::mutex> lock(rec_mutex);
 
 				rec_file = new_rec_file;
 				rec_filename = new_rec_filename;
-				rec_duration_ms = 0;
+
+				// write prebuffer
+				for(const RecSample& s : rec_prebuffer)
+					if(fwrite(&s.data[0], s.data.size(), 1, rec_file) != 1)
+						perror("DABlinGTK: error while writing untouched stream prebuffer to file");
+				rec_duration_ms = rec_prebuffer_filled_ms;
+
+				// clear prebuffer
+				rec_prebuffer.clear();
+				rec_prebuffer_filled_ms = 0;
 
 				UpdateRecStatus();
 			}
 
-			eti_player->AddUntouchedStreamConsumer(this);
+			if(options.rec_prebuffer_size_s == 0)
+				eti_player->AddUntouchedStreamConsumer(this);
 		} else {
 			int fopen_errno = errno;	// save before overwrite
 			tglbtn_record.set_active(false);
@@ -548,17 +575,18 @@ void DABlinGTK::on_tglbtn_record() {
 			hint.run();
 		}
 	} else {
-		std::lock_guard<std::mutex> lock(rec_file_mutex);
+		std::lock_guard<std::mutex> lock(rec_mutex);
 
 		// only stop recording, if active (handles error on recording start)
 		if(rec_file) {
-			eti_player->RemoveUntouchedStreamConsumer(this);
+			if(options.rec_prebuffer_size_s == 0)
+				eti_player->RemoveUntouchedStreamConsumer(this);
 
 			fclose(rec_file);
 			rec_file = nullptr;
 
 			fprintf(stderr, "DABlinGTK: recording stopped\n");
-			tglbtn_record.set_tooltip_text("");
+			UpdateRecStatus();
 
 			// enable channel/service switch
 			combo_channels.set_sensitive(true);		// parent frame already non-sensitive, if channels not available
@@ -568,27 +596,59 @@ void DABlinGTK::on_tglbtn_record() {
 }
 
 void DABlinGTK::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t duration_ms) {
-	std::lock_guard<std::mutex> lock(rec_file_mutex);
+	std::lock_guard<std::mutex> lock(rec_mutex);
 
+	// if recording in progress
 	if(rec_file) {
-		if(fwrite(data, len, 1, rec_file) != 1)
-			perror("DABlinGTK: error while writing untouched stream to file");
-
 		long int rec_duration_ms_old = rec_duration_ms;
+
+		// write sample
+		if(fwrite(data, len, 1, rec_file) != 1)
+			perror("DABlinGTK: error while writing untouched stream sample to file");
 		rec_duration_ms += duration_ms;
 
 		// update status only on seconds change
 		if(rec_duration_ms / 1000 != rec_duration_ms_old / 1000)
 			UpdateRecStatus();
+	} else {
+		// if prebuffer enabled
+		if(options.rec_prebuffer_size_s > 0) {
+			long int rec_prebuffer_ms_old = rec_prebuffer_filled_ms;
+
+			// append sample
+			rec_prebuffer.emplace_back(data, len, duration_ms);
+			rec_prebuffer_filled_ms += duration_ms;
+
+			// remove samples while needed
+			while(rec_prebuffer_filled_ms - rec_prebuffer.front().duration_ms >= options.rec_prebuffer_size_s * 1000) {
+				rec_prebuffer_filled_ms -= rec_prebuffer.front().duration_ms;
+				rec_prebuffer.pop_front();
+			}
+
+			// update status only on seconds change
+			if(rec_prebuffer_filled_ms / 1000 != rec_prebuffer_ms_old / 1000)
+				UpdateRecStatus();
+		}
 	}
 }
 
 void DABlinGTK::UpdateRecStatus() {
 	// mutex must already be locked!
-	tglbtn_record.set_tooltip_text(
-			"File name: \"" + rec_filename + "\"\n"
-			"Duration: " + MiscTools::MsToTimecode(rec_duration_ms)
-	);
+
+	std::string tooltip_text;
+
+	// if recording in progress
+	if(rec_file) {
+		tooltip_text =
+				"File name: \"" + rec_filename + "\"\n"
+				"Duration: " + MiscTools::MsToTimecode(rec_duration_ms);
+	} else {
+		// if prebuffer enabled
+		if(rec_prebuffer_filled_ms > 0)
+			tooltip_text = "Prebuffer: " + MiscTools::MsToTimecode(rec_prebuffer_filled_ms) + " / " + MiscTools::MsToTimecode(options.rec_prebuffer_size_s * 1000);
+	}
+
+	tglbtn_record.set_tooltip_text(tooltip_text);
 }
 
 
