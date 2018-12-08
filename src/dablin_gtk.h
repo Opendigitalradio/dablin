@@ -199,7 +199,7 @@ private:
 
 	void InitWidgets();
 	void AddChannels();
-	void AddChannel(dab_channels_t::const_iterator &it, int gain);
+	void AddChannel(const dab_channels_t::value_type& dab_channel, int gain);
 
 	void SetService(const LISTED_SERVICE& service);
 

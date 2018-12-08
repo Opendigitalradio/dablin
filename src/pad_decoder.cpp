@@ -113,8 +113,8 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 	}
 
 	size_t announced_xpad_len = xpad_cis_len;
-	for(xpad_cis_t::const_iterator it = xpad_cis.cbegin(); it != xpad_cis.cend(); it++)
-		announced_xpad_len += it->len;
+	for(const XPAD_CI& xpad_ci : xpad_cis)
+		announced_xpad_len += xpad_ci.len;
 
 	// abort, if the announced X-PAD len exceeds the available one
 	if(announced_xpad_len > xpad_len)
@@ -133,14 +133,14 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 	// process CIs
 	size_t xpad_offset = xpad_cis_len;
 	int xpad_ci_type_continued = -1;
-	for(xpad_cis_t::const_iterator it = xpad_cis.cbegin(); it != xpad_cis.cend(); it++) {
+	for(const XPAD_CI& xpad_ci : xpad_cis) {
 		// len only valid for the *immediate* next data group after the DGLI!
 		size_t dgli_len = dgli_decoder.GetDGLILen();
 
 		// handle Data Subfield
-		switch(it->type) {
+		switch(xpad_ci.type) {
 		case 1:		// Data Group Length Indicator
-			dgli_decoder.ProcessDataSubfield(ci_flag, xpad + xpad_offset, it->len);
+			dgli_decoder.ProcessDataSubfield(ci_flag, xpad + xpad_offset, xpad_ci.len);
 
 			xpad_ci_type_continued = 1;
 			break;
@@ -148,7 +148,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 		case 2:		// Dynamic Label segment (start)
 		case 3:		// Dynamic Label segment (continuation)
 			// if new label available, append it
-			if(dl_decoder.ProcessDataSubfield(it->type == 2, xpad + xpad_offset, it->len))
+			if(dl_decoder.ProcessDataSubfield(xpad_ci.type == 2, xpad + xpad_offset, xpad_ci.len))
 				observer->PADChangeDynamicLabel(dl_decoder.GetLabel());
 
 			xpad_ci_type_continued = 3;
@@ -156,14 +156,14 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 
 		default:
 			// MOT, X-PAD data group (start/continuation)
-			if(mot_app_type != -1 && (it->type == mot_app_type || it->type == mot_app_type + 1)) {
-				bool start = it->type == mot_app_type;
+			if(mot_app_type != -1 && (xpad_ci.type == mot_app_type || xpad_ci.type == mot_app_type + 1)) {
+				bool start = xpad_ci.type == mot_app_type;
 
 				if(start)
 					mot_decoder.SetLen(dgli_len);
 
 				// if new Data Group available, append it
-				if(mot_decoder.ProcessDataSubfield(start, xpad + xpad_offset, it->len)) {
+				if(mot_decoder.ProcessDataSubfield(start, xpad + xpad_offset, xpad_ci.len)) {
 					// if new slide available, show it
 					if(mot_manager.HandleMOTDataGroup(mot_decoder.GetMOTDataGroup())) {
 						const MOT_FILE new_slide = mot_manager.GetFile();
@@ -192,7 +192,7 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 		}
 //		fprintf(stderr, "PADDecoder: Data Subfield: type: %2d, len: %2zu\n", it->type, it->len);
 
-		xpad_offset += it->len;
+		xpad_offset += xpad_ci.len;
 	}
 
 	// set last CI

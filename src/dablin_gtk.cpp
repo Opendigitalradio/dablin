@@ -382,14 +382,14 @@ void DABlinGTK::InitWidgets() {
 void DABlinGTK::AddChannels() {
 	if(options.displayed_channels.empty()) {
 		// add all channels
-		for(dab_channels_t::const_iterator it = dab_channels.cbegin(); it != dab_channels.cend(); it++)
-			AddChannel(it, options.gain);
+		for(const dab_channels_t::value_type& dab_channel : dab_channels)
+			AddChannel(dab_channel, options.gain);
 	} else {
 		// add specific channels
 		string_vector_t channels = MiscTools::SplitString(options.displayed_channels, ',');
-		for(string_vector_t::const_iterator ch_it = channels.cbegin(); ch_it != channels.cend(); ch_it++) {
+		for(const std::string& channel : channels) {
 			int gain = options.gain;
-			string_vector_t parts = MiscTools::SplitString(*ch_it, ':');
+			string_vector_t parts = MiscTools::SplitString(channel, ':');
 			switch(parts.size()) {
 			case 2:
 				gain = strtol(parts[1].c_str(), nullptr, 0);
@@ -397,25 +397,25 @@ void DABlinGTK::AddChannels() {
 			case 1: {
 				dab_channels_t::const_iterator it = dab_channels.find(parts[0]);
 				if(it != dab_channels.cend())
-					AddChannel(it, gain);
+					AddChannel(*it, gain);
 				else
 					fprintf(stderr, "DABlinGTK: The channel '%s' is not supported; ignoring!\n", parts[0].c_str());
 				break; }
 			default:
-				fprintf(stderr, "DABlinGTK: The format of channel '%s' is not supported; ignoring!\n", ch_it->c_str());
+				fprintf(stderr, "DABlinGTK: The format of channel '%s' is not supported; ignoring!\n", channel.c_str());
 				continue;
 			}
 		}
 	}
 }
 
-void DABlinGTK::AddChannel(dab_channels_t::const_iterator &it, int gain) {
+void DABlinGTK::AddChannel(const dab_channels_t::value_type& dab_channel, int gain) {
 	Gtk::ListStore::iterator row_it = combo_channels_liststore->append();
 	Gtk::TreeModel::Row row = *row_it;
-	row[combo_channels_cols.col_string] = it->first;
-	row[combo_channels_cols.col_channel] = DAB_LIVE_SOURCE_CHANNEL(it->first, it->second, gain);
+	row[combo_channels_cols.col_string] = dab_channel.first;
+	row[combo_channels_cols.col_channel] = DAB_LIVE_SOURCE_CHANNEL(dab_channel.first, dab_channel.second, gain);
 
-	if(it->first == options.initial_channel)
+	if(dab_channel.first == options.initial_channel)
 		initial_channel_it = row_it;
 }
 
@@ -514,9 +514,9 @@ void DABlinGTK::on_tglbtn_record() {
 
 		// escape forbidden '/' character
 		std::string label_cleaned = label;
-		for(size_t i = 0; i < label_cleaned.length(); i++)
-			if(label_cleaned[i] == '/')
-				label_cleaned[i] = '_';
+		for(char& c : label_cleaned)
+			if(c == '/')
+				c = '_';
 
 		std::string new_rec_filename = options.recordings_path + "/" + std::string(now_string) + " - " + label_cleaned + "." + eti_player->GetUntouchedStreamFileExtension();
 		FILE* new_rec_file = fopen(new_rec_filename.c_str(), "wb");

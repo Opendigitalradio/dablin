@@ -448,8 +448,8 @@ FIC_SUBCHANNEL& FICDecoder::GetSubchannel(int subchid) {
 
 void FICDecoder::UpdateSubchannel(int subchid) {
 	// update services that consist of this sub-channel
-	for(fic_services_t::const_iterator it = services.cbegin(); it != services.cend(); it++) {
-		const FIC_SERVICE& s = it->second;
+	for(const fic_services_t::value_type& service : services) {
+		const FIC_SERVICE& s = service.second;
 		if(s.audio_comps.find(subchid) != s.audio_comps.end())
 			UpdateService(s);
 	}
@@ -471,10 +471,10 @@ void FICDecoder::UpdateService(const FIC_SERVICE& service) {
 
 	// secondary components (if both component and definition are present)
 	bool multi_comps = false;
-	for(comp_defs_t::const_iterator it = service.comp_defs.cbegin(); it != service.comp_defs.cend(); it++) {
-		if(it->second == service.pri_comp_subchid || service.audio_comps.find(it->second) == service.audio_comps.end())
+	for(const comp_defs_t::value_type& comp_def : service.comp_defs) {
+		if(comp_def.second == service.pri_comp_subchid || service.audio_comps.find(comp_def.second) == service.audio_comps.end())
 			continue;
-		UpdateListedService(service, it->first, true);
+		UpdateListedService(service, comp_def.first, true);
 		multi_comps = true;
 	}
 
@@ -513,9 +513,9 @@ void FICDecoder::UpdateListedService(const FIC_SERVICE& service, int scids, bool
 	 */
 	int sls_scids = scids;
 	if(sls_scids == LISTED_SERVICE::scids_none) {
-		for(comp_defs_t::const_iterator it = service.comp_defs.cbegin(); it != service.comp_defs.cend(); it++) {
-			if(it->second == ls.audio_service.subchid) {
-				sls_scids = it->first;
+		for(const comp_defs_t::value_type& comp_def : service.comp_defs) {
+			if(comp_def.second == ls.audio_service.subchid) {
+				sls_scids = comp_def.first;
 				break;
 			}
 		}
@@ -581,8 +581,8 @@ std::string FICDecoder::ConvertTextToUTF8(const uint8_t *data, size_t len, int c
 			*charset_name = "EBU Latin based";
 
 		std::string result;
-		for(size_t i = 0; i < cleaned_data.size(); i++)
-			result += ConvertCharEBUToUTF8(cleaned_data[i]);
+		for(const uint8_t& c : cleaned_data)
+			result += ConvertCharEBUToUTF8(c);
 		return result;
 	}
 	if(charset == 0b0100 && mot)	// ISO/IEC-8859-1 (MOT only)
