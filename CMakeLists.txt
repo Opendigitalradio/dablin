@@ -54,9 +54,23 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
+    # C++11
     add_compile_options(-std=c++0x)
+    
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        # strip symbols
+        SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -s")
+    endif()
+    
+    # warnings
     add_compile_options(-Wall)
     add_compile_options(-Wextra)
+    
+    # hardening
+    add_compile_options(-fstack-protector-strong)
+    add_compile_options(-fPIE)
+    SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pie")
+    SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -z now")
 elseif(MSVC)
     # TODO
 endif()
