@@ -209,6 +209,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	initial_channel_appended = false;
 	rec_file = nullptr;
 	rec_duration_ms = 0;
+	rec_prebuffer_filled_ms = 0;
 
 	slideshow_window.set_transient_for(*this);
 
