@@ -691,7 +691,7 @@ void DABlinGTK::ConnectKeyPressEventHandler(Gtk::Widget& widget) {
 }
 
 bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
-	// consider only events without Shift/Control/Alt/Win
+	// events without Shift/Control/Alt/Win
 	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::CONTROL_MASK | Gdk::MOD1_MASK | Gdk::SUPER_MASK)) == 0) {
 		switch(key_event->keyval) {
 		case GDK_KEY_m:
@@ -705,64 +705,83 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 			if(tglbtn_record.get_sensitive())
 				tglbtn_record.clicked();
 			return true;
-		// try to switch service
-		case GDK_KEY_1:
-		case GDK_KEY_KP_1:
-			TryServiceSwitch(0);
-			return true;
-		case GDK_KEY_2:
-		case GDK_KEY_KP_2:
-			TryServiceSwitch(1);
-			return true;
-		case GDK_KEY_3:
-		case GDK_KEY_KP_3:
-			TryServiceSwitch(2);
-			return true;
-		case GDK_KEY_4:
-		case GDK_KEY_KP_4:
-			TryServiceSwitch(3);
-			return true;
-		case GDK_KEY_5:
-		case GDK_KEY_KP_5:
-			TryServiceSwitch(4);
-			return true;
-		case GDK_KEY_6:
-		case GDK_KEY_KP_6:
-			TryServiceSwitch(5);
-			return true;
-		case GDK_KEY_7:
-		case GDK_KEY_KP_7:
-			TryServiceSwitch(6);
-			return true;
-		case GDK_KEY_8:
-		case GDK_KEY_KP_8:
-			TryServiceSwitch(7);
-			return true;
-		case GDK_KEY_9:
-		case GDK_KEY_KP_9:
-			TryServiceSwitch(8);
-			return true;
-		case GDK_KEY_0:
-		case GDK_KEY_KP_0:
-			TryServiceSwitch(9);
-			return true;
-		case GDK_KEY_minus:
-		case GDK_KEY_KP_Subtract:
-			TryServiceSwitch(combo_services.get_active_row_number() - 1);
-			return true;
-		case GDK_KEY_plus:
-		case GDK_KEY_KP_Add:
-			TryServiceSwitch(combo_services.get_active_row_number() + 1);
-			return true;
 		}
+
+		// try to switch service
+		int new_index;
+		if(CheckForIndexKey(key_event, combo_services.get_active_row_number(), new_index))
+			TrySwitch(combo_services, combo_services_liststore, new_index);
+	}
+
+	// events without Shift/Alt/Win, but with Control
+	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::MOD1_MASK | Gdk::SUPER_MASK)) == 0 && (key_event->state & Gdk::CONTROL_MASK)) {
+		// try to switch channel
+		int new_index;
+		if(CheckForIndexKey(key_event, combo_channels.get_active_row_number(), new_index))
+			TrySwitch(combo_channels, combo_channels_liststore, new_index);
+	}
+
+	return false;
+}
+
+bool DABlinGTK::CheckForIndexKey(GdkEventKey* key_event, int old_index, int& new_index) {
+	switch(key_event->keyval) {
+	case GDK_KEY_1:
+	case GDK_KEY_KP_1:
+		new_index = 0;
+		return true;
+	case GDK_KEY_2:
+	case GDK_KEY_KP_2:
+		new_index = 1;
+		return true;
+	case GDK_KEY_3:
+	case GDK_KEY_KP_3:
+		new_index = 2;
+		return true;
+	case GDK_KEY_4:
+	case GDK_KEY_KP_4:
+		new_index = 3;
+		return true;
+	case GDK_KEY_5:
+	case GDK_KEY_KP_5:
+		new_index = 4;
+		return true;
+	case GDK_KEY_6:
+	case GDK_KEY_KP_6:
+		new_index = 5;
+		return true;
+	case GDK_KEY_7:
+	case GDK_KEY_KP_7:
+		new_index = 6;
+		return true;
+	case GDK_KEY_8:
+	case GDK_KEY_KP_8:
+		new_index = 7;
+		return true;
+	case GDK_KEY_9:
+	case GDK_KEY_KP_9:
+		new_index = 8;
+		return true;
+	case GDK_KEY_0:
+	case GDK_KEY_KP_0:
+		new_index = 9;
+		return true;
+	case GDK_KEY_minus:
+	case GDK_KEY_KP_Subtract:
+		new_index = old_index - 1;
+		return true;
+	case GDK_KEY_plus:
+	case GDK_KEY_KP_Add:
+		new_index = old_index + 1;
+		return true;
 	}
 	return false;
 }
 
-void DABlinGTK::TryServiceSwitch(int index) {
-	// switch service, if allowed and index valid
-	if(combo_services.is_sensitive() && index >= 0 && index < (signed) combo_services_liststore->children().size())
-		combo_services.set_active(index);
+void DABlinGTK::TrySwitch(Gtk::ComboBox& combo, Glib::RefPtr<Gtk::ListStore>& combo_liststore, int index) {
+	// switch, if allowed and index valid
+	if(combo.is_sensitive() && index >= 0 && index < (signed) combo_liststore->children().size())
+		combo.set_active(index);
 }
 
 bool DABlinGTK::HandleConfigureEvent(GdkEventConfigure* /*configure_event*/) {

@@ -234,7 +234,8 @@ private:
 	void ConnectKeyPressEventHandler(Gtk::Widget& widget);
 	bool HandleKeyPressEvent(GdkEventKey* key_event);
 	bool HandleConfigureEvent(GdkEventConfigure* configure_event);
-	void TryServiceSwitch(int index);
+	bool CheckForIndexKey(GdkEventKey* key_event, int old_index, int& new_index);
+	void TrySwitch(Gtk::ComboBox& combo, Glib::RefPtr<Gtk::ListStore>& combo_liststore, int index);
 	void UpdateRecStatus();
 
 	// FIC data change
