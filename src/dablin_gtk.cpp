@@ -691,8 +691,8 @@ void DABlinGTK::ConnectKeyPressEventHandler(Gtk::Widget& widget) {
 }
 
 bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
-	// consider only events without Shift/Control/Alt
-	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::CONTROL_MASK | Gdk::MOD1_MASK)) == 0) {
+	// consider only events without Shift/Control/Alt/Win
+	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::CONTROL_MASK | Gdk::MOD1_MASK | Gdk::SUPER_MASK)) == 0) {
 		switch(key_event->keyval) {
 		case GDK_KEY_m:
 		case GDK_KEY_M:
