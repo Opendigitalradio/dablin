@@ -270,7 +270,8 @@ keyboard shortcut `m` to toggle muting the audio.
 To switch to the previous/next service, the `-`/`+` keys can be used.
 To switch to the 1st, 2nd, ..., 10th service in the service list, the
 keys `1`, `2`, ..., `0` can be used. In both cases also the respective
-keys on the NumPad are supported.
+keys on the NumPad are supported. If combined with `Ctrl`, the current
+channel is switched instead.
 
 
 ### DAB live reception
