@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -191,7 +191,7 @@ void ETIPlayer::ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact
 		observer->ETIProcessPAD(xpad_data, xpad_len, exact_xpad_len, fpad_data);
 }
 
-void ETIPlayer::ProcessUntouchedStream(const uint8_t* data, size_t len) {
+void ETIPlayer::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t /*duration_ms*/) {
 	if(untouched_output) {
 		if(fwrite(data, len, 1, stdout) != 1)
 			perror("ETIPlayer: error while writing untouched stream to stdout");

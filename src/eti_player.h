@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ private:
 
 	void ProcessFIC(const uint8_t *data, size_t len);
 	void ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t *fpad_data);
-	void ProcessUntouchedStream(const uint8_t* data, size_t len);
+	void ProcessUntouchedStream(const uint8_t* data, size_t len, size_t duration_ms);
 
 	void AudioError(const std::string& hint);
 	void AudioWarning(const std::string& hint);
