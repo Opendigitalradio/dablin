@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2016 Stefan Pöschel
+    Copyright (C) 2016-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 void fprint_dablin_banner(FILE *f) {
 	fprintf(f, "DABlin v%s - capital DAB experience\n", DABLIN_VERSION);
-	fprintf(f, "Plays a DAB/DAB+ audio service from a frame-aligned ETI-NI stream.\n");
+	fprintf(f, "Plays a DAB/DAB+ audio service from an ETI-NI stream.\n");
 	fprintf(f, "  https://github.com/Opendigitalradio/dablin\n");
 	fprintf(f, "\n");
 }
