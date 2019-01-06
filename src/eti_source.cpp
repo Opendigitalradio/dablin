@@ -25,8 +25,9 @@ ETISource::ETISource(std::string filename, ETISourceObserver *observer) {
 	this->observer = observer;
 
 	input_file = nullptr;
-	eti_frame_count = 0;
-	eti_frame_total = 0;
+	eti_frames_count = 0;
+	eti_bytes_count = 0;
+	eti_bytes_total = 0;
 	eti_progress_next_ms = 0;
 
 	do_exit = false;
@@ -54,12 +55,12 @@ bool ETISource::OpenFile() {
 		}
 	}
 
-	// init total frames
-	return UpdateTotalFrames();
+	// init total bytes
+	return UpdateTotalBytes();
 }
 
-bool ETISource::UpdateTotalFrames() {
-	// if file size available, calc total frame count
+bool ETISource::UpdateTotalBytes() {
+	// if file size available, get total bytes count
 	off_t old_offset = ftello(input_file);
 	if(old_offset == -1) {
 		// ignore non-seekable files (like usually stdin)
@@ -85,7 +86,7 @@ bool ETISource::UpdateTotalFrames() {
 		return false;
 	}
 
-	eti_frame_total = (len / sizeof(eti_frame)) - 1;
+	eti_bytes_total = len;
 	return true;
 }
 
@@ -135,14 +136,16 @@ int ETISource::Main() {
 
 		size_t bytes = fread(eti_frame + filled, 1, sizeof(eti_frame) - filled, input_file);
 
-		if(bytes > 0)
+		if(bytes > 0) {
+			eti_bytes_count += bytes;
 			filled += bytes;
+		}
 		if(bytes == 0) {
 			if(feof(input_file)) {
 				fprintf(stderr, "ETISource: EOF reached!\n");
 
 				// if present, update progress
-				if(eti_frame_total) {
+				if(eti_bytes_total) {
 					if(!UpdateProgress())
 						return 1;
 				}
@@ -156,14 +159,14 @@ int ETISource::Main() {
 			continue;
 
 		// if present, update progress every 500ms
-		if(eti_frame_total && eti_frame_count * 24 >= eti_progress_next_ms) {
+		if(eti_bytes_total && eti_frames_count * 24 >= eti_progress_next_ms) {
 			if(!UpdateProgress())
 				return 1;
 			eti_progress_next_ms += 500;
 		}
 
 		observer->ETIProcessFrame(eti_frame);
-		eti_frame_count++;
+		eti_frames_count++;
 		filled = 0;
 	}
 
@@ -171,13 +174,17 @@ int ETISource::Main() {
 }
 
 bool ETISource::UpdateProgress() {
-	// update total frames
-	if(!UpdateTotalFrames())
+	// update total bytes
+	if(!UpdateTotalBytes())
 		return false;
 
+	size_t eti_bytes_left = eti_bytes_total - eti_bytes_count;
+	size_t eti_frames_left = eti_bytes_left / sizeof(eti_frame);
+	size_t eti_frames_total = eti_frames_count + eti_frames_left;
+
 	ETI_PROGRESS progress;
-	progress.value = (double) eti_frame_count / (double) eti_frame_total;
-	progress.text = MiscTools::MsToTimecode(eti_frame_count * 24) + " / " + MiscTools::MsToTimecode(eti_frame_total * 24);
+	progress.value = (double) eti_frames_count / (double) eti_frames_total;
+	progress.text = MiscTools::MsToTimecode(eti_frames_count * 24) + " / " + MiscTools::MsToTimecode(eti_frames_total * 24);
 	observer->ETIUpdateProgress(progress);
 	return true;
 }

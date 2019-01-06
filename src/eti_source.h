@@ -76,12 +76,13 @@ protected:
 	FILE *input_file;
 
 	uint8_t eti_frame[6144];
-	size_t eti_frame_count;
-	size_t eti_frame_total;
+	size_t eti_frames_count;
+	size_t eti_bytes_count;
+	size_t eti_bytes_total;
 	unsigned long int eti_progress_next_ms;
 
 	bool OpenFile();
-	bool UpdateTotalFrames();
+	bool UpdateTotalBytes();
 	bool UpdateProgress();
 	virtual void Init() {}
 	virtual void PrintSource();
