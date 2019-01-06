@@ -116,6 +116,7 @@ int ETISource::Main() {
 	fd_set fds;
 	timeval select_timeval;
 	size_t filled = 0;
+	size_t sync_skipped = 0;
 
 	while(!do_exit) {
 		FD_ZERO(&fds);
@@ -142,6 +143,9 @@ int ETISource::Main() {
 		}
 		if(bytes == 0) {
 			if(feof(input_file)) {
+				size_t sync_skipped_eof = sync_skipped + filled;
+				if(sync_skipped_eof)
+					fprintf(stderr, "ETISource: skipping %zu bytes at EOF\n", sync_skipped_eof);
 				fprintf(stderr, "ETISource: EOF reached!\n");
 
 				// if present, update progress
@@ -158,16 +162,36 @@ int ETISource::Main() {
 		if(filled < sizeof(eti_frame))
 			continue;
 
-		// if present, update progress every 500ms
-		if(eti_bytes_total && eti_frames_count * 24 >= eti_progress_next_ms) {
-			if(!UpdateProgress())
-				return 1;
-			eti_progress_next_ms += 500;
+		// check for frame sync
+		size_t offset;
+		for(offset = 0; offset < sizeof(eti_frame) - 3; offset++) {
+			uint32_t fsync = eti_frame[offset+1] << 16 | eti_frame[offset+2] << 8 | eti_frame[offset+3];
+			if(fsync == 0x073AB6 || fsync == 0xF8C549)
+				break;
 		}
 
-		observer->ETIProcessFrame(eti_frame);
-		eti_frames_count++;
-		filled = 0;
+		if(offset) {	// buffer not (yet) synced
+			// discard buffer start
+			memmove(eti_frame, eti_frame + offset, sizeof(eti_frame) - offset);
+			filled -= offset;
+			sync_skipped += offset;
+		} else {		// buffer synced
+			if(sync_skipped) {
+				fprintf(stderr, "ETISource: skipping %zu bytes for sync\n", sync_skipped);
+				sync_skipped = 0;
+			}
+
+			// if present, update progress every 500ms
+			if(eti_bytes_total && eti_frames_count * 24 >= eti_progress_next_ms) {
+				if(!UpdateProgress())
+					return 1;
+				eti_progress_next_ms += 500;
+			}
+
+			observer->ETIProcessFrame(eti_frame);
+			eti_frames_count++;
+			filled = 0;
+		}
 	}
 
 	return 0;

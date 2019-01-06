@@ -1,9 +1,8 @@
 # DABlin – capital DAB experience
 
 DABlin plays a DAB/DAB+ audio service – either from a received live
-transmission or from a stored ensemble recording (frame-aligned ETI-NI).
-Both DAB (MP2) and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are
-supported.
+transmission or from a stored ensemble recording (ETI-NI). Both DAB
+(MP2) and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are supported.
 
 The GTK GUI version in addition supports the data applications Dynamic Label
 and MOT Slideshow (if used by the selected service).
@@ -238,8 +237,10 @@ The console executable is called `dablin`, the GTK GUI executable
 (Currently no desktop files are installed so it is not easy to start DABlin
 directly from GNOME Shell. For now, at least, start DABlin from a console.)
 
-DABlin processes frame-aligned DAB ETI-NI recordings. If no filename is
-specified, `stdin` is used for input.
+DABlin processes DAB ETI-NI recordings/streams (which may be
+frame-aligned or not i.e. any data before/after an ETI-NI frame is
+discarded). If no filename is specified, `stdin` is used for input.
+
 You just should specify the service ID (SID) of the desired service
 using `-s` - otherwise initially no service is played. The GUI version
 of course does not necessarily need this.
@@ -463,7 +464,7 @@ This software is licensed under the GNU General Public License Version 3
 *Please note that the included FEC lib by KA9Q has a separate license!*
 
 DABlin - capital DAB experience
-Copyright (C) 2015-2018 Stefan Pöschel
+Copyright (C) 2015-2019 Stefan Pöschel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
