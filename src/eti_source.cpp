@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -140,6 +140,12 @@ int ETISource::Main() {
 		if(bytes == 0) {
 			if(feof(input_file)) {
 				fprintf(stderr, "ETISource: EOF reached!\n");
+
+				// if present, update progress
+				if(eti_frame_total) {
+					if(!UpdateProgress())
+						return 1;
+				}
 				break;
 			}
 			perror("ETISource: error while fread");
@@ -149,17 +155,10 @@ int ETISource::Main() {
 		if(filled < sizeof(eti_frame))
 			continue;
 
-		// if present, update progress every 500ms or at file end
-		if(eti_frame_total && (eti_frame_count * 24 >= eti_progress_next_ms || eti_frame_count == eti_frame_total)) {
-			// update total frames
-			if(!UpdateTotalFrames())
+		// if present, update progress every 500ms
+		if(eti_frame_total && eti_frame_count * 24 >= eti_progress_next_ms) {
+			if(!UpdateProgress())
 				return 1;
-
-			ETI_PROGRESS progress;
-			progress.value = (double) eti_frame_count / (double) eti_frame_total;
-			progress.text = MiscTools::MsToTimecode(eti_frame_count * 24) + " / " + MiscTools::MsToTimecode(eti_frame_total * 24);
-			observer->ETIUpdateProgress(progress);
-
 			eti_progress_next_ms += 500;
 		}
 
@@ -169,6 +168,18 @@ int ETISource::Main() {
 	}
 
 	return 0;
+}
+
+bool ETISource::UpdateProgress() {
+	// update total frames
+	if(!UpdateTotalFrames())
+		return false;
+
+	ETI_PROGRESS progress;
+	progress.value = (double) eti_frame_count / (double) eti_frame_total;
+	progress.text = MiscTools::MsToTimecode(eti_frame_count * 24) + " / " + MiscTools::MsToTimecode(eti_frame_total * 24);
+	observer->ETIUpdateProgress(progress);
+	return true;
 }
 
 
