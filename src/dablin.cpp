@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ static void usage(const char* exe) {
 					"  -g <gain>     USB stick gain to pass to DAB live source (auto gain is default)\n"
 					"  -p            Output PCM to stdout instead of using SDL\n"
 					"  -u            Output untouched audio stream to stdout instead of using SDL\n"
+					"  -I            Don't catch up on stream after interruption\n"
 					"  file          Input file to be played (stdin, if not specified)\n",
 					DABLiveETISource::TYPE_DAB2ETI.c_str(),
 					DABLiveETISource::TYPE_ETI_CMDLINE.c_str()
@@ -66,7 +67,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hc:l:d:D:g:s:x:pur:R:")) != -1) {
+	while((c = getopt(argc, argv, "hc:l:d:D:g:s:x:puIr:R:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -107,6 +108,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'u':
 			options.untouched_output = true;
+			break;
+		case 'I':
+			options.disable_int_catch_up = true;
 			break;
 		case '?':
 		default:
@@ -191,7 +195,7 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	// set XTerm window title to version string
 	fprintf(stderr, "\x1B]0;" "DABlin v" DABLIN_VERSION "\a");
 
-	eti_player = new ETIPlayer(options.pcm_output, options.untouched_output, this);
+	eti_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
 
 	// set initial sub-channel, if desired
 	if(options.initial_subchid_dab != AUDIO_SERVICE::subchid_none) {

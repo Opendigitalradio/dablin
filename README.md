@@ -330,6 +330,18 @@ after a colon, e.g. `5C:-54`.
 dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 ```
 
+It may happen that an ETI live stream is interrupted (e.g. transponder
+lock lost). Later when the stream recovers, DABlin "catches up" on the
+stream and plays all (available) ETI frames until again in sync. This
+can lead to several audio buffer overflow messages and respective
+audible artifacts.
+
+The `-I` parameter disables the described catch-up behaviour and instead
+resyncs to the stream after an interruption i.e. continues to play the
+later received ETI frames in realtime. However this means that the
+playback is delayed by the amount of all previous interruptions i.e. the
+news will start some seconds/minutes later compared to live reception
+because of that.
 
 ### Recording a service
 

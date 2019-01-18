@@ -20,8 +20,9 @@
 
 
 // --- ETIPlayer -----------------------------------------------------------------
-ETIPlayer::ETIPlayer(bool pcm_output, bool untouched_output, ETIPlayerObserver *observer) {
+ETIPlayer::ETIPlayer(bool pcm_output, bool untouched_output, bool disable_int_catch_up, ETIPlayerObserver *observer) {
 	this->untouched_output = untouched_output;
+	this->disable_int_catch_up = disable_int_catch_up;
 	this->observer = observer;
 
 	prev_fsync = 0;
@@ -84,12 +85,19 @@ void ETIPlayer::SetAudioService(const AUDIO_SERVICE& audio_service) {
 }
 
 void ETIPlayer::ProcessFrame(const uint8_t *data) {
-	// init flow control at first frame, to prevent overflow upon multiple frames after idle on startup
-	if(next_frame_time.time_since_epoch().count() == 0)
-		next_frame_time = std::chrono::steady_clock::now();
+	bool init = next_frame_time.time_since_epoch().count() == 0;
+	std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 
 	// flow control
-	std::this_thread::sleep_until(next_frame_time);
+	if(init || (disable_int_catch_up && now > next_frame_time + std::chrono::milliseconds(24))) {
+		// resync, if desired and noticeable after expected arrival of next frame
+		if(!init)
+			fprintf(stderr, "ETIPlayer: resynced to stream\n");
+		next_frame_time = now;
+	} else {
+		// otherwise just sleep until expected arrival (if not yet reached)
+		std::this_thread::sleep_until(next_frame_time);
+	}
 	next_frame_time += std::chrono::milliseconds(24);
 
 	DecodeFrame(data);

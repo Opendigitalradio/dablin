@@ -51,6 +51,7 @@ public:
 class ETIPlayer : SubchannelSinkObserver, UntouchedStreamConsumer {
 private:
 	bool untouched_output;
+	bool disable_int_catch_up;
 	ETIPlayerObserver *observer;
 
 	std::chrono::steady_clock::time_point next_frame_time;
@@ -76,7 +77,7 @@ private:
 	void AudioWarning(const std::string& hint);
 	void FECInfo(int total_corr_count, bool uncorr_errors);
 public:
-	ETIPlayer(bool pcm_output, bool untouched_output, ETIPlayerObserver *observer);
+	ETIPlayer(bool pcm_output, bool untouched_output, bool disable_int_catch_up, ETIPlayerObserver *observer);
 	~ETIPlayer();
 
 	void ProcessFrame(const uint8_t *data);

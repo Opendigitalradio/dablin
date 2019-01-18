@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ struct DABlinTextOptions {
 	std::string initial_channel;
 	bool pcm_output;
 	bool untouched_output;
+	bool disable_int_catch_up;
 	int gain;
 DABlinTextOptions() :
 	initial_sid(LISTED_SERVICE::sid_none),
@@ -51,6 +52,7 @@ DABlinTextOptions() :
 	dab_live_source_type(DABLiveETISource::TYPE_DAB2ETI),
 	pcm_output(false),
 	untouched_output(false),
+	disable_int_catch_up(false),
 	gain(DAB_LIVE_SOURCE_CHANNEL::auto_gain)
 	{}
 };
