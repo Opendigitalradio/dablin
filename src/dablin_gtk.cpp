@@ -723,6 +723,16 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 		int new_index;
 		if(CheckForIndexKey(key_event, combo_channels.get_active_row_number(), new_index))
 			TrySwitch(combo_channels, combo_channels_liststore, new_index);
+
+		switch(key_event->keyval) {
+		case GDK_KEY_c:
+		case GDK_KEY_C:
+			// copy DL to clipboard, if not empty
+			std::string dl = label_dl.get_label();
+			if(!dl.empty())
+				Gtk::Clipboard::get()->set_text(dl);
+			return true;
+		}
 	}
 
 	return false;

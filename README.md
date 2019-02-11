@@ -274,6 +274,9 @@ keys `1`, `2`, ..., `0` can be used. In both cases also the respective
 keys on the NumPad are supported. If combined with `Ctrl`, the current
 channel is switched instead.
 
+The keyboard shortcut `Ctrl+C` copies the current Dynamic Label text (if
+not empty) to the clipboard.
+
 
 ### DAB live reception
 
