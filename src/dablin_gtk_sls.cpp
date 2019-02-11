@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2018 Stefan Pöschel
+    Copyright (C) 2018-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,10 @@ DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
 
 	show_all_children();
 
+	// add window key press event handler
+	signal_key_press_event().connect(sigc::mem_fun(*this, &DABlinGTKSlideshowWindow::HandleKeyPressEvent));
+	add_events(Gdk::KEY_PRESS_MASK);
+
 	// add window config event handler (before default handler)
 	signal_configure_event().connect(sigc::mem_fun(*this, &DABlinGTKSlideshowWindow::HandleConfigureEvent), false);
 	add_events(Gdk::STRUCTURE_MASK);
@@ -61,6 +65,22 @@ void DABlinGTKSlideshowWindow::AlignToParent() {
 
 	// TODO: fix multi head issue
 	move(x + w + offset_x, y + offset_y);
+}
+
+bool DABlinGTKSlideshowWindow::HandleKeyPressEvent(GdkEventKey* key_event) {
+	// events without Shift/Alt/Win, but with Control
+	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::MOD1_MASK | Gdk::SUPER_MASK)) == 0 && (key_event->state & Gdk::CONTROL_MASK)) {
+		switch(key_event->keyval) {
+		case GDK_KEY_c:
+		case GDK_KEY_C:
+			// copy slide to clipboard, if not empty
+			Glib::RefPtr<Gdk::Pixbuf> pb = image.get_pixbuf();
+			if(pb != pixbuf_waiting)
+				Gtk::Clipboard::get()->set_image(pb);
+			return true;
+		}
+	}
+	return false;
 }
 
 bool DABlinGTKSlideshowWindow::HandleConfigureEvent(GdkEventConfigure* /*configure_event*/) {

@@ -233,7 +233,6 @@ private:
 	void on_combo_services();
 	bool on_window_delete_event(GdkEventAny* any_event);
 
-	void ConnectKeyPressEventHandler(Gtk::Widget& widget);
 	bool HandleKeyPressEvent(GdkEventKey* key_event);
 	bool HandleConfigureEvent(GdkEventConfigure* configure_event);
 	bool CheckForIndexKey(GdkEventKey* key_event, int old_index, int& new_index);

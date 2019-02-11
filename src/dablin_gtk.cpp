@@ -248,8 +248,9 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 		combo_channels.set_active(initial_channel_it);
 	initial_channel_appended = true;
 
-	ConnectKeyPressEventHandler(*this);
-	ConnectKeyPressEventHandler(slideshow_window);
+	// add window key press event handler
+	signal_key_press_event().connect(sigc::mem_fun(*this, &DABlinGTK::HandleKeyPressEvent));
+	add_events(Gdk::KEY_PRESS_MASK);
 
 	// add window config event handler (before default handler)
 	signal_configure_event().connect(sigc::mem_fun(*this, &DABlinGTK::HandleConfigureEvent), false);
@@ -687,11 +688,6 @@ bool DABlinGTK::on_window_delete_event(GdkEventAny* /*any_event*/) {
 	} else {
 		return false;
 	}
-}
-
-void DABlinGTK::ConnectKeyPressEventHandler(Gtk::Widget& widget) {
-	widget.signal_key_press_event().connect(sigc::mem_fun(*this, &DABlinGTK::HandleKeyPressEvent));
-	widget.add_events(Gdk::KEY_PRESS_MASK);
 }
 
 bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
