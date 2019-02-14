@@ -69,11 +69,13 @@ if(CMAKE_COMPILER_IS_GNUCXX)
         SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -s")
     endif()
     
-    # hardening (TODO: add also for clang)
+    # hardening (TODO: add also for clang/Cygwin)
     add_compile_options(-fstack-protector-strong)
     add_compile_options(-fPIE)
     SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pie")
-    SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -z now")
+    if(NOT CMAKE_SYSTEM_NAME STREQUAL "CYGWIN")
+        SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -z now")
+    endif()
 endif()
 
 # support 2GB+ files on 32bit systems
