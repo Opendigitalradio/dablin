@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -306,7 +306,7 @@ bool DynamicLabelDecoder::DecodeDataGroup() {
 	// handle command/segment
 	if(command) {
 		switch(dg_raw[0] & 0x0F) {
-		case DL_CMD_REMOVE_LABEL:
+		case 0x01:	// remove label
 			cmd_remove_label = true;
 			break;
 		default:
