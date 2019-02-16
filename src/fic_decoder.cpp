@@ -408,7 +408,9 @@ void FICDecoder::ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label) {
 		ensemble.label = label;
 
 		std::string label_str = ConvertLabelToUTF8(label, nullptr);
-		fprintf(stderr, "FICDecoder: EId 0x%04X: ensemble label '" "\x1B[32m" "%s" "\x1B[0m" "'\n", eid, label_str.c_str());
+		std::string short_label_str = DeriveShortLabelUTF8(label_str, label.short_label_mask);
+		fprintf(stderr, "FICDecoder: EId 0x%04X: ensemble label '" "\x1B[32m" "%s" "\x1B[0m" "' ('" "\x1B[32m" "%s" "\x1B[0m" "')\n",
+				eid, label_str.c_str(), short_label_str.c_str());
 
 		observer->FICChangeEnsemble(ensemble);
 	}
@@ -420,7 +422,9 @@ void FICDecoder::ProcessFIG1_1(uint16_t sid, const FIC_LABEL& label) {
 		service.label = label;
 
 		std::string label_str = ConvertLabelToUTF8(label, nullptr);
-		fprintf(stderr, "FICDecoder: SId 0x%04X: programme service label '" "\x1B[32m" "%s" "\x1B[0m" "'\n", sid, label_str.c_str());
+		std::string short_label_str = DeriveShortLabelUTF8(label_str, label.short_label_mask);
+		fprintf(stderr, "FICDecoder: SId 0x%04X: programme service label '" "\x1B[32m" "%s" "\x1B[0m" "' ('" "\x1B[32m" "%s" "\x1B[0m" "')\n",
+				sid, label_str.c_str(), short_label_str.c_str());
 
 		UpdateService(service);
 	}
@@ -435,7 +439,9 @@ void FICDecoder::ProcessFIG1_4(uint16_t sid, int scids, const FIC_LABEL& label) 
 		comp_label = label;
 
 		std::string label_str = ConvertLabelToUTF8(label, nullptr);
-		fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: service component label '" "\x1B[32m" "%s" "\x1B[0m" "'\n", sid, scids, label_str.c_str());
+		std::string short_label_str = DeriveShortLabelUTF8(label_str, label.short_label_mask);
+		fprintf(stderr, "FICDecoder: SId 0x%04X, SCIdS %2d: service component label '" "\x1B[32m" "%s" "\x1B[0m" "' ('" "\x1B[32m" "%s" "\x1B[0m" "')\n",
+				sid, scids, label_str.c_str(), short_label_str.c_str());
 
 		UpdateService(service);
 	}
