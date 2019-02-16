@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -56,6 +56,26 @@ std::string MiscTools::MsToTimecode(long int value) {
 	snprintf(digits, sizeof(digits), "%02d", s);
 	result += ":" + std::string(digits);
 
+	return result;
+}
+
+size_t MiscTools::UTF8CharsLen(const std::string &s, size_t chars) {
+	size_t result;
+	for(result = 0; result < s.size(); result++) {
+		// if not a continuation byte, handle counter
+		if((s[result] & 0xC0) != 0x80) {
+			if(chars == 0)
+				break;
+			chars--;
+		}
+	}
+	return result;
+}
+
+std::string MiscTools::UTF8Substr(const std::string &s, size_t pos, size_t count) {
+	std::string result = s;
+	result.erase(0, UTF8CharsLen(result, pos));
+	result.erase(UTF8CharsLen(result, count));
 	return result;
 }
 

@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -728,4 +728,14 @@ std::string FICDecoder::ConvertLanguageToString(const int value) {
 	if(value >= 0x45 && value <= 0x7F)
 		return languages_0x7F_downto_0x45[0x7F - value];
 	return "unknown (" + std::to_string(value) + ")";
+}
+
+std::string FICDecoder::DeriveShortLabelUTF8(const std::string& long_label, uint16_t short_label_mask) {
+	std::string short_label;
+
+	for(size_t i = 0; i < long_label.length(); i++)		// consider discarded trailing spaces
+		if(short_label_mask & (0x8000 >> i))
+			short_label += MiscTools::UTF8Substr(long_label, i, 1);
+
+	return short_label;
 }

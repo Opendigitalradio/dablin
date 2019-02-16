@@ -260,8 +260,6 @@ private:
 	void PADChangeSlideEmitted();
 
 	void PADLengthError(size_t announced_xpad_len, size_t xpad_len);
-
-	static Glib::ustring DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask);
 public:
 	DABlinGTK(DABlinGTKOptions options);
 	~DABlinGTK();

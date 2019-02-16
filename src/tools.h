@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,9 +33,12 @@ typedef std::vector<std::string> string_vector_t;
 
 // --- MiscTools -----------------------------------------------------------------
 class MiscTools {
+private:
+	static size_t UTF8CharsLen(const std::string &s, size_t chars);
 public:
 	static string_vector_t SplitString(const std::string &s, const char delimiter);
 	static std::string MsToTimecode(long int value);
+	static std::string UTF8Substr(const std::string &s, size_t pos, size_t count);
 };
 
 

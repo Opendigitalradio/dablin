@@ -437,11 +437,11 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		snprintf(sid_string, sizeof(sid_string), "0x%04X", service.sid);
 
 		std::string charset_name;
-		Glib::ustring label = FICDecoder::ConvertLabelToUTF8(service.label, &charset_name);
+		std::string label = FICDecoder::ConvertLabelToUTF8(service.label, &charset_name);
 
 		set_title(label + " - DABlin");
 		frame_combo_services.set_tooltip_text(
-				"Short label: \"" + DeriveShortLabel(label, service.label.short_label_mask) + "\"\n"
+				"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, service.label.short_label_mask) + "\"\n"
 				"Label charset: " + charset_name + "\n"
 				"SId: " + sid_string + (!service.IsPrimary() ? " (SCIdS: " + std::to_string(service.scids) + ")" : "") + "\n"
 				"SubChId: " + std::to_string(service.audio_service.subchid) + "\n"
@@ -827,11 +827,11 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 	snprintf(eid_string, sizeof(eid_string), "0x%04X", new_ensemble.eid);
 
 	std::string charset_name;
-	Glib::ustring label = FICDecoder::ConvertLabelToUTF8(new_ensemble.label, &charset_name);
+	std::string label = FICDecoder::ConvertLabelToUTF8(new_ensemble.label, &charset_name);
 
 	label_ensemble.set_label(label);
 	frame_label_ensemble.set_tooltip_text(
-			"Short label: \"" + DeriveShortLabel(label, new_ensemble.label.short_label_mask) + "\"\n"
+			"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, new_ensemble.label.short_label_mask) + "\"\n"
 			"Label charset: " + charset_name + "\n"
 			"EId: " + eid_string);
 }
@@ -842,7 +842,7 @@ void DABlinGTK::FICChangeServiceEmitted() {
 	LISTED_SERVICE new_service = fic_change_service.Pop();
 
 	std::string label = FICDecoder::ConvertLabelToUTF8(new_service.label, nullptr);
-	Glib::ustring combo_label = label;
+	std::string combo_label = label;
 	if(new_service.multi_comps)
 		combo_label = (!new_service.IsPrimary() ? "» " : "") + combo_label + (new_service.IsPrimary() ? " »" : "");
 
@@ -932,7 +932,7 @@ void DABlinGTK::PADChangeDynamicLabelEmitted() {
 	// consider clear display command
 	if(dl.charset != -1) {
 		std::string charset_name;
-		Glib::ustring label = FICDecoder::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset, false, &charset_name);
+		std::string label = FICDecoder::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset, false, &charset_name);
 
 		// skip unsupported charsets
 		if(!charset_name.empty()) {
@@ -957,15 +957,4 @@ void DABlinGTK::PADChangeSlideEmitted() {
 
 void DABlinGTK::PADLengthError(size_t /*announced_xpad_len*/, size_t /*xpad_len*/) {
 	fprintf(stderr, "\x1B[31m" "[X-PAD len]" "\x1B[0m" " ");
-}
-
-
-Glib::ustring DABlinGTK::DeriveShortLabel(Glib::ustring long_label, uint16_t short_label_mask) {
-	Glib::ustring short_label;
-
-	for(size_t i = 0; i < long_label.length(); i++)		// consider discarded trailing spaces
-		if(short_label_mask & (0x8000 >> i))
-			short_label += long_label[i];
-
-	return short_label;
 }
