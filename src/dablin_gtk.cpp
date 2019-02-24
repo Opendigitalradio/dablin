@@ -237,7 +237,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	pad_decoder = new PADDecoder(this, options.loose);
 
 	set_title("DABlin v" + std::string(DABLIN_VERSION));
-	set_default_icon_name("media-playback-start");
+	set_icon_name("media-playback-start");
 
 	InitWidgets();
 
@@ -548,6 +548,7 @@ void DABlinGTK::on_tglbtn_record() {
 			combo_channels.set_sensitive(false);	// parent frame already non-sensitive, if channels not available
 			combo_services.set_sensitive(false);
 
+			set_icon_name("media-record");
 			fprintf(stderr, "DABlinGTK: recording started into '%s'\n", new_rec_filename.c_str());
 
 			{
@@ -591,6 +592,7 @@ void DABlinGTK::on_tglbtn_record() {
 			fclose(rec_file);
 			rec_file = nullptr;
 
+			set_icon_name("media-playback-start");
 			fprintf(stderr, "DABlinGTK: recording stopped\n");
 			UpdateRecStatus();
 
