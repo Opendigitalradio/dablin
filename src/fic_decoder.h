@@ -25,7 +25,6 @@
 #include <map>
 #include <set>
 #include <vector>
-#include <iconv.h>
 
 #include "tools.h"
 
@@ -217,12 +216,6 @@ private:
 	fic_services_t services;
 	fic_subchannels_t subchannels;	// from FIG 0/1: SubChId -> FIC_SUBCHANNEL
 
-	static const char* no_char;
-	static const char* ebu_values_0x00_to_0x1F[];
-	static const char* ebu_values_0x7B_to_0xFF[];
-	static std::string ConvertCharEBUToUTF8(const uint8_t value);
-	static std::string ConvertStringIconvToUTF8(const std::vector<uint8_t>& cleaned_data, std::string* charset_name, const std::string& src_charset);
-
 	static const size_t uep_sizes[];
 	static const int uep_pls[];
 	static const int uep_bitrates[];
@@ -237,7 +230,6 @@ public:
 	void Process(const uint8_t *data, size_t len);
 	void Reset();
 
-	static std::string ConvertTextToUTF8(const uint8_t *data, size_t len, int charset, bool mot, std::string* charset_name);
 	static std::string ConvertLabelToUTF8(const FIC_LABEL& label, std::string* charset_name);
 	static std::string ConvertLanguageToString(const int value);
 	static std::string DeriveShortLabelUTF8(const std::string& long_label, uint16_t short_label_mask);

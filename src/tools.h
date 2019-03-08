@@ -27,6 +27,7 @@
 #include <sstream>
 #include <map>
 #include <vector>
+#include <iconv.h>
 
 
 typedef std::vector<std::string> string_vector_t;
@@ -39,6 +40,19 @@ public:
 	static string_vector_t SplitString(const std::string &s, const char delimiter);
 	static std::string MsToTimecode(long int value);
 	static std::string UTF8Substr(const std::string &s, size_t pos, size_t count);
+};
+
+
+// --- CharsetTools -----------------------------------------------------------------
+class CharsetTools {
+private:
+	static const char* no_char;
+	static const char* ebu_values_0x00_to_0x1F[];
+	static const char* ebu_values_0x7B_to_0xFF[];
+	static std::string ConvertCharEBUToUTF8(const uint8_t value);
+	static std::string ConvertStringIconvToUTF8(const std::vector<uint8_t>& cleaned_data, std::string* charset_name, const std::string& src_charset);
+public:
+	static std::string ConvertTextToUTF8(const uint8_t *data, size_t len, int charset, bool mot, std::string* charset_name);
 };
 
 
