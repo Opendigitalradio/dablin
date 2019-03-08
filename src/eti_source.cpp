@@ -208,7 +208,7 @@ bool ETISource::UpdateProgress() {
 
 	ETI_PROGRESS progress;
 	progress.value = (double) eti_frames_count / (double) eti_frames_total;
-	progress.text = MiscTools::MsToTimecode(eti_frames_count * 24) + " / " + MiscTools::MsToTimecode(eti_frames_total * 24);
+	progress.text = StringTools::MsToTimecode(eti_frames_count * 24) + " / " + StringTools::MsToTimecode(eti_frames_total * 24);
 	observer->ETIUpdateProgress(progress);
 	return true;
 }

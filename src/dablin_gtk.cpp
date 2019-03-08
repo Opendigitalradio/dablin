@@ -397,10 +397,10 @@ void DABlinGTK::AddChannels() {
 			AddChannel(dab_channel, options.gain);
 	} else {
 		// add specific channels
-		string_vector_t channels = MiscTools::SplitString(options.displayed_channels, ',');
+		string_vector_t channels = StringTools::SplitString(options.displayed_channels, ',');
 		for(const std::string& channel : channels) {
 			int gain = options.gain;
-			string_vector_t parts = MiscTools::SplitString(channel, ':');
+			string_vector_t parts = StringTools::SplitString(channel, ':');
 			switch(parts.size()) {
 			case 2:
 				gain = strtol(parts[1].c_str(), nullptr, 0);
@@ -649,11 +649,11 @@ void DABlinGTK::UpdateRecStatus() {
 	if(rec_file) {
 		tooltip_text =
 				"File name: \"" + rec_filename + "\"\n"
-				"Duration: " + MiscTools::MsToTimecode(rec_duration_ms);
+				"Duration: " + StringTools::MsToTimecode(rec_duration_ms);
 	} else {
 		// if prebuffer enabled
 		if(rec_prebuffer_filled_ms > 0)
-			tooltip_text = "Prebuffer: " + MiscTools::MsToTimecode(rec_prebuffer_filled_ms) + " / " + MiscTools::MsToTimecode(options.rec_prebuffer_size_s * 1000);
+			tooltip_text = "Prebuffer: " + StringTools::MsToTimecode(rec_prebuffer_filled_ms) + " / " + StringTools::MsToTimecode(options.rec_prebuffer_size_s * 1000);
 	}
 
 	tglbtn_record.set_tooltip_text(tooltip_text);

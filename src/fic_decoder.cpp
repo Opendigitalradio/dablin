@@ -741,7 +741,7 @@ std::string FICDecoder::DeriveShortLabelUTF8(const std::string& long_label, uint
 
 	for(size_t i = 0; i < long_label.length(); i++)		// consider discarded trailing spaces
 		if(short_label_mask & (0x8000 >> i))
-			short_label += MiscTools::UTF8Substr(long_label, i, 1);
+			short_label += StringTools::UTF8Substr(long_label, i, 1);
 
 	return short_label;
 }

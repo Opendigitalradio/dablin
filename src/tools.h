@@ -31,8 +31,8 @@
 
 typedef std::vector<std::string> string_vector_t;
 
-// --- MiscTools -----------------------------------------------------------------
-class MiscTools {
+// --- StringTools -----------------------------------------------------------------
+class StringTools {
 private:
 	static size_t UTF8CharsLen(const std::string &s, size_t chars);
 public:

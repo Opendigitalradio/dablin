@@ -19,8 +19,8 @@
 #include "tools.h"
 
 
-// --- MiscTools -----------------------------------------------------------------
-string_vector_t MiscTools::SplitString(const std::string &s, const char delimiter) {
+// --- StringTools -----------------------------------------------------------------
+string_vector_t StringTools::SplitString(const std::string &s, const char delimiter) {
 	string_vector_t result;
 	std::stringstream ss(s);
 	std::string part;
@@ -30,7 +30,7 @@ string_vector_t MiscTools::SplitString(const std::string &s, const char delimite
 	return result;
 }
 
-std::string MiscTools::MsToTimecode(long int value) {
+std::string StringTools::MsToTimecode(long int value) {
 	// ignore milliseconds
 	long int tc_s = value / 1000;
 
@@ -59,7 +59,7 @@ std::string MiscTools::MsToTimecode(long int value) {
 	return result;
 }
 
-size_t MiscTools::UTF8CharsLen(const std::string &s, size_t chars) {
+size_t StringTools::UTF8CharsLen(const std::string &s, size_t chars) {
 	size_t result;
 	for(result = 0; result < s.size(); result++) {
 		// if not a continuation byte, handle counter
@@ -72,7 +72,7 @@ size_t MiscTools::UTF8CharsLen(const std::string &s, size_t chars) {
 	return result;
 }
 
-std::string MiscTools::UTF8Substr(const std::string &s, size_t pos, size_t count) {
+std::string StringTools::UTF8Substr(const std::string &s, size_t pos, size_t count) {
 	std::string result = s;
 	result.erase(0, UTF8CharsLen(result, pos));
 	result.erase(UTF8CharsLen(result, count));
