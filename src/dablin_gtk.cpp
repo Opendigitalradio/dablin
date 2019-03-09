@@ -237,7 +237,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	pad_decoder = new PADDecoder(this, options.loose);
 
 	set_title("DABlin v" + std::string(DABLIN_VERSION));
-	set_icon_name("media-playback-start");
+	set_icon_name("media-playback-stop");
 
 	InitWidgets();
 
@@ -440,6 +440,7 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		std::string label = FICDecoder::ConvertLabelToUTF8(service.label, &charset_name);
 
 		set_title(label + " - DABlin");
+		set_icon_name("media-playback-start");
 		frame_combo_services.set_tooltip_text(
 				"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, service.label.short_label_mask) + "\"\n"
 				"Label charset: " + charset_name + "\n"
@@ -466,6 +467,7 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		tglbtn_record.set_sensitive(true);
 	} else {
 		set_title("DABlin");
+		set_icon_name("media-playback-stop");
 		frame_combo_services.set_tooltip_text("");
 		frame_label_format.set_tooltip_text("");
 		tglbtn_record.set_sensitive(false);
