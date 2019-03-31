@@ -265,18 +265,19 @@ With the console version, instead of the desired service it is also
 possible to directly request a specific sub-channel by using `-r` (for
 DAB) or `-R` (for DAB+).
 
-In addition to the respective button, the GTK GUI version also allows the
-keyboard shortcut `m` to toggle muting the audio.
 
-To switch to the previous/next service, the `-`/`+` keys can be used.
-To switch to the 1st, 2nd, ..., 10th service in the service list, the
-keys `1`, `2`, ..., `0` can be used. In both cases also the respective
-keys on the NumPad are supported. If combined with `Ctrl`, the current
-channel is switched instead.
+### Keyboard shortcuts (GTK GUI version)
 
-Depending on the window having the focus, the keyboard shortcut `Ctrl+C`
-copies the current Dynamic Label text or Slideshow slide (if not empty)
-to the clipboard.
+To switch the channel instead of the service, press `Ctrl` in addition.
+
+Shortcut         | Meaning
+-----------------|---------------------------------------------
+`m`              | Enable/disable audio mute
+`r`              | Start/stop recording
+`Ctrl` + `c`     | Copy DL text or Slideshow slide to clipboard
+`-`              | Switch to previous service
+`+`              | Switch to next service
+`1`..`0`         | Switch to 1st..10th service
 
 
 ### DAB live reception
@@ -351,7 +352,7 @@ because of that.
 
 With the GTK GUI version the current service can be recorded into a
 file. To start/stop a recording, the red record button has to be
-clicked, or instead the keyboard shortcut `r` be pressed. During a
+clicked, or the corresponding keyboard shortcut to be pressed. During a
 recording neither can channel/service be changed, nor can DABlin be
 closed.
 
