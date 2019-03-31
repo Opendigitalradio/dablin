@@ -711,15 +711,23 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 			return true;
 		}
 
-		// try to switch service
+		// try to switch service (1 to 10, -/+)
 		int new_index;
 		if(CheckForIndexKey(key_event, combo_services.get_active_row_number(), new_index))
 			TrySwitch(combo_services, combo_services_liststore, new_index);
 	}
 
+	// events without Shift/Control/Win, but with Alt
+	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::CONTROL_MASK | Gdk::SUPER_MASK)) == 0 && (key_event->state & Gdk::MOD1_MASK)) {
+		// try to switch service (11 to 20)
+		int new_index;
+		if(CheckForIndexKey(key_event, -1, new_index))
+			TrySwitch(combo_services, combo_services_liststore, new_index + 10);
+	}
+
 	// events without Shift/Alt/Win, but with Control
 	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::MOD1_MASK | Gdk::SUPER_MASK)) == 0 && (key_event->state & Gdk::CONTROL_MASK)) {
-		// try to switch channel
+		// try to switch channel (1 to 10, -/+)
 		int new_index;
 		if(CheckForIndexKey(key_event, combo_channels.get_active_row_number(), new_index))
 			TrySwitch(combo_channels, combo_channels_liststore, new_index);
@@ -733,6 +741,14 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 				Gtk::Clipboard::get()->set_text(dl);
 			return true;
 		}
+	}
+
+	// events without Shift/Win, but with Control/Alt
+	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::SUPER_MASK)) == 0 && (key_event->state & Gdk::CONTROL_MASK) && (key_event->state & Gdk::MOD1_MASK)) {
+		// try to switch channel (11 to 20)
+		int new_index;
+		if(CheckForIndexKey(key_event, -1, new_index))
+			TrySwitch(combo_channels, combo_channels_liststore, new_index + 10);
 	}
 
 	return false;
@@ -782,10 +798,14 @@ bool DABlinGTK::CheckForIndexKey(GdkEventKey* key_event, int old_index, int& new
 		return true;
 	case GDK_KEY_minus:
 	case GDK_KEY_KP_Subtract:
+		if(old_index == -1)
+			break;
 		new_index = old_index - 1;
 		return true;
 	case GDK_KEY_plus:
 	case GDK_KEY_KP_Add:
+		if(old_index == -1)
+			break;
 		new_index = old_index + 1;
 		return true;
 	}

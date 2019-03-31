@@ -278,6 +278,7 @@ Shortcut         | Meaning
 `-`              | Switch to previous service
 `+`              | Switch to next service
 `1`..`0`         | Switch to 1st..10th service
+`Alt` + `1`..`0` | Switch to 11th..20th service
 
 
 ### DAB live reception
