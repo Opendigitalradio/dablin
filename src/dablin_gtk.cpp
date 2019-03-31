@@ -713,24 +713,30 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 
 		// try to switch service (1 to 10, -/+)
 		int new_index;
-		if(CheckForIndexKey(key_event, combo_services.get_active_row_number(), new_index))
+		if(CheckForIndexKey(key_event, combo_services.get_active_row_number(), new_index)) {
 			TrySwitch(combo_services, combo_services_liststore, new_index);
+			return true;
+		}
 	}
 
 	// events without Shift/Control/Win, but with Alt
 	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::CONTROL_MASK | Gdk::SUPER_MASK)) == 0 && (key_event->state & Gdk::MOD1_MASK)) {
 		// try to switch service (11 to 20)
 		int new_index;
-		if(CheckForIndexKey(key_event, -1, new_index))
+		if(CheckForIndexKey(key_event, -1, new_index)) {
 			TrySwitch(combo_services, combo_services_liststore, new_index + 10);
+			return true;
+		}
 	}
 
 	// events without Shift/Alt/Win, but with Control
 	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::MOD1_MASK | Gdk::SUPER_MASK)) == 0 && (key_event->state & Gdk::CONTROL_MASK)) {
 		// try to switch channel (1 to 10, -/+)
 		int new_index;
-		if(CheckForIndexKey(key_event, combo_channels.get_active_row_number(), new_index))
+		if(CheckForIndexKey(key_event, combo_channels.get_active_row_number(), new_index)) {
 			TrySwitch(combo_channels, combo_channels_liststore, new_index);
+			return true;
+		}
 
 		switch(key_event->keyval) {
 		case GDK_KEY_c:
@@ -747,8 +753,10 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 	if((key_event->state & (Gdk::SHIFT_MASK | Gdk::SUPER_MASK)) == 0 && (key_event->state & Gdk::CONTROL_MASK) && (key_event->state & Gdk::MOD1_MASK)) {
 		// try to switch channel (11 to 20)
 		int new_index;
-		if(CheckForIndexKey(key_event, -1, new_index))
+		if(CheckForIndexKey(key_event, -1, new_index)) {
 			TrySwitch(combo_channels, combo_channels_liststore, new_index + 10);
+			return true;
+		}
 	}
 
 	return false;
