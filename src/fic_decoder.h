@@ -94,14 +94,23 @@ struct FIC_SUBCHANNEL {
 struct FIC_ENSEMBLE {
 	int eid;
 	FIC_LABEL label;
+	int ecc;
+	int inter_table_id;
 
 	static const int eid_none = -1;
 	bool IsNone() const {return eid == eid_none;}
 
-	FIC_ENSEMBLE() : eid(eid_none) {}
+	static const int ecc_none = -1;
+	static const int inter_table_id_none = -1;
+
+	FIC_ENSEMBLE() : eid(eid_none), ecc(ecc_none), inter_table_id(inter_table_id_none) {}
 
 	bool operator==(const FIC_ENSEMBLE & ensemble) const {
-		return eid == ensemble.eid && label == ensemble.label;
+		return
+				eid == ensemble.eid &&
+				label == ensemble.label &&
+				ecc == ensemble.ecc &&
+				inter_table_id == ensemble.inter_table_id;
 	}
 	bool operator!=(const FIC_ENSEMBLE & ensemble) const {
 		return !(*this == ensemble);
@@ -198,6 +207,7 @@ private:
 	void ProcessFIG0_2(const uint8_t *data, size_t len);
 	void ProcessFIG0_5(const uint8_t *data, size_t len);
 	void ProcessFIG0_8(const uint8_t *data, size_t len);
+	void ProcessFIG0_9(const uint8_t *data, size_t len);
 	void ProcessFIG0_13(const uint8_t *data, size_t len);
 
 	void ProcessFIG1(const uint8_t *data, size_t len);
@@ -213,6 +223,8 @@ private:
 	int GetSLSAppType(const ua_data_t& ua_data);
 
 	FIC_ENSEMBLE ensemble;
+	void UpdateEnsemble();
+
 	fic_services_t services;
 	fic_subchannels_t subchannels;	// from FIG 0/1: SubChId -> FIC_SUBCHANNEL
 
@@ -232,6 +244,7 @@ public:
 
 	static std::string ConvertLabelToUTF8(const FIC_LABEL& label, std::string* charset_name);
 	static std::string ConvertLanguageToString(const int value);
+	static std::string ConvertInterTableIDToString(const int value);
 	static std::string DeriveShortLabelUTF8(const std::string& long_label, uint16_t short_label_mask);
 };
 

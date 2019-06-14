@@ -98,6 +98,9 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 	case 8:
 		ProcessFIG0_8(data, len);
 		break;
+	case 9:
+		ProcessFIG0_9(data, len);
+		break;
 	case 13:
 		ProcessFIG0_13(data, len);
 		break;
@@ -297,6 +300,27 @@ void FICDecoder::ProcessFIG0_8(const uint8_t *data, size_t len) {
 	}
 }
 
+void FICDecoder::ProcessFIG0_9(const uint8_t *data, size_t len) {
+	// FIG 0/9 - Time and country identifier - Country, LTO and International table
+	// ensemble ECC and international table ID only
+
+	if(len < 3)
+		return;
+
+	FIC_ENSEMBLE new_ensemble = ensemble;
+	new_ensemble.ecc = data[1];
+	new_ensemble.inter_table_id = data[2];
+
+	if(ensemble != new_ensemble) {
+		ensemble = new_ensemble;
+
+		fprintf(stderr, "FICDecoder: ECC: 0x%02X, international table ID: 0x%02X (%s)\n",
+				ensemble.ecc, ensemble.inter_table_id, ConvertInterTableIDToString(ensemble.inter_table_id).c_str());
+
+		UpdateEnsemble();
+	}
+}
+
 void FICDecoder::ProcessFIG0_13(const uint8_t *data, size_t len) {
 	// FIG 0/13 - User application information
 	// programme services only
@@ -412,7 +436,7 @@ void FICDecoder::ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label) {
 		fprintf(stderr, "FICDecoder: EId 0x%04X: ensemble label '" "\x1B[32m" "%s" "\x1B[0m" "' ('" "\x1B[32m" "%s" "\x1B[0m" "')\n",
 				eid, label_str.c_str(), short_label_str.c_str());
 
-		observer->FICChangeEnsemble(ensemble);
+		UpdateEnsemble();
 	}
 }
 
@@ -555,6 +579,14 @@ int FICDecoder::GetSLSAppType(const ua_data_t& ua_data) {
 		return LISTED_SERVICE::sls_app_type_none;
 }
 
+void FICDecoder::UpdateEnsemble() {
+	// abort update, if label not yet present
+	if(ensemble.label.IsNone())
+		return;
+
+	observer->FICChangeEnsemble(ensemble);
+}
+
 std::string FICDecoder::ConvertLabelToUTF8(const FIC_LABEL& label, std::string* charset_name) {
 	std::string result = CharsetTools::ConvertTextToUTF8(label.label, sizeof(label.label), label.charset, false, charset_name);
 
@@ -614,6 +646,17 @@ std::string FICDecoder::ConvertLanguageToString(const int value) {
 	if(value >= 0x45 && value <= 0x7F)
 		return languages_0x7F_downto_0x45[0x7F - value];
 	return "unknown (" + std::to_string(value) + ")";
+}
+
+std::string FICDecoder::ConvertInterTableIDToString(const int value) {
+	switch(value) {
+	case 0x01:
+		return "RDS PTY";
+	case 0x02:
+		return "RBDS PTY";
+	default:
+		return "unknown";
+	}
 }
 
 std::string FICDecoder::DeriveShortLabelUTF8(const std::string& long_label, uint16_t short_label_mask) {

@@ -861,11 +861,23 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 	std::string charset_name;
 	std::string label = FICDecoder::ConvertLabelToUTF8(new_ensemble.label, &charset_name);
 
-	label_ensemble.set_label(label);
-	frame_label_ensemble.set_tooltip_text(
+	std::string tooltip_text =
 			"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, new_ensemble.label.short_label_mask) + "\"\n"
 			"Label charset: " + charset_name + "\n"
-			"EId: " + eid_string);
+			"EId: " + eid_string;
+	if(new_ensemble.ecc != FIC_ENSEMBLE::ecc_none) {
+		char ecc_string[5];
+		snprintf(ecc_string, sizeof(ecc_string), "0x%02X", new_ensemble.ecc);
+		tooltip_text += "\n" "ECC: " + std::string(ecc_string);
+	}
+	if(new_ensemble.inter_table_id != FIC_ENSEMBLE::inter_table_id_none) {
+		char itid_string[5];
+		snprintf(itid_string, sizeof(itid_string), "0x%02X", new_ensemble.inter_table_id);
+		tooltip_text += "\n" "International table ID: " + std::string(itid_string) + " (" + FICDecoder::ConvertInterTableIDToString(new_ensemble.inter_table_id) + ")";
+	}
+
+	label_ensemble.set_label(label);
+	frame_label_ensemble.set_tooltip_text(tooltip_text);
 }
 
 void DABlinGTK::FICChangeServiceEmitted() {
