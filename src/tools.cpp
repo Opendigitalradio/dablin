@@ -79,6 +79,13 @@ std::string StringTools::UTF8Substr(const std::string &s, size_t pos, size_t cou
 	return result;
 }
 
+std::string StringTools::IntToHex(int value, size_t nibbles) {
+	std::string format = "0x%0" + std::to_string(nibbles) + "X";
+	char result[2 + nibbles + 1];
+	snprintf(result, sizeof(result), format.c_str(), value);
+	return result;
+}
+
 
 // --- CharsetTools -----------------------------------------------------------------
 const char* CharsetTools::no_char = "";

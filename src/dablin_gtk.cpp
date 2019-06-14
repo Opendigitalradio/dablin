@@ -433,9 +433,6 @@ void DABlinGTK::AddChannel(const dab_channels_t::value_type& dab_channel, int ga
 void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 	// (re)set labels/tooltips/record button
 	if(!service.IsNone()) {
-		char sid_string[7];
-		snprintf(sid_string, sizeof(sid_string), "0x%04X", service.sid);
-
 		std::string charset_name;
 		std::string label = FICDecoder::ConvertLabelToUTF8(service.label, &charset_name);
 
@@ -444,7 +441,7 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		frame_combo_services.set_tooltip_text(
 				"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, service.label.short_label_mask) + "\"\n"
 				"Label charset: " + charset_name + "\n"
-				"SId: " + sid_string + (!service.IsPrimary() ? " (SCIdS: " + std::to_string(service.scids) + ")" : "") + "\n"
+				"SId: " + StringTools::IntToHex(service.sid, 4) + (!service.IsPrimary() ? " (SCIdS: " + std::to_string(service.scids) + ")" : "") + "\n"
 				"SubChId: " + std::to_string(service.audio_service.subchid) + "\n"
 				"Audio type: " + (service.audio_service.dab_plus ? "DAB+" : "DAB")
 		);
@@ -855,26 +852,17 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 
 	FIC_ENSEMBLE new_ensemble = fic_change_ensemble.Pop();
 
-	char eid_string[7];
-	snprintf(eid_string, sizeof(eid_string), "0x%04X", new_ensemble.eid);
-
 	std::string charset_name;
 	std::string label = FICDecoder::ConvertLabelToUTF8(new_ensemble.label, &charset_name);
 
 	std::string tooltip_text =
 			"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, new_ensemble.label.short_label_mask) + "\"\n"
 			"Label charset: " + charset_name + "\n"
-			"EId: " + eid_string;
-	if(new_ensemble.ecc != FIC_ENSEMBLE::ecc_none) {
-		char ecc_string[5];
-		snprintf(ecc_string, sizeof(ecc_string), "0x%02X", new_ensemble.ecc);
-		tooltip_text += "\n" "ECC: " + std::string(ecc_string);
-	}
-	if(new_ensemble.inter_table_id != FIC_ENSEMBLE::inter_table_id_none) {
-		char itid_string[5];
-		snprintf(itid_string, sizeof(itid_string), "0x%02X", new_ensemble.inter_table_id);
-		tooltip_text += "\n" "International table ID: " + std::string(itid_string) + " (" + FICDecoder::ConvertInterTableIDToString(new_ensemble.inter_table_id) + ")";
-	}
+			"EId: " + StringTools::IntToHex(new_ensemble.eid, 4);
+	if(new_ensemble.ecc != FIC_ENSEMBLE::ecc_none)
+		tooltip_text += "\n" "ECC: " + StringTools::IntToHex(new_ensemble.ecc, 2);
+	if(new_ensemble.inter_table_id != FIC_ENSEMBLE::inter_table_id_none)
+		tooltip_text += "\n" "International table ID: " + StringTools::IntToHex(new_ensemble.inter_table_id, 2) + " (" + FICDecoder::ConvertInterTableIDToString(new_ensemble.inter_table_id) + ")";
 
 	label_ensemble.set_label(label);
 	frame_label_ensemble.set_tooltip_text(tooltip_text);

@@ -40,6 +40,7 @@ public:
 	static string_vector_t SplitString(const std::string &s, const char delimiter);
 	static std::string MsToTimecode(long int value);
 	static std::string UTF8Substr(const std::string &s, size_t pos, size_t count);
+	static std::string IntToHex(int value, size_t nibbles);
 };
 
 
