@@ -270,6 +270,9 @@ RDS PTYs despite the actually used international table ID (which should
 work in nearly all cases). The GTK version in contrast always shows the
 correct programme type, based on the transmitted international table ID.
 
+Dynamic FIC messages can be suppressed using `-F` (currently affects
+dynamic PTY only).
+
 
 ### Keyboard shortcuts (GTK GUI version)
 

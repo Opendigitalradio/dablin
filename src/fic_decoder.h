@@ -209,6 +209,7 @@ public:
 class FICDecoder {
 private:
 	FICDecoderObserver *observer;
+	bool disable_dyn_msgs;
 
 	void ProcessFIB(const uint8_t *data);
 
@@ -251,7 +252,10 @@ private:
 	static const char* ptys_rds_0x00_to_0x1D[];
 	static const char* ptys_rbds_0x00_to_0x1D[];
 public:
-	FICDecoder(FICDecoderObserver *observer) : observer(observer) {}
+	FICDecoder(FICDecoderObserver *observer, bool disable_dyn_msgs) :
+		observer(observer),
+		disable_dyn_msgs(disable_dyn_msgs)
+	{}
 
 	void Process(const uint8_t *data, size_t len);
 	void Reset();

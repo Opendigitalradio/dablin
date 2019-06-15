@@ -43,6 +43,7 @@ struct DABlinTextOptions {
 	bool pcm_output;
 	bool untouched_output;
 	bool disable_int_catch_up;
+	bool disable_dyn_fic_msgs;
 	int gain;
 DABlinTextOptions() :
 	initial_sid(LISTED_SERVICE::sid_none),
@@ -53,6 +54,7 @@ DABlinTextOptions() :
 	pcm_output(false),
 	untouched_output(false),
 	disable_int_catch_up(false),
+	disable_dyn_fic_msgs(false),
 	gain(DAB_LIVE_SOURCE_CHANNEL::auto_gain)
 	{}
 };

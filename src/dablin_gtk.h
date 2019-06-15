@@ -86,6 +86,7 @@ struct DABlinGTKOptions {
 	int gain;
 	bool initially_disable_slideshow;
 	bool loose;
+	bool disable_dyn_fic_msgs;
 	
 DABlinGTKOptions() :
 	initial_sid(LISTED_SERVICE::sid_none),
@@ -98,7 +99,8 @@ DABlinGTKOptions() :
 	disable_int_catch_up(false),
 	gain(DAB_LIVE_SOURCE_CHANNEL::auto_gain),
 	initially_disable_slideshow(false),
-	loose(false)
+	loose(false),
+	disable_dyn_fic_msgs(false)
 	{}
 };
 

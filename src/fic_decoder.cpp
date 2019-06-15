@@ -398,11 +398,16 @@ void FICDecoder::ProcessFIG0_17(const uint8_t *data, size_t len) {
 		FIC_SERVICE& service = GetService(sid);
 		int& current_pty = sd ? service.pty_dynamic : service.pty_static;
 		if(current_pty != pty) {
+			// suppress message, if dynamic FIC messages disabled and dynamic PTY not initally be set
+			bool show_msg = !(disable_dyn_msgs && sd && current_pty != FIC_SERVICE::pty_none);
+
 			current_pty = pty;
 
-			// assuming international table ID 0x01 here!
-			fprintf(stderr, "FICDecoder: SId 0x%04X: programme type (%s): '%s'\n",
-					sid, sd ? "dynamic" : "static", ConvertPTYToString(pty, 0x01).c_str());
+			if(show_msg) {
+				// assuming international table ID 0x01 here!
+				fprintf(stderr, "FICDecoder: SId 0x%04X: programme type (%s): '%s'\n",
+						sid, sd ? "dynamic" : "static", ConvertPTYToString(pty, 0x01).c_str());
+			}
 
 			UpdateService(service);
 		}

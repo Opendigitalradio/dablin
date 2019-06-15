@@ -49,6 +49,7 @@ static void usage(const char* exe) {
 					"  -I           Don't catch up on stream after interruption\n"
 					"  -S           Initially disable slideshow\n"
 					"  -L           Enable loose behaviour (e.g. PAD conformance)\n"
+					"  -F           Disable dynamic FIC messages (e.g. dynamic PTY)\n"
 					"  file         Input file to be played (stdin, if not specified)\n",
 					DABLiveETISource::TYPE_DAB2ETI.c_str(),
 					DABLiveETISource::TYPE_ETI_CMDLINE.c_str(),
@@ -75,7 +76,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hd:D:C:c:l:g:r:P:s:x:puISL")) != -1) {
+	while((c = getopt(argc, argv, "hd:D:C:c:l:g:r:P:s:x:puISLF")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -126,6 +127,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'L':
 			options.loose = true;
+			break;
+		case 'F':
+			options.disable_dyn_fic_msgs = true;
 			break;
 		case '?':
 		default:
@@ -233,7 +237,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 		eti_source_thread = std::thread(&ETISource::Main, eti_source);
 	}
 
-	fic_decoder = new FICDecoder(this);
+	fic_decoder = new FICDecoder(this, options.disable_dyn_fic_msgs);
 	pad_decoder = new PADDecoder(this, options.loose);
 
 	set_title("DABlin v" + std::string(DABLIN_VERSION));

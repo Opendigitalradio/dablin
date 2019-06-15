@@ -43,6 +43,7 @@ static void usage(const char* exe) {
 					"  -p            Output PCM to stdout instead of using SDL\n"
 					"  -u            Output untouched audio stream to stdout instead of using SDL\n"
 					"  -I            Don't catch up on stream after interruption\n"
+					"  -F            Disable dynamic FIC messages (e.g. dynamic PTY)\n"
 					"  file          Input file to be played (stdin, if not specified)\n",
 					DABLiveETISource::TYPE_DAB2ETI.c_str(),
 					DABLiveETISource::TYPE_ETI_CMDLINE.c_str()
@@ -67,7 +68,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hc:l:d:D:g:s:x:puIr:R:")) != -1) {
+	while((c = getopt(argc, argv, "hc:l:d:D:g:s:x:puIFr:R:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -111,6 +112,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'I':
 			options.disable_int_catch_up = true;
+			break;
+		case 'F':
+			options.disable_dyn_fic_msgs = true;
 			break;
 		case '?':
 		default:
@@ -222,7 +226,7 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 			eti_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
 	}
 
-	fic_decoder = new FICDecoder(this);
+	fic_decoder = new FICDecoder(this, options.disable_dyn_fic_msgs);
 }
 
 DABlinText::~DABlinText() {
