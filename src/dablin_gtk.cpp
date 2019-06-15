@@ -850,19 +850,19 @@ void DABlinGTK::ETIChangeFormatEmitted() {
 void DABlinGTK::FICChangeEnsembleEmitted() {
 //	fprintf(stderr, "### FICChangeEnsembleEmitted\n");
 
-	FIC_ENSEMBLE new_ensemble = fic_change_ensemble.Pop();
+	ensemble = fic_change_ensemble.Pop();
 
 	std::string charset_name;
-	std::string label = FICDecoder::ConvertLabelToUTF8(new_ensemble.label, &charset_name);
+	std::string label = FICDecoder::ConvertLabelToUTF8(ensemble.label, &charset_name);
 
 	std::string tooltip_text =
-			"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, new_ensemble.label.short_label_mask) + "\"\n"
+			"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, ensemble.label.short_label_mask) + "\"\n"
 			"Label charset: " + charset_name + "\n"
-			"EId: " + StringTools::IntToHex(new_ensemble.eid, 4);
-	if(new_ensemble.ecc != FIC_ENSEMBLE::ecc_none)
-		tooltip_text += "\n" "ECC: " + StringTools::IntToHex(new_ensemble.ecc, 2);
-	if(new_ensemble.inter_table_id != FIC_ENSEMBLE::inter_table_id_none)
-		tooltip_text += "\n" "International table ID: " + StringTools::IntToHex(new_ensemble.inter_table_id, 2) + " (" + FICDecoder::ConvertInterTableIDToString(new_ensemble.inter_table_id) + ")";
+			"EId: " + StringTools::IntToHex(ensemble.eid, 4);
+	if(ensemble.ecc != FIC_ENSEMBLE::ecc_none)
+		tooltip_text += "\n" "ECC: " + StringTools::IntToHex(ensemble.ecc, 2);
+	if(ensemble.inter_table_id != FIC_ENSEMBLE::inter_table_id_none)
+		tooltip_text += "\n" "International table ID: " + StringTools::IntToHex(ensemble.inter_table_id, 2) + " (" + FICDecoder::ConvertInterTableIDToString(ensemble.inter_table_id) + ")";
 
 	label_ensemble.set_label(label);
 	frame_label_ensemble.set_tooltip_text(tooltip_text);

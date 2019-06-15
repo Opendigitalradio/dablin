@@ -196,6 +196,7 @@ private:
 	Gtk::ComboBox combo_channels;
 	int ComboChannelsSlotCompare(const Gtk::TreeModel::iterator& a, const Gtk::TreeModel::iterator& b);
 
+	FIC_ENSEMBLE ensemble;
 	Gtk::Frame frame_label_ensemble;
 	Gtk::Label label_ensemble;
 
