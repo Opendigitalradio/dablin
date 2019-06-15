@@ -438,15 +438,23 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 
 		set_title(label + " - DABlin");
 		set_icon_name("media-playback-start");
-		frame_combo_services.set_tooltip_text(
+
+		std::string tooltip_text =
 				"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, service.label.short_label_mask) + "\"\n"
 				"Label charset: " + charset_name + "\n"
 				"SId: " + StringTools::IntToHex(service.sid, 4) + (!service.IsPrimary() ? " (SCIdS: " + std::to_string(service.scids) + ")" : "") + "\n"
 				"SubChId: " + std::to_string(service.audio_service.subchid) + "\n"
-				"Audio type: " + (service.audio_service.dab_plus ? "DAB+" : "DAB")
-		);
+				"Audio type: " + (service.audio_service.dab_plus ? "DAB+" : "DAB");
+		if(ensemble.inter_table_id != FIC_ENSEMBLE::inter_table_id_none) {
+			if(service.pty_static != LISTED_SERVICE::pty_none)
+				tooltip_text += "\n" "Programme type (static): " + FICDecoder::ConvertPTYToString(service.pty_static, ensemble.inter_table_id);
+			if(service.pty_dynamic != LISTED_SERVICE::pty_none)
+				tooltip_text += "\n" "Programme type (dynamic): " + FICDecoder::ConvertPTYToString(service.pty_dynamic, ensemble.inter_table_id);
+		}
+		frame_combo_services.set_tooltip_text(tooltip_text);
+
 		if(!service.subchannel.IsNone()) {
-			std::string tooltip_text;
+			tooltip_text = "";
 			if(!service.subchannel.pl.empty()) {
 				tooltip_text +=
 						"Sub-channel start: " + std::to_string(service.subchannel.start) + " CUs\n"
@@ -461,12 +469,15 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 			}
 			frame_label_format.set_tooltip_text(tooltip_text);
 		}
+
 		tglbtn_record.set_sensitive(true);
 	} else {
 		set_title("DABlin");
 		set_icon_name("media-playback-stop");
+
 		frame_combo_services.set_tooltip_text("");
 		frame_label_format.set_tooltip_text("");
+
 		tglbtn_record.set_sensitive(false);
 	}
 

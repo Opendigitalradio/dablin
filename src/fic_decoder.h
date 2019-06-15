@@ -127,6 +127,8 @@ struct FIC_SERVICE {
 	int sid;
 	int pri_comp_subchid;
 	FIC_LABEL label;
+	int pty_static;
+	int pty_dynamic;
 
 	// components
 	audio_comps_t audio_comps;		// from FIG 0/2 : SubChId -> AUDIO_SERVICE
@@ -140,7 +142,9 @@ struct FIC_SERVICE {
 	static const int pri_comp_subchid_none = -1;
 	bool HasNoPriCompSubchid() const {return pri_comp_subchid == pri_comp_subchid_none;}
 
-	FIC_SERVICE() : sid(sid_none), pri_comp_subchid(pri_comp_subchid_none) {}
+	static const int pty_none = -1;
+
+	FIC_SERVICE() : sid(sid_none), pri_comp_subchid(pri_comp_subchid_none), pty_static(pty_none), pty_dynamic(pty_none) {}
 };
 
 struct LISTED_SERVICE {
@@ -149,6 +153,8 @@ struct LISTED_SERVICE {
 	FIC_SUBCHANNEL subchannel;
 	AUDIO_SERVICE audio_service;
 	FIC_LABEL label;
+	int pty_static;
+	int pty_dynamic;
 	int sls_app_type;
 
 	int pri_comp_subchid;	// only used for sorting
@@ -160,12 +166,16 @@ struct LISTED_SERVICE {
 	static const int scids_none = -1;
 	bool IsPrimary() const {return scids == scids_none;}
 
+	static const int pty_none = -1;
+
 	static const int sls_app_type_none = -1;
 	bool HasSLS() const {return sls_app_type != sls_app_type_none;}
 
 	LISTED_SERVICE() :
 		sid(sid_none),
 		scids(scids_none),
+		pty_static(pty_none),
+		pty_dynamic(pty_none),
 		sls_app_type(sls_app_type_none),
 		pri_comp_subchid(AUDIO_SERVICE::subchid_none),
 		multi_comps(false)
@@ -209,6 +219,7 @@ private:
 	void ProcessFIG0_8(const uint8_t *data, size_t len);
 	void ProcessFIG0_9(const uint8_t *data, size_t len);
 	void ProcessFIG0_13(const uint8_t *data, size_t len);
+	void ProcessFIG0_17(const uint8_t *data, size_t len);
 
 	void ProcessFIG1(const uint8_t *data, size_t len);
 	void ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label);
@@ -236,6 +247,9 @@ private:
 
 	static const char* languages_0x00_to_0x2B[];
 	static const char* languages_0x7F_downto_0x45[];
+
+	static const char* ptys_rds_0x00_to_0x1D[];
+	static const char* ptys_rbds_0x00_to_0x1D[];
 public:
 	FICDecoder(FICDecoderObserver *observer) : observer(observer) {}
 
@@ -245,6 +259,7 @@ public:
 	static std::string ConvertLabelToUTF8(const FIC_LABEL& label, std::string* charset_name);
 	static std::string ConvertLanguageToString(const int value);
 	static std::string ConvertInterTableIDToString(const int value);
+	static std::string ConvertPTYToString(const int value, const int inter_table_id);
 	static std::string DeriveShortLabelUTF8(const std::string& long_label, uint16_t short_label_mask);
 };
 

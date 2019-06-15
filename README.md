@@ -265,6 +265,11 @@ With the console version, instead of the desired service it is also
 possible to directly request a specific sub-channel by using `-r` (for
 DAB) or `-R` (for DAB+).
 
+Note that the console output always shows the programme type just using
+RDS PTYs despite the actually used international table ID (which should
+work in nearly all cases). The GTK version in contrast always shows the
+correct programme type, based on the transmitted international table ID.
+
 
 ### Keyboard shortcuts (GTK GUI version)
 

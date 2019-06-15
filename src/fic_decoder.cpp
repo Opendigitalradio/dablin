@@ -104,6 +104,9 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 	case 13:
 		ProcessFIG0_13(data, len);
 		break;
+	case 17:
+		ProcessFIG0_17(data, len);
+		break;
 //	default:
 //		fprintf(stderr, "FICDecoder: received unsupported FIG 0/%d with %zu field bytes\n", header.extension, len);
 	}
@@ -318,6 +321,13 @@ void FICDecoder::ProcessFIG0_9(const uint8_t *data, size_t len) {
 				ensemble.ecc, ensemble.inter_table_id, ConvertInterTableIDToString(ensemble.inter_table_id).c_str());
 
 		UpdateEnsemble();
+
+		// update services that changes may affect
+		for(const fic_services_t::value_type& service : services) {
+			const FIC_SERVICE& s = service.second;
+			if(s.pty_static != FIC_SERVICE::pty_none || s.pty_dynamic != FIC_SERVICE::pty_none)
+				UpdateService(s);
+		}
 	}
 }
 
@@ -357,6 +367,44 @@ void FICDecoder::ProcessFIG0_13(const uint8_t *data, size_t len) {
 			}
 
 			offset += ua_data_length;
+		}
+	}
+}
+
+void FICDecoder::ProcessFIG0_17(const uint8_t *data, size_t len) {
+	// FIG 0/17 - Programme Type
+	// programme type only
+
+	// iterate through all services
+	for(size_t offset = 0; offset < len;) {
+		uint16_t sid = data[offset] << 8 | data[offset + 1];
+		bool sd = data[offset + 2] & 0x80;
+		bool l_flag = data[offset + 2] & 0x20;
+		bool cc_flag = data[offset + 2] & 0x10;
+		offset += 3;
+
+		// skip language, if present
+		if(l_flag)
+			offset++;
+
+		// programme type (international code)
+		int pty = data[offset] & 0x1F;
+		offset++;
+
+		// skip CC part, if present
+		if(cc_flag)
+			offset++;
+
+		FIC_SERVICE& service = GetService(sid);
+		int& current_pty = sd ? service.pty_dynamic : service.pty_static;
+		if(current_pty != pty) {
+			current_pty = pty;
+
+			// assuming international table ID 0x01 here!
+			fprintf(stderr, "FICDecoder: SId 0x%04X: programme type (%s): '%s'\n",
+					sid, sd ? "dynamic" : "static", ConvertPTYToString(pty, 0x01).c_str());
+
+			UpdateService(service);
 		}
 	}
 }
@@ -518,6 +566,8 @@ void FICDecoder::UpdateListedService(const FIC_SERVICE& service, int scids, bool
 	ls.sid = service.sid;
 	ls.scids = scids;
 	ls.label = service.label;
+	ls.pty_static = service.pty_static;
+	ls.pty_dynamic = service.pty_dynamic;
 	ls.pri_comp_subchid = service.pri_comp_subchid;
 	ls.multi_comps = multi_comps;
 
@@ -584,6 +634,7 @@ void FICDecoder::UpdateEnsemble() {
 	if(ensemble.label.IsNone())
 		return;
 
+	// forward to observer
 	observer->FICChangeEnsemble(ensemble);
 }
 
@@ -638,6 +689,27 @@ const char* FICDecoder::languages_0x7F_downto_0x45[] = {
 		"Uzbek", "Vietnamese", "Zulu"
 };
 
+const char* FICDecoder::ptys_rds_0x00_to_0x1D[] = {
+		"No programme type", "News", "Current Affairs", "Information",
+		"Sport", "Education", "Drama", "Culture",
+		"Science", "Varied", "Pop Music", "Rock Music",
+		"Easy Listening Music", "Light Classical", "Serious Classical", "Other Music",
+		"Weather/meteorology", "Finance/Business", "Children's programmes", "Social Affairs",
+		"Religion", "Phone In", "Travel", "Leisure",
+		"Jazz Music", "Country Music", "National Music", "Oldies Music",
+		"Folk Music", "Documentary"
+};
+const char* FICDecoder::ptys_rbds_0x00_to_0x1D[] = {
+		"No program type", "News", "Information", "Sports",
+		"Talk", "Rock", "Classic Rock", "Adult Hits",
+		"Soft Rock", "Top 40", "Country", "Oldies",
+		"Soft", "Nostalgia", "Jazz", "Classical",
+		"Rhythm and Blues", "Soft Rhythm and Blues", "Foreign Language", "Religious Music",
+		"Religious Talk", "Personality", "Public", "College",
+		"(rfu)", "(rfu)", "(rfu)", "(rfu)",
+		"(rfu)", "Weather"
+};
+
 std::string FICDecoder::ConvertLanguageToString(const int value) {
 	if(value >= 0x00 && value <= 0x2B)
 		return languages_0x00_to_0x2B[value];
@@ -656,6 +728,17 @@ std::string FICDecoder::ConvertInterTableIDToString(const int value) {
 		return "RBDS PTY";
 	default:
 		return "unknown";
+	}
+}
+
+std::string FICDecoder::ConvertPTYToString(const int value, const int inter_table_id) {
+	switch(inter_table_id) {
+	case 0x01:
+		return value <= 0x1D ? ptys_rds_0x00_to_0x1D[value]  : "(not used)";
+	case 0x02:
+		return value <= 0x1D ? ptys_rbds_0x00_to_0x1D[value] : "(not used)";
+	default:
+		return "(unknown)";
 	}
 }
 
