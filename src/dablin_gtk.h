@@ -193,10 +193,12 @@ private:
 	Gtk::Grid top_grid;
 
 	Gtk::Frame frame_combo_channels;
+	Gtk::Box channels_box;
 	DABlinGTKChannelColumns combo_channels_cols;
 	Glib::RefPtr<Gtk::ListStore> combo_channels_liststore;
 	Gtk::ComboBox combo_channels;
 	int ComboChannelsSlotCompare(const Gtk::TreeModel::iterator& a, const Gtk::TreeModel::iterator& b);
+	Gtk::Button btn_channels_stop;
 
 	FIC_ENSEMBLE ensemble;
 	Gtk::Frame frame_label_ensemble;
@@ -228,6 +230,7 @@ private:
 
 	void SetService(const LISTED_SERVICE& service);
 
+	void on_btn_channels_stop();
 	void on_tglbtn_record();
 	void on_tglbtn_mute();
 	void on_vlmbtn(double value);

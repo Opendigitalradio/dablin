@@ -301,8 +301,11 @@ void DABlinGTK::InitWidgets() {
 
 	// init widgets
 	frame_combo_channels.set_label("Channel");
-	frame_combo_channels.set_size_request(75, -1);
-	frame_combo_channels.add(combo_channels);
+	frame_combo_channels.set_size_request(100, -1);
+	frame_combo_channels.add(channels_box);
+
+	channels_box.pack_start(combo_channels);
+	channels_box.pack_start(btn_channels_stop, Gtk::PACK_SHRINK);
 
 	combo_channels_liststore = Gtk::ListStore::create(combo_channels_cols);
 	combo_channels_liststore->set_default_sort_func(sigc::mem_fun(*this, &DABlinGTK::ComboChannelsSlotCompare));
@@ -316,6 +319,10 @@ void DABlinGTK::InitWidgets() {
 		AddChannels();
 	else
 		frame_combo_channels.set_sensitive(false);
+
+	btn_channels_stop.set_image_from_icon_name("media-playback-stop");
+	btn_channels_stop.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_btn_channels_stop));
+	btn_channels_stop.set_sensitive(false);
 
 	frame_label_ensemble.set_label("Ensemble");
 	frame_label_ensemble.set_size_request(150, -1);
@@ -752,11 +759,17 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 
 		switch(key_event->keyval) {
 		case GDK_KEY_c:
-		case GDK_KEY_C:
+		case GDK_KEY_C: {
 			// copy DL to clipboard, if not empty
 			std::string dl = label_dl.get_label();
 			if(!dl.empty())
 				Gtk::Clipboard::get()->set_text(dl);
+			return true; }
+		case GDK_KEY_Delete:
+		case GDK_KEY_KP_Delete:
+			// stop decoding the current channel, if allowed
+			if(btn_channels_stop.get_sensitive())
+				btn_channels_stop.clicked();
 			return true;
 		}
 	}
@@ -927,38 +940,52 @@ void DABlinGTK::FICDiscardedFIB() {
 }
 
 void DABlinGTK::on_combo_channels() {
-	Gtk::TreeModel::Row row = *combo_channels.get_active();
-	DAB_LIVE_SOURCE_CHANNEL channel = row[combo_channels_cols.col_channel];
-
 	// cleanup
 	if(eti_source) {
 		eti_source->DoExit();
 		eti_source_thread.join();
 		delete eti_source;
+		eti_source = nullptr;
 	}
 
 	ETIResetFIC();
 	combo_services_liststore->clear();	// TODO: prevent on_combo_services() being called for each deleted row
 	label_ensemble.set_label("");
 	frame_label_ensemble.set_tooltip_text("");
-	frame_combo_channels.set_tooltip_text(
-			"Center frequency: " + std::to_string(channel.freq) + " kHz\n"
-			"Gain: " + channel.GainToString()
-	);
 
-	// prevent re-use of initial params
-	if(initial_channel_appended) {
-		options.initial_label = "";
-		options.initial_sid = LISTED_SERVICE::sid_none;
-		options.initial_scids = LISTED_SERVICE::scids_none;
+	// apply
+	Gtk::TreeModel::iterator row_it = combo_channels.get_active();
+	if(combo_channels_liststore->iter_is_valid(row_it)) {
+		Gtk::TreeModel::Row row = *row_it;
+		DAB_LIVE_SOURCE_CHANNEL channel = row[combo_channels_cols.col_channel];
+
+		combo_channels.set_tooltip_text(
+				"Center frequency: " + std::to_string(channel.freq) + " kHz\n"
+				"Gain: " + channel.GainToString()
+		);
+
+		// prevent re-use of initial params
+		if(initial_channel_appended) {
+			options.initial_label = "";
+			options.initial_sid = LISTED_SERVICE::sid_none;
+			options.initial_scids = LISTED_SERVICE::scids_none;
+		}
+
+		if(options.dab_live_source_type == DABLiveETISource::TYPE_ETI_CMDLINE)
+			eti_source = new EtiCmdlineETISource(options.dab_live_source_binary, channel, this);
+		else
+			eti_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
+		eti_source_thread = std::thread(&ETISource::Main, eti_source);
+
+		btn_channels_stop.set_sensitive(true);
+	} else {
+		combo_channels.set_tooltip_text("");
+		btn_channels_stop.set_sensitive(false);
 	}
+}
 
-	// append
-	if(options.dab_live_source_type == DABLiveETISource::TYPE_ETI_CMDLINE)
-		eti_source = new EtiCmdlineETISource(options.dab_live_source_binary, channel, this);
-	else
-		eti_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
-	eti_source_thread = std::thread(&ETISource::Main, eti_source);
+void DABlinGTK::on_btn_channels_stop() {
+	combo_channels.unset_active();
 }
 
 void DABlinGTK::on_combo_services() {

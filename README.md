@@ -274,11 +274,11 @@ Dynamic FIC messages can be suppressed using `-F` (currently affects
 dynamic PTY only).
 
 
-### Keyboard shortcuts (GTK GUI version)
+### Hotkeys (GTK GUI version)
 
 To switch the channel instead of the service, press `Ctrl` in addition.
 
-Shortcut         | Meaning
+Hotkey           | Meaning
 -----------------|---------------------------------------------
 `m`              | Enable/disable audio mute
 `r`              | Start/stop recording
@@ -287,6 +287,7 @@ Shortcut         | Meaning
 `+`              | Switch to next service
 `1`..`0`         | Switch to 1st..10th service
 `Alt` + `1`..`0` | Switch to 11th..20th service
+`Ctrl` + `Del`   | Stop decoding the current channel
 
 
 ### DAB live reception
