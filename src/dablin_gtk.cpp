@@ -950,6 +950,7 @@ void DABlinGTK::on_combo_channels() {
 
 	ETIResetFIC();
 	combo_services_liststore->clear();	// TODO: prevent on_combo_services() being called for each deleted row
+	eti_player->StopAudio();
 	label_ensemble.set_label("");
 	frame_label_ensemble.set_tooltip_text("");
 

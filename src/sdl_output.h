@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,13 +62,13 @@ private:
 
 	void AudioCallback(Uint8* stream, int len);
 	size_t GetAudio(uint8_t *data, size_t len);
-	void StopAudio();
 	void SetAudioStartBufferSize();
 public:
 	SDLOutput();
 	~SDLOutput();
 
 	void StartAudio(int samplerate, int channels, bool float32);
+	void StopAudio();
 	void PutAudio(const uint8_t *data, size_t len);
 	void SetAudioMute(bool audio_mute) {this->audio_mute = audio_mute;}
 	void SetAudioVolume(double audio_volume) {this->audio_volume = audio_volume;}

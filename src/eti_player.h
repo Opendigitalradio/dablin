@@ -89,6 +89,7 @@ public:
 	void AddUntouchedStreamConsumer(UntouchedStreamConsumer* consumer) {if(dec) dec->AddUntouchedStreamConsumer(consumer);};
 	void RemoveUntouchedStreamConsumer(UntouchedStreamConsumer* consumer) {if(dec) dec->RemoveUntouchedStreamConsumer(consumer);};
 
+	void StopAudio() {if(out) out->StopAudio();}
 	void SetAudioMute(bool audio_mute) {if(out) out->SetAudioMute(audio_mute);}
 	void SetAudioVolume(double audio_volume) {if(out) out->SetAudioVolume(audio_volume);}
 	bool HasAudioVolumeControl() {return out ? out->HasAudioVolumeControl() : false;}

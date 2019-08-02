@@ -59,9 +59,8 @@ void ETIPlayer::SetAudioService(const AUDIO_SERVICE& audio_service) {
 	if(this->audio_service == audio_service)
 		return;
 
-	// cleanup
+	// cleanup - audio only stopped (externally) on ensemble change!
 	if(dec) {
-//		out->StopAudio();
 		delete dec;
 		dec = nullptr;
 	}
