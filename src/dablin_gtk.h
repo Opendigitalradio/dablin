@@ -154,7 +154,11 @@ private:
 	DABlinGTKOptions options;
 
 	Gtk::ListStore::iterator initial_channel_it;
-	bool initial_channel_appended;
+
+	std::string switch_service_label;
+	int switch_service_sid;
+	int switch_service_scids;
+	bool switch_service_applied;
 
 	DABlinGTKSlideshowWindow slideshow_window;
 

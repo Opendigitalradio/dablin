@@ -214,7 +214,11 @@ int main(int argc, char **argv) {
 DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	this->options = options;
 
-	initial_channel_appended = false;
+	switch_service_label = options.initial_label;
+	switch_service_sid = options.initial_sid;
+	switch_service_scids = options.initial_scids;
+	switch_service_applied = false;
+
 	rec_file = nullptr;
 	rec_duration_ms = 0;
 	rec_prebuffer_filled_ms = 0;
@@ -250,7 +254,6 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	// combobox first must be visible
 	if(combo_channels_liststore->iter_is_valid(initial_channel_it))
 		combo_channels.set_active(initial_channel_it);
-	initial_channel_appended = true;
 
 	// add window key press event handler
 	signal_key_press_event().connect(sigc::mem_fun(*this, &DABlinGTK::HandleKeyPressEvent));
@@ -925,7 +928,7 @@ void DABlinGTK::FICChangeServiceEmitted() {
 
 	if(add_new_row) {
 		// set (initial) service
-		if(label == options.initial_label || (new_service.sid == options.initial_sid && new_service.scids == options.initial_scids))
+		if(label == switch_service_label || (new_service.sid == switch_service_sid && new_service.scids == switch_service_scids))
 			combo_services.set_active(row_it);
 	} else {
 		// set (updated) service
@@ -965,11 +968,13 @@ void DABlinGTK::on_combo_channels() {
 				"Gain: " + channel.GainToString()
 		);
 
-		// prevent re-use of initial params
-		if(initial_channel_appended) {
-			options.initial_label = "";
-			options.initial_sid = LISTED_SERVICE::sid_none;
-			options.initial_scids = LISTED_SERVICE::scids_none;
+		// prevent re-use of switch service params next time
+		if(!switch_service_applied) {
+			switch_service_applied = true;
+		} else {
+			switch_service_label = "";
+			switch_service_sid = LISTED_SERVICE::sid_none;
+			switch_service_scids = LISTED_SERVICE::scids_none;
 		}
 
 		if(options.dab_live_source_type == DABLiveETISource::TYPE_ETI_CMDLINE)
