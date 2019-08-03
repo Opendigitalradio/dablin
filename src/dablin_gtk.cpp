@@ -323,7 +323,7 @@ void DABlinGTK::InitWidgets() {
 	else
 		frame_combo_channels.set_sensitive(false);
 
-	btn_channels_stop.set_image_from_icon_name("media-playback-stop");
+	btn_channels_stop.set_image_from_icon_name("media-playback-start");
 	btn_channels_stop.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_btn_channels_stop));
 	btn_channels_stop.set_sensitive(false);
 
@@ -768,9 +768,8 @@ bool DABlinGTK::HandleKeyPressEvent(GdkEventKey* key_event) {
 			if(!dl.empty())
 				Gtk::Clipboard::get()->set_text(dl);
 			return true; }
-		case GDK_KEY_Delete:
-		case GDK_KEY_KP_Delete:
-			// stop decoding the current channel, if allowed
+		case GDK_KEY_space:
+			// stop/resume decoding the current channel/service, if allowed
 			if(btn_channels_stop.get_sensitive())
 				btn_channels_stop.clicked();
 			return true;
@@ -943,6 +942,8 @@ void DABlinGTK::FICDiscardedFIB() {
 }
 
 void DABlinGTK::on_combo_channels() {
+	btn_channels_stop.set_sensitive(true);
+
 	// cleanup
 	if(eti_source) {
 		eti_source->DoExit();
@@ -983,15 +984,38 @@ void DABlinGTK::on_combo_channels() {
 			eti_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
 		eti_source_thread = std::thread(&ETISource::Main, eti_source);
 
-		btn_channels_stop.set_sensitive(true);
+		btn_channels_stop.set_image_from_icon_name("media-playback-stop");
 	} else {
 		combo_channels.set_tooltip_text("");
-		btn_channels_stop.set_sensitive(false);
+		btn_channels_stop.set_image_from_icon_name("media-playback-start");
 	}
 }
 
 void DABlinGTK::on_btn_channels_stop() {
-	combo_channels.unset_active();
+	if(combo_channels.get_active_row_number() != -1) {
+		// save state + stop
+		Gtk::TreeModel::iterator row_it = combo_services.get_active();
+		if(combo_services_liststore->iter_is_valid(row_it)) {
+			Gtk::TreeModel::Row row = *row_it;
+			LISTED_SERVICE service = row[combo_services_cols.col_service];
+			resume_service_sid = service.sid;
+			resume_service_scids = service.scids;
+		} else {
+			resume_service_sid = LISTED_SERVICE::sid_none;
+			resume_service_scids = LISTED_SERVICE::scids_none;
+		}
+
+		resume_channel_it = combo_channels.get_active();
+		combo_channels.unset_active();
+	} else {
+		// load state + resume
+		switch_service_label = "";
+		switch_service_sid = resume_service_sid;
+		switch_service_scids = resume_service_scids;
+		switch_service_applied = false;
+
+		combo_channels.set_active(resume_channel_it);
+	}
 }
 
 void DABlinGTK::on_combo_services() {

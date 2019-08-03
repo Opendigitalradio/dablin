@@ -287,7 +287,7 @@ Hotkey           | Meaning
 `+`              | Switch to next service
 `1`..`0`         | Switch to 1st..10th service
 `Alt` + `1`..`0` | Switch to 11th..20th service
-`Ctrl` + `Del`   | Stop decoding the current channel
+`Ctrl` + `Space` | Stop/resume decoding the current channel/service
 
 
 ### DAB live reception
@@ -357,6 +357,11 @@ later received ETI frames in realtime. However this means that the
 playback is delayed by the amount of all previous interruptions i.e. the
 news will start some seconds/minutes later compared to live reception
 because of that.
+
+The GTK GUI version also allows to stop decoding the current
+channel/service by using the stop button next to the channel combobox.
+If desired, decoding can then be resumed using the same button again.
+
 
 ### Recording a service
 

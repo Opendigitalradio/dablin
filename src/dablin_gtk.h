@@ -177,6 +177,10 @@ private:
 	rec_samples_t rec_prebuffer;
 	long int rec_prebuffer_filled_ms;
 
+	Gtk::TreeModel::iterator resume_channel_it;
+	int resume_service_sid;
+	int resume_service_scids;
+
 	// ETI data change
 	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;
 	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);}
