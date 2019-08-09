@@ -570,6 +570,7 @@ void DABlinGTK::on_tglbtn_record() {
 		if(new_rec_file) {
 			// disable channel/service switch
 			combo_channels.set_sensitive(false);	// parent frame already non-sensitive, if channels not available
+			btn_channels_stop.set_sensitive(false);	// parent frame already non-sensitive, if channels not available
 			combo_services.set_sensitive(false);
 
 			set_icon_name("media-record");
@@ -622,6 +623,7 @@ void DABlinGTK::on_tglbtn_record() {
 
 			// enable channel/service switch
 			combo_channels.set_sensitive(true);		// parent frame already non-sensitive, if channels not available
+			btn_channels_stop.set_sensitive(true);	// parent frame already non-sensitive, if channels not available
 			combo_services.set_sensitive(true);
 		}
 	}
