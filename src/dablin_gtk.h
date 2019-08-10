@@ -136,11 +136,17 @@ public:
 // --- RecSample -----------------------------------------------------------------
 struct RecSample {
 	std::vector<uint8_t> data;
+	time_t ts;
 	size_t duration_ms;
 
 	RecSample(const uint8_t* data, size_t len, size_t duration_ms) {
 		this->data.resize(len);
 		memcpy(&this->data[0], data, len);
+
+		ts = time(nullptr);
+		if(ts == (time_t) -1)
+			perror("DABlinGTK: error while getting time for sample");
+
 		this->duration_ms = duration_ms;
 	}
 };

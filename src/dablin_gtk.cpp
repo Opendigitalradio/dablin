@@ -540,15 +540,25 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 
 void DABlinGTK::on_tglbtn_record() {
 	if(tglbtn_record.get_active()) {
-		// get timestamp
-		const time_t now = time(nullptr);
-		if(now == (time_t) -1)
-			perror("DABlinGTK: error while getting time");
-		struct tm* now_tm = localtime(&now);
-		if(!now_tm)
+		// get start timestamp
+		time_t start;
+		{
+			std::lock_guard<std::mutex> lock(rec_mutex);
+
+			// use prebuffer start information, if available
+			if(!rec_prebuffer.empty()) {
+				start = rec_prebuffer.front().ts;
+			} else {
+				start = time(nullptr);
+				if(start == (time_t) -1)
+					perror("DABlinGTK: error while getting time for recording");
+			}
+		}
+		struct tm* start_tm = localtime(&start);
+		if(!start_tm)
 			perror("DABlinGTK: error while getting local time");
-		char now_string[22];
-		strftime(now_string, sizeof(now_string), "%F - %H-%M-%S", now_tm);
+		char start_string[22];
+		strftime(start_string, sizeof(start_string), "%F - %H-%M-%S", start_tm);
 
 		// get station name
 		LISTED_SERVICE service;	// default: none
@@ -565,7 +575,7 @@ void DABlinGTK::on_tglbtn_record() {
 			if(c == '/')
 				c = '_';
 
-		std::string new_rec_filename = options.recordings_path + "/" + std::string(now_string) + " - " + label_cleaned + "." + eti_player->GetUntouchedStreamFileExtension();
+		std::string new_rec_filename = options.recordings_path + "/" + std::string(start_string) + " - " + label_cleaned + "." + eti_player->GetUntouchedStreamFileExtension();
 		FILE* new_rec_file = fopen(new_rec_filename.c_str(), "wb");
 		if(new_rec_file) {
 			// disable channel/service switch
