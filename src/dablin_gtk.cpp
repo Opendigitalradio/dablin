@@ -358,16 +358,16 @@ void DABlinGTK::InitWidgets() {
 	tglbtn_record.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_record));
 	tglbtn_record.set_sensitive(false);
 
-	tglbtn_mute.set_label("Mute");
+	tglbtn_slideshow.set_image_from_icon_name("video-display");
+	tglbtn_slideshow.set_active(!options.initially_disable_slideshow);
+	tglbtn_slideshow.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_slideshow));
+
+	tglbtn_mute.set_image_from_icon_name("audio-volume-muted");
 	tglbtn_mute.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_mute));
 
 	vlmbtn.set_value(1.0);
 	vlmbtn.set_sensitive(eti_player->HasAudioVolumeControl());
 	vlmbtn.signal_value_changed().connect(sigc::mem_fun(*this, &DABlinGTK::on_vlmbtn));
-
-	tglbtn_slideshow.set_label("Slideshow");
-	tglbtn_slideshow.set_active(!options.initially_disable_slideshow);
-	tglbtn_slideshow.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_slideshow));
 
 	frame_label_dl.set_label("Dynamic Label");
 	frame_label_dl.set_size_request(750, 50);
@@ -394,9 +394,9 @@ void DABlinGTK::InitWidgets() {
 	top_grid.attach_next_to(frame_combo_services, frame_label_ensemble, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(frame_label_format, frame_combo_services, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(tglbtn_record, frame_label_format, Gtk::POS_RIGHT, 1, 1);
-	top_grid.attach_next_to(tglbtn_mute, tglbtn_record, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach_next_to(tglbtn_slideshow, tglbtn_record, Gtk::POS_BOTTOM, 1, 1);
+	top_grid.attach_next_to(tglbtn_mute, tglbtn_slideshow, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(vlmbtn, tglbtn_mute, Gtk::POS_RIGHT, 1, 1);
-	top_grid.attach_next_to(tglbtn_slideshow, tglbtn_record, Gtk::POS_BOTTOM, 3, 1);
 	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 7, 1);
 	top_grid.attach_next_to(progress_position, frame_label_dl, Gtk::POS_BOTTOM, 7, 1);
 

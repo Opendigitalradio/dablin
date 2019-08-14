@@ -228,9 +228,9 @@ private:
 	Gtk::Label label_format;
 
 	Gtk::ToggleButton tglbtn_record;
+	Gtk::ToggleButton tglbtn_slideshow;
 	Gtk::ToggleButton tglbtn_mute;
 	Gtk::VolumeButton vlmbtn;
-	Gtk::ToggleButton tglbtn_slideshow;
 
 	Gtk::Frame frame_label_dl;
 	Gtk::Label label_dl;
