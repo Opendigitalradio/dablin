@@ -327,6 +327,7 @@ void DABlinGTK::InitWidgets() {
 	btn_channels_stop.set_image_from_icon_name("media-playback-start");
 	btn_channels_stop.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_btn_channels_stop));
 	btn_channels_stop.set_sensitive(false);
+	btn_channels_stop.set_tooltip_text("Stop/resume decoding current channel/service");
 
 	frame_label_ensemble.set_label("Ensemble");
 	frame_label_ensemble.set_size_request(150, -1);
@@ -358,6 +359,7 @@ void DABlinGTK::InitWidgets() {
 	tglbtn_record.set_image_from_icon_name("media-record");
 	tglbtn_record.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_record));
 	tglbtn_record.set_sensitive(false);
+	tglbtn_record.set_tooltip_text("Record service");
 
 	label_record.set_halign(Gtk::ALIGN_START);
 	label_record.set_padding(WIDGET_SPACE, WIDGET_SPACE);
@@ -365,9 +367,11 @@ void DABlinGTK::InitWidgets() {
 	tglbtn_slideshow.set_image_from_icon_name("video-display");
 	tglbtn_slideshow.set_active(!options.initially_disable_slideshow);
 	tglbtn_slideshow.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_slideshow));
+	tglbtn_slideshow.set_tooltip_text("Slideshow (if available)");
 
 	tglbtn_mute.set_image_from_icon_name("audio-volume-muted");
 	tglbtn_mute.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_mute));
+	tglbtn_mute.set_tooltip_text("Mute");
 
 	vlmbtn.set_value(1.0);
 	vlmbtn.set_sensitive(eti_player->HasAudioVolumeControl());
