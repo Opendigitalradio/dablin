@@ -231,6 +231,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	fic_change_service.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServiceEmitted));
 	pad_change_dynamic_label.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 	pad_change_slide.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
+	do_rec_status_update.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoRecStatusUpdateEmitted));
 
 	eti_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
 
@@ -657,7 +658,7 @@ void DABlinGTK::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t d
 
 		// update status only on seconds change
 		if(rec_duration_ms / 1000 != rec_duration_ms_old / 1000)
-			UpdateRecStatus(true);
+			DoRecStatusUpdate(true);
 	} else {
 		// if prebuffer enabled
 		if(options.rec_prebuffer_size_s > 0) {
@@ -675,9 +676,14 @@ void DABlinGTK::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t d
 
 			// update status only on seconds change
 			if(rec_prebuffer_filled_ms / 1000 != rec_prebuffer_ms_old / 1000)
-				UpdateRecStatus(true);
+				DoRecStatusUpdate(true);
 		}
 	}
+}
+
+void DABlinGTK::DoRecStatusUpdateEmitted() {
+	std::lock_guard<std::mutex> lock(rec_mutex);
+	UpdateRecStatus(do_rec_status_update.Pop());
 }
 
 void DABlinGTK::UpdateRecStatus(bool decoding) {

@@ -257,6 +257,10 @@ private:
 	bool HandleConfigureEvent(GdkEventConfigure* configure_event);
 	bool CheckForIndexKey(GdkEventKey* key_event, int old_index, int& new_index);
 	void TrySwitch(Gtk::ComboBox& combo, Glib::RefPtr<Gtk::ListStore>& combo_liststore, int index);
+
+	GTKDispatcherQueue<bool> do_rec_status_update;
+	void DoRecStatusUpdate(bool decoding) {do_rec_status_update.PushAndEmit(decoding);}
+	void DoRecStatusUpdateEmitted();
 	void UpdateRecStatus(bool decoding);
 
 	// FIC data change
