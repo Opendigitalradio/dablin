@@ -359,6 +359,9 @@ void DABlinGTK::InitWidgets() {
 	tglbtn_record.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_record));
 	tglbtn_record.set_sensitive(false);
 
+	label_record.set_halign(Gtk::ALIGN_START);
+	label_record.set_padding(WIDGET_SPACE, WIDGET_SPACE);
+
 	tglbtn_slideshow.set_image_from_icon_name("video-display");
 	tglbtn_slideshow.set_active(!options.initially_disable_slideshow);
 	tglbtn_slideshow.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_slideshow));
@@ -395,6 +398,7 @@ void DABlinGTK::InitWidgets() {
 	top_grid.attach_next_to(frame_combo_services, frame_label_ensemble, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(frame_label_format, frame_combo_services, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(tglbtn_record, frame_label_format, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach_next_to(label_record, tglbtn_record, Gtk::POS_RIGHT, 2, 1);
 	top_grid.attach_next_to(tglbtn_slideshow, tglbtn_record, Gtk::POS_BOTTOM, 1, 1);
 	top_grid.attach_next_to(tglbtn_mute, tglbtn_slideshow, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(vlmbtn, tglbtn_mute, Gtk::POS_RIGHT, 1, 1);
@@ -689,20 +693,22 @@ void DABlinGTK::DoRecStatusUpdateEmitted() {
 void DABlinGTK::UpdateRecStatus(bool decoding) {
 	// mutex must already be locked!
 
-	std::string tooltip_text;
-
 	// if recording in progress
 	if(rec_file) {
-		tooltip_text =
-				"File name: \"" + rec_filename + "\"\n"
-				"Duration: " + StringTools::MsToTimecode(rec_duration_ms);
+		label_record.set_label(StringTools::MsToTimecode(rec_duration_ms));
+		label_record.set_sensitive(true);
+		label_record.set_tooltip_text("File name: \"" + rec_filename + "\"");
 	} else {
 		// if prebuffer enabled and currently decoding
-		if(options.rec_prebuffer_size_s > 0 && decoding)
-			tooltip_text = "Prebuffer: " + StringTools::MsToTimecode(rec_prebuffer_filled_ms) + " / " + StringTools::MsToTimecode(options.rec_prebuffer_size_s * 1000);
+		if(options.rec_prebuffer_size_s > 0 && decoding) {
+			label_record.set_label(StringTools::MsToTimecode(rec_prebuffer_filled_ms));
+			label_record.set_sensitive(false);
+			label_record.set_tooltip_text("Prebuffer: " + StringTools::MsToTimecode(options.rec_prebuffer_size_s * 1000));
+		} else {
+			label_record.set_label("");
+			label_record.set_tooltip_text("");
+		}
 	}
-
-	tglbtn_record.set_tooltip_text(tooltip_text);
 }
 
 
