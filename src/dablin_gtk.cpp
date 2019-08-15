@@ -515,12 +515,16 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 			slideshow_window.ClearSlide();
 		}
 
-		if(options.rec_prebuffer_size_s > 0) {
+		{
 			std::lock_guard<std::mutex> lock(rec_mutex);
 
-			// clear prebuffer
-			rec_prebuffer.clear();
-			rec_prebuffer_filled_ms = 0;
+			// clear prebuffer, if enabled
+			if(options.rec_prebuffer_size_s > 0) {
+				rec_prebuffer.clear();
+				rec_prebuffer_filled_ms = 0;
+			}
+
+			UpdateRecStatus(!service.IsNone());
 		}
 
 		// start playback of new service
@@ -602,7 +606,7 @@ void DABlinGTK::on_tglbtn_record() {
 				rec_prebuffer.clear();
 				rec_prebuffer_filled_ms = 0;
 
-				UpdateRecStatus();
+				UpdateRecStatus(true);
 			}
 
 			if(options.rec_prebuffer_size_s == 0)
@@ -629,7 +633,7 @@ void DABlinGTK::on_tglbtn_record() {
 
 			set_icon_name("media-playback-start");
 			fprintf(stderr, "DABlinGTK: recording stopped\n");
-			UpdateRecStatus();
+			UpdateRecStatus(true);
 
 			// enable channel/service switch
 			combo_channels.set_sensitive(true);		// parent frame already non-sensitive, if channels not available
@@ -653,7 +657,7 @@ void DABlinGTK::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t d
 
 		// update status only on seconds change
 		if(rec_duration_ms / 1000 != rec_duration_ms_old / 1000)
-			UpdateRecStatus();
+			UpdateRecStatus(true);
 	} else {
 		// if prebuffer enabled
 		if(options.rec_prebuffer_size_s > 0) {
@@ -671,12 +675,12 @@ void DABlinGTK::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t d
 
 			// update status only on seconds change
 			if(rec_prebuffer_filled_ms / 1000 != rec_prebuffer_ms_old / 1000)
-				UpdateRecStatus();
+				UpdateRecStatus(true);
 		}
 	}
 }
 
-void DABlinGTK::UpdateRecStatus() {
+void DABlinGTK::UpdateRecStatus(bool decoding) {
 	// mutex must already be locked!
 
 	std::string tooltip_text;
@@ -687,8 +691,8 @@ void DABlinGTK::UpdateRecStatus() {
 				"File name: \"" + rec_filename + "\"\n"
 				"Duration: " + StringTools::MsToTimecode(rec_duration_ms);
 	} else {
-		// if prebuffer enabled
-		if(rec_prebuffer_filled_ms > 0)
+		// if prebuffer enabled and currently decoding
+		if(options.rec_prebuffer_size_s > 0 && decoding)
 			tooltip_text = "Prebuffer: " + StringTools::MsToTimecode(rec_prebuffer_filled_ms) + " / " + StringTools::MsToTimecode(options.rec_prebuffer_size_s * 1000);
 	}
 
