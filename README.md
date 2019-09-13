@@ -27,7 +27,7 @@ build DABlin.
 On Debian or Ubuntu, the respective packages (with GCC as C/C++ compiler) can be
 installed using aptitude or apt-get, for example:
 
-```
+```sh
 sudo apt-get install git gcc g++ cmake
 ```
 
@@ -54,13 +54,13 @@ usually is an (indirect) dependency of GCC itself.
 On Debian or Ubuntu, mpg123, FAAD2, SDL2 and gtkmm are packaged and installed
 with:
 
-```
+```sh
 sudo apt-get install libmpg123-dev libfaad-dev libsdl2-dev libgtkmm-3.0-dev
 ```
 
 On Fedora, mpg123, SDL2, and gtkmm are all packaged and can be installed thus:
 
-```
+```sh
 sudo dnf install mpg123-devel SDL2-devel gtkmm30-devel
 ```
 
@@ -68,7 +68,7 @@ FAAD2 is not packaged in the main Fedora repository, but it is available in
 [RPM Fusion repository](https://rpmfusion.org/). Once you have added RPM Fusion
 to the repositories, FAAD2 may be installed by:
 
-```
+```sh
 sudo dnf install faad2-devel
 ```
 
@@ -84,13 +84,13 @@ You can also use [OpenDigitalradio's fork](https://github.com/Opendigitalradio/f
 
 On Debian and Ubuntu, you can install FDK-AAC with:
 
-```
+```sh
 sudo apt-get install libfdk-aac-dev
 ```
 
 On Fedora, RPM Fusion is again needed and, if used, you can:
 
-```
+```sh
 sudo dnf install fdk-aac-devel
 ```
 
@@ -137,7 +137,7 @@ distributions (kindly maintained by Gürkan Myczko):
 On Ubuntu 18.04 you can simply install DABlin from the official package
 sources (note that the GitHub version may be newer):
 
-```
+```sh
 sudo apt-get install dablin
 ```
 
@@ -161,7 +161,7 @@ be built.
 
 To fetch the DABlin source code, execute the following commmands:
 
-```
+```sh
 git clone https://github.com/Opendigitalradio/dablin.git
 cd dablin
 ```
@@ -174,7 +174,7 @@ above `git clone` command line.
 You can use, for example, the following command sequence in order to compile and
 install DABlin:
 
-```
+```sh
 mkdir build
 cd build
 cmake ..
@@ -224,7 +224,7 @@ When Cygwin is installed, all the aforementioned packages can be
 pre-selected for installation by calling Cygwin's `setup-<arch>.exe`
 with the following parameter:
 
-```
+```sh
 -P git,make,cmake,gcc-core,gcc-g++,libmpg123-devel,libfdk-aac-devel,libSDL2-devel,libiconv-devel,libgtkmm3.0-devel,autoconf,automake,libtool
 ```
 
@@ -247,7 +247,7 @@ of course does not necessarily need this.
 
 You can replay an existing ETI-NI recording as follows:
 
-```
+```sh
 dablin -s 0xd911 mux.eti
 ```
 
@@ -257,7 +257,7 @@ As an alternative a service label can be specified with the `-l` option.
 Note that if the label contains spaces, it has to be enclosed by quotes
 (or the spaces be properly escaped):
 
-```
+```sh
 dablin -l "SWR1 RP" mux.eti
 ```
 
@@ -295,7 +295,7 @@ Hotkey           | Meaning
 If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/Opendigitalradio/dabtools)
 (ODR maintained fork) and transfer the ETI live stream via pipe, e.g.:
 
-```
+```sh
 dab2eti 216928000 | dablin_gtk
 ```
 
@@ -307,7 +307,7 @@ value.
 You therefore just have to specify the path to the `dab2eti` binary and
 the desired channel.
 
-```
+```sh
 dablin -d ~/bin/dab2eti -c 11D -s 0xd911
 ```
 
@@ -323,14 +323,14 @@ It is part of his [eti-stuff](https://github.com/JvanKatwijk/eti-stuff).
 In addition to specifying the path to the respective binary you also
 have to change the DAB live source type accordingly by using `-D`.
 
-```
+```sh
 dablin -d ~/bin/eti-cmdline-rtlsdr -D eti-cmdline -c 11D -s 0xd911
 ```
 
 When enclosed in quotes, you can also pass command line parameters to the
 binary, e.g. to set some frequency correction (here: +40 ppm):
 
-```
+```sh
 dablin -d "~/bin/eti-cmdline-rtlsdr -P 40" -D eti-cmdline -c 11D -s 0xd911
 ```
 
@@ -341,7 +341,7 @@ displayed within the channel list. Hereby the specified (default) gain
 value can also be overwritten for a channel by adding the desired value
 after a colon, e.g. `5C:-54`.
 
-```
+```sh
 dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 ```
 
