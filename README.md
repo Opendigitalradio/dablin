@@ -229,6 +229,19 @@ with the following parameter:
 ```
 
 
+### macOS
+
+On macOS, the development environment can be installed by running
+`xcode-select`. This installs Git and a C/C++ compiler (clang). All
+other packages and development libraries can be installed using a
+package manager such as [Homebrew](https://brew.sh), for example:
+
+```sh
+xcode-select --install
+brew install pkg-config cmake gtkmm gtkmm3 adwaita-icon-theme sdl2 fftw faad2 mpg123
+```
+
+
 ## Usage
 
 The console executable is called `dablin`, the GTK GUI executable
