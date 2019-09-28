@@ -39,6 +39,7 @@ static void usage(const char* exe) {
 					"               an optional gain can also be specified, e.g. \"5C:-54\")\n"
 					"  -c <ch>      Channel to be played (requires DAB live source)\n"
 					"  -l <label>   Label of the service to be played\n"
+					"  -1           Play the first service found\n"
 					"  -s <sid>     ID of the service to be played\n"
 					"  -x <scids>   ID of the service component to be played (requires service ID)\n"
 					"  -g <gain>    USB stick gain to pass to DAB live source (auto gain is default)\n"
@@ -76,7 +77,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hd:D:C:c:l:g:r:P:s:x:puISLF")) != -1) {
+	while((c = getopt(argc, argv, "hd:D:C:c:l:g:r:P:s:x:1puISLF")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -95,6 +96,10 @@ int main(int argc, char **argv) {
 			break;
 		case 'l':
 			options.initial_label = optarg;
+			initial_param_count++;
+			break;
+		case '1':
+			options.initial_first_found_service = true;
 			initial_param_count++;
 			break;
 		case 's':
@@ -958,6 +963,13 @@ void DABlinGTK::FICChangeServiceEmitted() {
 	row[combo_services_cols.col_service] = new_service;
 
 	if(add_new_row) {
+		// if first found service requested, adopt service params (for possible later changes)
+		if(options.initial_first_found_service) {
+			switch_service_sid = new_service.sid;
+			switch_service_scids = new_service.scids;
+			options.initial_first_found_service = false;
+		}
+
 		// set (initial) service
 		if(label == switch_service_label || (new_service.sid == switch_service_sid && new_service.scids == switch_service_scids))
 			combo_services.set_active(row_it);

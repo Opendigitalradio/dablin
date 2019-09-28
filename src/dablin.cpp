@@ -35,6 +35,7 @@ static void usage(const char* exe) {
 					"  -D <type>     DAB live source type: \"%s\" (default), \"%s\"\n"
 					"  -c <ch>       Channel to be played (requires DAB live source)\n"
 					"  -l <label>    Label of the service to be played\n"
+					"  -1            Play the first service found\n"
 					"  -s <sid>      ID of the service to be played\n"
 					"  -x <scids>    ID of the service component to be played (requires service ID)\n"
 					"  -r <subchid>  ID of the sub-channel (DAB) to be played\n"
@@ -68,7 +69,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hc:l:d:D:g:s:x:puIFr:R:")) != -1) {
+	while((c = getopt(argc, argv, "hc:l:d:D:g:s:x:1puIFr:R:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -84,6 +85,10 @@ int main(int argc, char **argv) {
 			break;
 		case 'l':
 			options.initial_label = optarg;
+			initial_param_count++;
+			break;
+		case '1':
+			options.initial_first_found_service = true;
 			initial_param_count++;
 			break;
 		case 's':
@@ -248,6 +253,13 @@ void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
 
 	std::string label = FICDecoder::ConvertLabelToUTF8(service.label, nullptr);
+
+	// if first found service requested, adopt service params (for possible later changes)
+	if(options.initial_first_found_service) {
+		options.initial_sid = service.sid;
+		options.initial_scids = service.scids;
+		options.initial_first_found_service = false;
+	}
 
 	// abort, if no/not initial service
 	if(!(label == options.initial_label || (service.sid == options.initial_sid && service.scids == options.initial_scids)))

@@ -71,6 +71,7 @@ public:
 // --- DABlinGTKOptions -----------------------------------------------------------------
 struct DABlinGTKOptions {
 	std::string filename;
+	bool initial_first_found_service;
 	std::string initial_label;
 	int initial_sid;
 	int initial_scids;
@@ -89,6 +90,7 @@ struct DABlinGTKOptions {
 	bool disable_dyn_fic_msgs;
 	
 DABlinGTKOptions() :
+	initial_first_found_service(false),
 	initial_sid(LISTED_SERVICE::sid_none),
 	initial_scids(LISTED_SERVICE::scids_none),
 	dab_live_source_type(DABLiveETISource::TYPE_DAB2ETI),

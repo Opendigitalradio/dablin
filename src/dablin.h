@@ -33,6 +33,7 @@
 struct DABlinTextOptions {
 	std::string filename;
 	std::string initial_label;
+	bool initial_first_found_service;
 	int initial_sid;
 	int initial_scids;
 	int initial_subchid_dab;
@@ -46,6 +47,7 @@ struct DABlinTextOptions {
 	bool disable_dyn_fic_msgs;
 	int gain;
 DABlinTextOptions() :
+	initial_first_found_service(false),
 	initial_sid(LISTED_SERVICE::sid_none),
 	initial_scids(LISTED_SERVICE::scids_none),
 	initial_subchid_dab(AUDIO_SERVICE::subchid_none),

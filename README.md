@@ -274,6 +274,9 @@ Note that if the label contains spaces, it has to be enclosed by quotes
 dablin -l "SWR1 RP" mux.eti
 ```
 
+The parameter `-1` (the number one, not the small letter L) simply plays
+the first service found.
+
 With the console version, instead of the desired service it is also
 possible to directly request a specific sub-channel by using `-r` (for
 DAB) or `-R` (for DAB+).
