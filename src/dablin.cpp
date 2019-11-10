@@ -221,14 +221,14 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	}
 
 	if(options.dab_live_source_binary.empty()) {
-		eti_source = new ETISource(options.filename, this);
+		ensemble_source = new ETISource(options.filename, this);
 	} else {
 		DAB_LIVE_SOURCE_CHANNEL channel(options.initial_channel, dab_channels.at(options.initial_channel), options.gain);
 
 		if(options.dab_live_source_type == DABLiveETISource::TYPE_ETI_CMDLINE)
-			eti_source = new EtiCmdlineETISource(options.dab_live_source_binary, channel, this);
+			ensemble_source = new EtiCmdlineETISource(options.dab_live_source_binary, channel, this);
 		else
-			eti_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
+			ensemble_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
 	}
 
 	fic_decoder = new FICDecoder(this, options.disable_dyn_fic_msgs);
@@ -236,12 +236,12 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 
 DABlinText::~DABlinText() {
 	DoExit();
-	delete eti_source;
+	delete ensemble_source;
 	delete ensemble_player;
 	delete fic_decoder;
 }
 
-void DABlinText::ETIUpdateProgress(const ETI_PROGRESS& progress) {
+void DABlinText::EnsembleUpdateProgress(const ENSEMBLE_PROGRESS& progress) {
 	// compensate cursor movement
 	std::string format = "\x1B[34m" "%s" "\x1B[0m";
 	format.append(progress.text.length(), '\b');

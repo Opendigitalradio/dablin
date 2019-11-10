@@ -230,7 +230,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 
 	slideshow_window.set_transient_for(*this);
 
-	eti_update_progress.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::ETIUpdateProgressEmitted));
+	ensemble_update_progress.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::EnsembleUpdateProgressEmitted));
 	ensemble_change_format.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::EnsembleChangeFormatEmitted));
 	fic_change_ensemble.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeEnsembleEmitted));
 	fic_change_service.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServiceEmitted));
@@ -241,10 +241,10 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	ensemble_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
 
 	if(!options.dab_live_source_binary.empty()) {
-		eti_source = nullptr;
+		ensemble_source = nullptr;
 	} else {
-		eti_source = new ETISource(options.filename, this);
-		eti_source_thread = std::thread(&ETISource::Main, eti_source);
+		ensemble_source = new ETISource(options.filename, this);
+		ensemble_source_thread = std::thread(&EnsembleSource::Main, ensemble_source);
 	}
 
 	fic_decoder = new FICDecoder(this, options.disable_dyn_fic_msgs);
@@ -271,10 +271,10 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 }
 
 DABlinGTK::~DABlinGTK() {
-	if(eti_source) {
-		eti_source->DoExit();
-		eti_source_thread.join();
-		delete eti_source;
+	if(ensemble_source) {
+		ensemble_source->DoExit();
+		ensemble_source_thread.join();
+		delete ensemble_source;
 	}
 
 	delete ensemble_player;
@@ -897,10 +897,10 @@ bool DABlinGTK::HandleConfigureEvent(GdkEventConfigure* /*configure_event*/) {
 	return false;
 }
 
-void DABlinGTK::ETIUpdateProgressEmitted() {
-//	fprintf(stderr, "### ETIUpdateProgressEmitted\n");
+void DABlinGTK::EnsembleUpdateProgressEmitted() {
+//	fprintf(stderr, "### EnsembleUpdateProgressEmitted\n");
 
-	ETI_PROGRESS progress = eti_update_progress.Pop();
+	ENSEMBLE_PROGRESS progress = ensemble_update_progress.Pop();
 
 	progress_position.set_fraction(progress.value);
 	progress_position.set_text(progress.text);
@@ -989,11 +989,11 @@ void DABlinGTK::on_combo_channels() {
 	btn_channels_stop.set_sensitive(true);
 
 	// cleanup
-	if(eti_source) {
-		eti_source->DoExit();
-		eti_source_thread.join();
-		delete eti_source;
-		eti_source = nullptr;
+	if(ensemble_source) {
+		ensemble_source->DoExit();
+		ensemble_source_thread.join();
+		delete ensemble_source;
+		ensemble_source = nullptr;
 	}
 
 	EnsembleResetFIC();
@@ -1023,10 +1023,10 @@ void DABlinGTK::on_combo_channels() {
 		}
 
 		if(options.dab_live_source_type == DABLiveETISource::TYPE_ETI_CMDLINE)
-			eti_source = new EtiCmdlineETISource(options.dab_live_source_binary, channel, this);
+			ensemble_source = new EtiCmdlineETISource(options.dab_live_source_binary, channel, this);
 		else
-			eti_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
-		eti_source_thread = std::thread(&ETISource::Main, eti_source);
+			ensemble_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
+		ensemble_source_thread = std::thread(&EnsembleSource::Main, ensemble_source);
 
 		btn_channels_stop.set_image_from_icon_name("media-playback-stop");
 	} else {

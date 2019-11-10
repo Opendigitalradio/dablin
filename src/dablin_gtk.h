@@ -157,7 +157,7 @@ typedef std::list<RecSample> rec_samples_t;
 
 
 // --- DABlinGTK -----------------------------------------------------------------
-class DABlinGTK : public Gtk::Window, ETISourceObserver, EnsemblePlayerObserver, FICDecoderObserver, PADDecoderObserver, UntouchedStreamConsumer {
+class DABlinGTK : public Gtk::Window, EnsembleSourceObserver, EnsemblePlayerObserver, FICDecoderObserver, PADDecoderObserver, UntouchedStreamConsumer {
 private:
 	DABlinGTKOptions options;
 
@@ -170,8 +170,8 @@ private:
 
 	DABlinGTKSlideshowWindow slideshow_window;
 
-	ETISource *eti_source;
-	std::thread eti_source_thread;
+	EnsembleSource *ensemble_source;
+	std::thread ensemble_source_thread;
 
 	EnsemblePlayer *ensemble_player;
 
@@ -189,11 +189,11 @@ private:
 	int resume_service_sid;
 	int resume_service_scids;
 
-	// ETI progress change
-	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;
-	void ETIProcessFrame(const uint8_t *data) {ensemble_player->ProcessFrame(data);}
-	void ETIUpdateProgress(const ETI_PROGRESS& progress) {eti_update_progress.PushAndEmit(progress);}
-	void ETIUpdateProgressEmitted();
+	// ensemble progress change
+	GTKDispatcherQueue<ENSEMBLE_PROGRESS> ensemble_update_progress;
+	void EnsembleProcessFrame(const uint8_t *data) {ensemble_player->ProcessFrame(data);}
+	void EnsembleUpdateProgress(const ENSEMBLE_PROGRESS& progress) {ensemble_update_progress.PushAndEmit(progress);}
+	void EnsembleUpdateProgressEmitted();
 
 	// ensemble data change
 	GTKDispatcherQueue<AUDIO_SERVICE_FORMAT> ensemble_change_format;

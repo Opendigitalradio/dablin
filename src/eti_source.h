@@ -19,23 +19,8 @@
 #ifndef ETI_SOURCE_H_
 #define ETI_SOURCE_H_
 
-#include <sys/select.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <atomic>
-#include <string>
-#include <thread>
-#include <unistd.h>
-#include <fcntl.h>
+#include "ensemble_source.h"
 
-#include "tools.h"
-
-
-struct ETI_PROGRESS {
-	double value;
-	std::string text;
-};
 
 struct DAB_LIVE_SOURCE_CHANNEL {
 	std::string block;
@@ -55,43 +40,14 @@ struct DAB_LIVE_SOURCE_CHANNEL {
 };
 
 
-// --- ETISourceObserver -----------------------------------------------------------------
-class ETISourceObserver {
-public:
-	virtual ~ETISourceObserver() {}
-
-	virtual void ETIProcessFrame(const uint8_t* /*data*/) {}
-	virtual void ETIUpdateProgress(const ETI_PROGRESS& /*progress*/) {}
-};
-
-
 // --- ETISource -----------------------------------------------------------------
-class ETISource {
-protected:
-	std::string filename;
-	ETISourceObserver *observer;
-
-	std::atomic<bool> do_exit;
-
-	FILE *input_file;
-
-	uint8_t eti_frame[6144];
-	size_t eti_frames_count;
-	size_t eti_bytes_count;
-	size_t eti_bytes_total;
-	unsigned long int eti_progress_next_ms;
-
-	bool OpenFile();
-	bool UpdateTotalBytes();
-	bool UpdateProgress();
-	virtual void Init() {}
-	virtual void PrintSource();
+class ETISource : public EnsembleSource {
+private:
+	size_t CheckFrameSync();
+	bool CheckFrameCompleted() {return true;}
 public:
-	ETISource(std::string filename, ETISourceObserver *observer);
-	virtual ~ETISource();
-
-	int Main();
-	void DoExit() {do_exit = true;}
+	ETISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "ETI", 6144) {}
+	~ETISource() {}
 };
 
 
@@ -107,7 +63,7 @@ protected:
 	void PrintSource();
 	virtual std::string GetParams() = 0;
 public:
-	DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer, std::string source_name);
+	DABLiveETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, EnsembleSourceObserver *observer, std::string source_name);
 	~DABLiveETISource();
 
 	static const std::string TYPE_DAB2ETI;
@@ -120,7 +76,7 @@ class DAB2ETIETISource : public DABLiveETISource {
 protected:
 	std::string GetParams();
 public:
-	DAB2ETIETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : DABLiveETISource(binary, channel, observer, TYPE_DAB2ETI) {}
+	DAB2ETIETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, EnsembleSourceObserver *observer) : DABLiveETISource(binary, channel, observer, TYPE_DAB2ETI) {}
 };
 
 
@@ -129,7 +85,7 @@ class EtiCmdlineETISource : public DABLiveETISource {
 protected:
 	std::string GetParams();
 public:
-	EtiCmdlineETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, ETISourceObserver *observer) : DABLiveETISource(binary, channel, observer, TYPE_ETI_CMDLINE) {}
+	EtiCmdlineETISource(std::string binary, DAB_LIVE_SOURCE_CHANNEL channel, EnsembleSourceObserver *observer) : DABLiveETISource(binary, channel, observer, TYPE_ETI_CMDLINE) {}
 };
 
 #endif /* ETI_SOURCE_H_ */

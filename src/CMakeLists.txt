@@ -4,6 +4,7 @@
 
 list(APPEND dablin_sources
     dabplus_decoder.cpp
+    ensemble_source.cpp
     ensemble_player.cpp
     eti_source.cpp
     eti_player.cpp
