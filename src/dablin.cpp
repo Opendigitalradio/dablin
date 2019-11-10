@@ -204,17 +204,17 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	// set XTerm window title to version string
 	fprintf(stderr, "\x1B]0;" "DABlin v" DABLIN_VERSION "\a");
 
-	eti_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
+	ensemble_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
 
 	// set initial sub-channel, if desired
 	if(options.initial_subchid_dab != AUDIO_SERVICE::subchid_none) {
-		eti_player->SetAudioService(AUDIO_SERVICE(options.initial_subchid_dab, false));
+		ensemble_player->SetAudioService(AUDIO_SERVICE(options.initial_subchid_dab, false));
 
 		// set XTerm window title to sub-channel number
 		fprintf(stderr, "\x1B]0;" "Sub-channel %d (DAB) - DABlin" "\a", options.initial_subchid_dab);
 	}
 	if(options.initial_subchid_dab_plus != AUDIO_SERVICE::subchid_none) {
-		eti_player->SetAudioService(AUDIO_SERVICE(options.initial_subchid_dab_plus, true));
+		ensemble_player->SetAudioService(AUDIO_SERVICE(options.initial_subchid_dab_plus, true));
 
 		// set XTerm window title to sub-channel number
 		fprintf(stderr, "\x1B]0;" "Sub-channel %d (DAB+) - DABlin" "\a", options.initial_subchid_dab_plus);
@@ -237,7 +237,7 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 DABlinText::~DABlinText() {
 	DoExit();
 	delete eti_source;
-	delete eti_player;
+	delete ensemble_player;
 	delete fic_decoder;
 }
 
@@ -266,8 +266,8 @@ void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 		return;
 
 	// if the audio service changed, switch
-	if(!eti_player->IsSameAudioService(service.audio_service))
-		eti_player->SetAudioService(service.audio_service);
+	if(!ensemble_player->IsSameAudioService(service.audio_service))
+		ensemble_player->SetAudioService(service.audio_service);
 
 	// set XTerm window title to service name
 	fprintf(stderr, "\x1B]0;" "%s - DABlin" "\a", label.c_str());

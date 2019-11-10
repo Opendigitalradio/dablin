@@ -20,89 +20,8 @@
 
 
 // --- ETIPlayer -----------------------------------------------------------------
-ETIPlayer::ETIPlayer(bool pcm_output, bool untouched_output, bool disable_int_catch_up, ETIPlayerObserver *observer) {
-	this->untouched_output = untouched_output;
-	this->disable_int_catch_up = disable_int_catch_up;
-	this->observer = observer;
-
-	prev_fsync = 0;
-
-	dec = nullptr;
-	out = nullptr;
-
-	if(!untouched_output) {
-#ifndef DABLIN_DISABLE_SDL
-		if(!pcm_output)
-			out = new SDLOutput;
-		else
-#endif
-			out = new PCMOutput;
-	}
-}
-
-ETIPlayer::~ETIPlayer() {
-	delete dec;
-	delete out;
-}
-
-bool ETIPlayer::IsSameAudioService(const AUDIO_SERVICE& audio_service) {
-	std::lock_guard<std::mutex> lock(audio_service_mutex);
-
-	// check, if already the same service
-	return this->audio_service == audio_service;
-}
-
-void ETIPlayer::SetAudioService(const AUDIO_SERVICE& audio_service) {
-	std::lock_guard<std::mutex> lock(audio_service_mutex);
-
-	// abort, if already the same service
-	if(this->audio_service == audio_service)
-		return;
-
-	// cleanup - audio only stopped (externally) on ensemble change!
-	if(dec) {
-		delete dec;
-		dec = nullptr;
-	}
-
-	if(audio_service.IsNone())
-		fprintf(stderr, "ETIPlayer: playing nothing\n");
-	else
-		fprintf(stderr, "ETIPlayer: playing sub-channel %d (%s)\n", audio_service.subchid, audio_service.dab_plus ? "DAB+" : "DAB");
-
-	// append - use more precise float32 output (if supported by decoder)
-	if(!audio_service.IsNone()) {
-		if(audio_service.dab_plus)
-			dec = new SuperframeFilter(this, !untouched_output, true);
-		else
-			dec = new MP2Decoder(this, true);
-		if(untouched_output)
-			dec->AddUntouchedStreamConsumer(this);
-	}
-
-	this->audio_service = audio_service;
-}
-
-void ETIPlayer::ProcessFrame(const uint8_t *data) {
-	bool init = next_frame_time.time_since_epoch().count() == 0;
-	std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-
-	// flow control
-	if(init || (disable_int_catch_up && now > next_frame_time + std::chrono::milliseconds(24))) {
-		// resync, if desired and noticeable after expected arrival of next frame
-		if(!init)
-			fprintf(stderr, "ETIPlayer: resynced to stream\n");
-		next_frame_time = now;
-	} else {
-		// otherwise just sleep until expected arrival (if not yet reached)
-		std::this_thread::sleep_until(next_frame_time);
-	}
-	next_frame_time += std::chrono::milliseconds(24);
-
-	DecodeFrame(data);
-}
-
 void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
+	// FSYNC
 	uint32_t fsync = eti_frame[1] << 16 | eti_frame[2] << 8 | eti_frame[3];
 	if((fsync != 0x073AB6 && fsync != 0xF8C549) || fsync == prev_fsync) {
 		fprintf(stderr, "ETIPlayer: ignored ETI frame with FSYNC = 0x%06X\n", fsync);
@@ -178,41 +97,4 @@ void ETIPlayer::DecodeFrame(const uint8_t *eti_frame) {
 	}
 
 	dec->Feed(eti_frame + subch_offset, subch_bytes);
-}
-
-void ETIPlayer::FormatChange(const AUDIO_SERVICE_FORMAT& format) {
-	fprintf(stderr, "ETIPlayer: format: %s\n", format.GetSummary().c_str());
-	if(observer)
-		observer->ETIChangeFormat(format);
-}
-
-void ETIPlayer::ProcessFIC(const uint8_t *data, size_t len) {
-//	fprintf(stderr, "Received %zu bytes FIC\n", len);
-	if(observer)
-		observer->ETIProcessFIC(data, len);
-}
-
-void ETIPlayer::ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t *fpad_data) {
-//	fprintf(stderr, "Received %zu bytes X-PAD\n", xpad_len);
-	if(observer)
-		observer->ETIProcessPAD(xpad_data, xpad_len, exact_xpad_len, fpad_data);
-}
-
-void ETIPlayer::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t /*duration_ms*/) {
-	if(untouched_output) {
-		if(fwrite(data, len, 1, stdout) != 1)
-			perror("ETIPlayer: error while writing untouched stream to stdout");
-	}
-}
-
-void ETIPlayer::AudioError(const std::string& hint) {
-	fprintf(stderr, "\x1B[31m" "(%s)" "\x1B[0m" " ", hint.c_str());
-}
-
-void ETIPlayer::AudioWarning(const std::string& hint) {
-	fprintf(stderr, "\x1B[35m" "(%s)" "\x1B[0m" " ", hint.c_str());
-}
-
-void ETIPlayer::FECInfo(int total_corr_count, bool uncorr_errors) {
-	fprintf(stderr, "\x1B[36m" "(%d%s)" "\x1B[0m" " ", total_corr_count, uncorr_errors ? "+" : "");
 }

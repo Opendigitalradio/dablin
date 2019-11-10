@@ -63,18 +63,18 @@ DABlinTextOptions() :
 
 
 // --- DABlinText -----------------------------------------------------------------
-class DABlinText : ETISourceObserver, ETIPlayerObserver, FICDecoderObserver {
+class DABlinText : ETISourceObserver, EnsemblePlayerObserver, FICDecoderObserver {
 private:
 	DABlinTextOptions options;
 
 	ETISource *eti_source;
-	ETIPlayer *eti_player;
+	EnsemblePlayer *ensemble_player;
 	FICDecoder *fic_decoder;
 
-	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);}
+	void ETIProcessFrame(const uint8_t *data) {ensemble_player->ProcessFrame(data);}
 	void ETIUpdateProgress(const ETI_PROGRESS& progress);
 
-	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
+	void EnsembleProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
 
 	void FICChangeService(const LISTED_SERVICE& service);
 	void FICDiscardedFIB();

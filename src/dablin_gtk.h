@@ -157,7 +157,7 @@ typedef std::list<RecSample> rec_samples_t;
 
 
 // --- DABlinGTK -----------------------------------------------------------------
-class DABlinGTK : public Gtk::Window, ETISourceObserver, ETIPlayerObserver, FICDecoderObserver, PADDecoderObserver, UntouchedStreamConsumer {
+class DABlinGTK : public Gtk::Window, ETISourceObserver, EnsemblePlayerObserver, FICDecoderObserver, PADDecoderObserver, UntouchedStreamConsumer {
 private:
 	DABlinGTKOptions options;
 
@@ -173,7 +173,7 @@ private:
 	ETISource *eti_source;
 	std::thread eti_source_thread;
 
-	ETIPlayer *eti_player;
+	EnsemblePlayer *ensemble_player;
 
 	FICDecoder *fic_decoder;
 	PADDecoder *pad_decoder;
@@ -189,19 +189,20 @@ private:
 	int resume_service_sid;
 	int resume_service_scids;
 
-	// ETI data change
+	// ETI progress change
 	GTKDispatcherQueue<ETI_PROGRESS> eti_update_progress;
-	void ETIProcessFrame(const uint8_t *data) {eti_player->ProcessFrame(data);}
+	void ETIProcessFrame(const uint8_t *data) {ensemble_player->ProcessFrame(data);}
 	void ETIUpdateProgress(const ETI_PROGRESS& progress) {eti_update_progress.PushAndEmit(progress);}
 	void ETIUpdateProgressEmitted();
 
-	GTKDispatcherQueue<AUDIO_SERVICE_FORMAT> eti_change_format;
-	void ETIChangeFormat(const AUDIO_SERVICE_FORMAT& format) {eti_change_format.PushAndEmit(format);}
-	void ETIChangeFormatEmitted();
+	// ensemble data change
+	GTKDispatcherQueue<AUDIO_SERVICE_FORMAT> ensemble_change_format;
+	void EnsembleChangeFormat(const AUDIO_SERVICE_FORMAT& format) {ensemble_change_format.PushAndEmit(format);}
+	void EnsembleChangeFormatEmitted();
 
-	void ETIProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
-	void ETIResetFIC() {fic_decoder->Reset();}
-	void ETIProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data) {pad_decoder->Process(xpad_data, xpad_len, exact_xpad_len, fpad_data);}
+	void EnsembleProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
+	void EnsembleResetFIC() {fic_decoder->Reset();}
+	void EnsembleProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data) {pad_decoder->Process(xpad_data, xpad_len, exact_xpad_len, fpad_data);}
 
 	void ProcessUntouchedStream(const uint8_t* data, size_t len, size_t duration_ms);
 

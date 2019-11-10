@@ -231,14 +231,14 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	slideshow_window.set_transient_for(*this);
 
 	eti_update_progress.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::ETIUpdateProgressEmitted));
-	eti_change_format.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::ETIChangeFormatEmitted));
+	ensemble_change_format.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::EnsembleChangeFormatEmitted));
 	fic_change_ensemble.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeEnsembleEmitted));
 	fic_change_service.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServiceEmitted));
 	pad_change_dynamic_label.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 	pad_change_slide.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
 	do_rec_status_update.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoRecStatusUpdateEmitted));
 
-	eti_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
+	ensemble_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
 
 	if(!options.dab_live_source_binary.empty()) {
 		eti_source = nullptr;
@@ -277,7 +277,7 @@ DABlinGTK::~DABlinGTK() {
 		delete eti_source;
 	}
 
-	delete eti_player;
+	delete ensemble_player;
 
 	delete pad_decoder;
 	delete fic_decoder;
@@ -379,7 +379,7 @@ void DABlinGTK::InitWidgets() {
 	tglbtn_mute.set_tooltip_text("Mute");
 
 	vlmbtn.set_value(1.0);
-	vlmbtn.set_sensitive(eti_player->HasAudioVolumeControl());
+	vlmbtn.set_sensitive(ensemble_player->HasAudioVolumeControl());
 	vlmbtn.signal_value_changed().connect(sigc::mem_fun(*this, &DABlinGTK::on_vlmbtn));
 
 	frame_label_dl.set_label("Dynamic Label");
@@ -510,11 +510,11 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 	}
 
 	// if the audio service changed, reset format/DL/slide + switch
-	if(!eti_player->IsSameAudioService(service.audio_service)) {
+	if(!ensemble_player->IsSameAudioService(service.audio_service)) {
 		// stop playback of old service
 		if(options.rec_prebuffer_size_s > 0)
-			eti_player->RemoveUntouchedStreamConsumer(this);
-		eti_player->SetAudioService(AUDIO_SERVICE());
+			ensemble_player->RemoveUntouchedStreamConsumer(this);
+		ensemble_player->SetAudioService(AUDIO_SERVICE());
 
 		pad_decoder->Reset();
 
@@ -542,9 +542,9 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		}
 
 		// start playback of new service
-		eti_player->SetAudioService(service.audio_service);
+		ensemble_player->SetAudioService(service.audio_service);
 		if(options.rec_prebuffer_size_s > 0)
-			eti_player->AddUntouchedStreamConsumer(this);
+			ensemble_player->AddUntouchedStreamConsumer(this);
 	}
 
 	if(service.HasSLS()) {
@@ -593,7 +593,7 @@ void DABlinGTK::on_tglbtn_record() {
 			if(c == '/')
 				c = '_';
 
-		std::string new_rec_filename = options.recordings_path + "/" + std::string(start_string) + " - " + label_cleaned + "." + eti_player->GetUntouchedStreamFileExtension();
+		std::string new_rec_filename = options.recordings_path + "/" + std::string(start_string) + " - " + label_cleaned + "." + ensemble_player->GetUntouchedStreamFileExtension();
 		FILE* new_rec_file = fopen(new_rec_filename.c_str(), "wb");
 		if(new_rec_file) {
 			// disable channel/service switch
@@ -624,7 +624,7 @@ void DABlinGTK::on_tglbtn_record() {
 			}
 
 			if(options.rec_prebuffer_size_s == 0)
-				eti_player->AddUntouchedStreamConsumer(this);
+				ensemble_player->AddUntouchedStreamConsumer(this);
 		} else {
 			int fopen_errno = errno;	// save before overwrite
 			tglbtn_record.set_active(false);
@@ -640,7 +640,7 @@ void DABlinGTK::on_tglbtn_record() {
 		// only stop recording, if active (handles error on recording start)
 		if(rec_file) {
 			if(options.rec_prebuffer_size_s == 0)
-				eti_player->RemoveUntouchedStreamConsumer(this);
+				ensemble_player->RemoveUntouchedStreamConsumer(this);
 
 			fclose(rec_file);
 			rec_file = nullptr;
@@ -722,11 +722,11 @@ void DABlinGTK::UpdateRecStatus(bool decoding) {
 
 
 void DABlinGTK::on_tglbtn_mute() {
-	eti_player->SetAudioMute(tglbtn_mute.get_active());
+	ensemble_player->SetAudioMute(tglbtn_mute.get_active());
 }
 
 void DABlinGTK::on_vlmbtn(double value) {
-	eti_player->SetAudioVolume(value);
+	ensemble_player->SetAudioVolume(value);
 
 	// disable mute, if needed
 	if(tglbtn_mute.get_active())
@@ -908,10 +908,10 @@ void DABlinGTK::ETIUpdateProgressEmitted() {
 		progress_position.show();
 }
 
-void DABlinGTK::ETIChangeFormatEmitted() {
-//	fprintf(stderr, "### ETIChangeFormatEmitted\n");
+void DABlinGTK::EnsembleChangeFormatEmitted() {
+//	fprintf(stderr, "### EnsembleChangeFormatEmitted\n");
 
-	label_format.set_label(eti_change_format.Pop().GetSummary());
+	label_format.set_label(ensemble_change_format.Pop().GetSummary());
 }
 
 void DABlinGTK::FICChangeEnsembleEmitted() {
@@ -996,9 +996,9 @@ void DABlinGTK::on_combo_channels() {
 		eti_source = nullptr;
 	}
 
-	ETIResetFIC();
+	EnsembleResetFIC();
 	combo_services_liststore->clear();	// TODO: prevent on_combo_services() being called for each deleted row
-	eti_player->StopAudio();
+	ensemble_player->StopAudio();
 	label_ensemble.set_label("");
 	frame_label_ensemble.set_tooltip_text("");
 
