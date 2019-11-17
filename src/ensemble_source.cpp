@@ -20,6 +20,9 @@
 
 
 // --- EnsembleSource -----------------------------------------------------------------
+const std::string EnsembleSource::FORMAT_ETI = "eti";
+const std::string EnsembleSource::FORMAT_EDI = "edi";
+
 EnsembleSource::EnsembleSource(std::string filename, EnsembleSourceObserver *observer, std::string format_name, size_t initial_frame_size) {
 	this->filename = filename;
 	this->observer = observer;

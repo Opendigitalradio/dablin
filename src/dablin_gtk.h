@@ -33,6 +33,8 @@
 #include "dablin_gtk_sls.h"
 #include "eti_source.h"
 #include "eti_player.h"
+#include "edi_source.h"
+#include "edi_player.h"
 #include "fic_decoder.h"
 #include "pad_decoder.h"
 #include "tools.h"
@@ -71,6 +73,7 @@ public:
 // --- DABlinGTKOptions -----------------------------------------------------------------
 struct DABlinGTKOptions {
 	std::string filename;
+	std::string source_format;
 	bool initial_first_found_service;
 	std::string initial_label;
 	int initial_sid;
@@ -90,6 +93,7 @@ struct DABlinGTKOptions {
 	bool disable_dyn_fic_msgs;
 	
 DABlinGTKOptions() :
+	source_format(EnsembleSource::FORMAT_ETI),
 	initial_first_found_service(false),
 	initial_sid(LISTED_SERVICE::sid_none),
 	initial_scids(LISTED_SERVICE::scids_none),

@@ -24,6 +24,8 @@
 
 #include "eti_source.h"
 #include "eti_player.h"
+#include "edi_source.h"
+#include "edi_player.h"
 #include "fic_decoder.h"
 #include "tools.h"
 #include "version.h"
@@ -32,6 +34,7 @@
 // --- DABlinTextOptions -----------------------------------------------------------------
 struct DABlinTextOptions {
 	std::string filename;
+	std::string source_format;
 	std::string initial_label;
 	bool initial_first_found_service;
 	int initial_sid;
@@ -47,6 +50,7 @@ struct DABlinTextOptions {
 	bool disable_dyn_fic_msgs;
 	int gain;
 DABlinTextOptions() :
+	source_format(EnsembleSource::FORMAT_ETI),
 	initial_first_found_service(false),
 	initial_sid(LISTED_SERVICE::sid_none),
 	initial_scids(LISTED_SERVICE::scids_none),

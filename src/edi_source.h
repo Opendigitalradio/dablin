@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2016-2019 Stefan Pöschel
+    Copyright (C) 2019 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,11 +16,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "version.h"
+#ifndef EDI_SOURCE_H_
+#define EDI_SOURCE_H_
 
-void fprint_dablin_banner(FILE *f) {
-	fprintf(f, "DABlin v%s - capital DAB experience\n", DABLIN_VERSION);
-	fprintf(f, "Plays a DAB/DAB+ audio service from an ETI-NI or an EDI AF stream.\n");
-	fprintf(f, "  https://github.com/Opendigitalradio/dablin\n");
-	fprintf(f, "\n");
-}
+#include "ensemble_source.h"
+
+
+// --- EDISource -----------------------------------------------------------------
+class EDISource : public EnsembleSource {
+private:
+	size_t CheckFrameSync();
+	bool CheckFrameCompleted();
+public:
+	EDISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "EDI", 10) {}
+	~EDISource() {}
+};
+
+#endif /* EDI_SOURCE_H_ */

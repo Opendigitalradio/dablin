@@ -33,6 +33,7 @@ static void usage(const char* exe) {
 	fprint_dablin_banner(stderr);
 	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
 	fprintf(stderr, "  -h           Show this help\n"
+					"  -f <format>  Source format: \"%s\" (default), \"%s\"\n"
 					"  -d <binary>  Use DAB live source (using the mentioned binary)\n"
 					"  -D <type>    DAB live source type: \"%s\" (default), \"%s\"\n"
 					"  -C <ch>,...  Channels to be listed (comma separated; requires DAB live source;\n"
@@ -52,6 +53,8 @@ static void usage(const char* exe) {
 					"  -L           Enable loose behaviour (e.g. PAD conformance)\n"
 					"  -F           Disable dynamic FIC messages (e.g. dynamic PTY)\n"
 					"  file         Input file to be played (stdin, if not specified)\n",
+					EnsembleSource::FORMAT_ETI.c_str(),
+					EnsembleSource::FORMAT_EDI.c_str(),
 					DABLiveETISource::TYPE_DAB2ETI.c_str(),
 					DABLiveETISource::TYPE_ETI_CMDLINE.c_str(),
 					options_default.recordings_path.c_str(),
@@ -77,10 +80,13 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hd:D:C:c:l:g:r:P:s:x:1puISLF")) != -1) {
+	while((c = getopt(argc, argv, "hf:d:D:C:c:l:g:r:P:s:x:1puISLF")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
+			break;
+		case 'f':
+			options.source_format = optarg;
 			break;
 		case 'd':
 			options.dab_live_source_binary = optarg;
@@ -164,6 +170,10 @@ int main(int argc, char **argv) {
 			usage(argv[0]);
 		}
 	} else {
+		if(options.source_format != EnsembleSource::FORMAT_ETI) {
+			fprintf(stderr, "A DAB live source can only be used with ETI source format!\n");
+			usage(argv[0]);
+		}
 		if(!options.filename.empty()) {
 			fprintf(stderr, "Both a file and DAB live source cannot be used as source!\n");
 			usage(argv[0]);
@@ -238,12 +248,20 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	pad_change_slide.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
 	do_rec_status_update.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoRecStatusUpdateEmitted));
 
-	ensemble_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
+	if(options.source_format == EnsembleSource::FORMAT_ETI)
+		ensemble_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
+	else
+		ensemble_player = new EDIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
 
-	if(!options.dab_live_source_binary.empty()) {
-		ensemble_source = nullptr;
+	if(options.source_format == EnsembleSource::FORMAT_ETI) {
+		if(!options.dab_live_source_binary.empty()) {
+			ensemble_source = nullptr;
+		} else {
+			ensemble_source = new ETISource(options.filename, this);
+			ensemble_source_thread = std::thread(&EnsembleSource::Main, ensemble_source);
+		}
 	} else {
-		ensemble_source = new ETISource(options.filename, this);
+		ensemble_source = new EDISource(options.filename, this);
 		ensemble_source_thread = std::thread(&EnsembleSource::Main, ensemble_source);
 	}
 

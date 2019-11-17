@@ -31,6 +31,7 @@ static void usage(const char* exe) {
 	fprint_dablin_banner(stderr);
 	fprintf(stderr, "Usage: %s [OPTIONS] [file]\n", exe);
 	fprintf(stderr, "  -h            Show this help\n"
+					"  -f <format>   Source format: \"%s\" (default), \"%s\"\n"
 					"  -d <binary>   Use DAB live source (using the mentioned binary)\n"
 					"  -D <type>     DAB live source type: \"%s\" (default), \"%s\"\n"
 					"  -c <ch>       Channel to be played (requires DAB live source)\n"
@@ -46,6 +47,8 @@ static void usage(const char* exe) {
 					"  -I            Don't catch up on stream after interruption\n"
 					"  -F            Disable dynamic FIC messages (e.g. dynamic PTY)\n"
 					"  file          Input file to be played (stdin, if not specified)\n",
+					EnsembleSource::FORMAT_ETI.c_str(),
+					EnsembleSource::FORMAT_EDI.c_str(),
 					DABLiveETISource::TYPE_DAB2ETI.c_str(),
 					DABLiveETISource::TYPE_ETI_CMDLINE.c_str()
 			);
@@ -69,10 +72,13 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hc:l:d:D:g:s:x:1puIFr:R:")) != -1) {
+	while((c = getopt(argc, argv, "hf:c:l:d:D:g:s:x:1puIFr:R:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
+			break;
+		case 'f':
+			options.source_format = optarg;
 			break;
 		case 'd':
 			options.dab_live_source_binary = optarg;
@@ -145,6 +151,10 @@ int main(int argc, char **argv) {
 			usage(argv[0]);
 		}
 	} else {
+		if(options.source_format != EnsembleSource::FORMAT_ETI) {
+			fprintf(stderr, "A DAB live source can only be used with ETI source format!\n");
+			usage(argv[0]);
+		}
 		if(!options.filename.empty()) {
 			fprintf(stderr, "Both a file and DAB live source cannot be used as source!\n");
 			usage(argv[0]);
@@ -204,7 +214,10 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	// set XTerm window title to version string
 	fprintf(stderr, "\x1B]0;" "DABlin v" DABLIN_VERSION "\a");
 
-	ensemble_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
+	if(options.source_format == EnsembleSource::FORMAT_ETI)
+		ensemble_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
+	else
+		ensemble_player = new EDIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
 
 	// set initial sub-channel, if desired
 	if(options.initial_subchid_dab != AUDIO_SERVICE::subchid_none) {
@@ -220,15 +233,19 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 		fprintf(stderr, "\x1B]0;" "Sub-channel %d (DAB+) - DABlin" "\a", options.initial_subchid_dab_plus);
 	}
 
-	if(options.dab_live_source_binary.empty()) {
-		ensemble_source = new ETISource(options.filename, this);
-	} else {
-		DAB_LIVE_SOURCE_CHANNEL channel(options.initial_channel, dab_channels.at(options.initial_channel), options.gain);
+	if(options.source_format == EnsembleSource::FORMAT_ETI) {
+		if(options.dab_live_source_binary.empty()) {
+			ensemble_source = new ETISource(options.filename, this);
+		} else {
+			DAB_LIVE_SOURCE_CHANNEL channel(options.initial_channel, dab_channels.at(options.initial_channel), options.gain);
 
-		if(options.dab_live_source_type == DABLiveETISource::TYPE_ETI_CMDLINE)
-			ensemble_source = new EtiCmdlineETISource(options.dab_live_source_binary, channel, this);
-		else
-			ensemble_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
+			if(options.dab_live_source_type == DABLiveETISource::TYPE_ETI_CMDLINE)
+				ensemble_source = new EtiCmdlineETISource(options.dab_live_source_binary, channel, this);
+			else
+				ensemble_source = new DAB2ETIETISource(options.dab_live_source_binary, channel, this);
+		}
+	} else {
+		ensemble_source = new EDISource(options.filename, this);
 	}
 
 	fic_decoder = new FICDecoder(this, options.disable_dyn_fic_msgs);

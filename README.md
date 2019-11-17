@@ -1,11 +1,11 @@
 # DABlin – capital DAB experience
 
-DABlin plays a DAB/DAB+ audio service – either from a received live
-transmission or from a stored ensemble recording (ETI-NI). Both DAB
-(MP2) and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are supported.
+DABlin plays a DAB/DAB+ audio service – from a live transmission or from
+a stored ensemble recording (ETI-NI, or EDI AF with ETI). Both DAB (MP2)
+and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are supported.
 
-The GTK GUI version in addition supports the data applications Dynamic Label
-and MOT Slideshow (if used by the selected service).
+The GTK GUI version in addition supports the data applications Dynamic
+Label and MOT Slideshow (if used by the selected service).
 
 
 ## Screenshots
@@ -250,15 +250,15 @@ The console executable is called `dablin`, the GTK GUI executable
 (Currently no desktop files are installed so it is not easy to start DABlin
 directly from GNOME Shell. For now, at least, start DABlin from a console.)
 
-DABlin processes DAB ETI-NI recordings/streams (which may be
-frame-aligned or not i.e. any data before/after an ETI-NI frame is
+DABlin processes DAB ETI-NI or EDI recordings/streams (which may be
+frame-aligned or not i.e. any data before/after an ETI/EDI frame is
 discarded). If no filename is specified, `stdin` is used for input.
 
 You just should specify the service ID (SID) of the desired service
 using `-s` - otherwise initially no service is played. The GUI version
 of course does not necessarily need this.
 
-You can replay an existing ETI-NI recording as follows:
+You can replay an existing recording as follows:
 
 ```sh
 dablin -s 0xd911 mux.eti
@@ -378,6 +378,26 @@ The GTK GUI version also allows to stop decoding the current
 channel/service by using the stop button next to the channel combobox.
 If desired, decoding can then be resumed using the same button again.
 
+The `stdin` input can also be used for live reception or playback of an
+EDI AF stream/recording (containing ETI) e.g. with Netcat, Wget or cURL:
+
+```sh
+nc 10.0.0.128 9201 | dablin_gtk -f edi -I
+```
+
+```sh
+wget -q -O - https://edistream.irt.de/services/3 | dablin_gtk -f edi -I -1
+```
+
+```sh
+curl -s https://edistream.irt.de/services/3 | dablin_gtk -f edi -I -1
+```
+
+Playing EDI content the `-I` can be required to prevent ongoing hiccups
+during playback. In the last two cases, a single service EDI stream for
+testing purposes is used, so the `-1` parameter is used to select the
+first found service. 
+
 
 ### Recording a service
 
@@ -478,6 +498,7 @@ DABlin implements (at least partly) the following DAB standards:
 * ETSI TS 103 466 (DAB audio)
 * ETSI TS 102 563 (DAB+ audio)
 * ETSI ETS 300 799 (ETI)
+* ETSI TS 102 693 (EDI)
 
 ### Data applications
 * ETSI EN 301 234 (MOT)

@@ -81,6 +81,9 @@ public:
 
 	int Main();
 	void DoExit() {do_exit = true;}
+
+	static const std::string FORMAT_ETI;
+	static const std::string FORMAT_EDI;
 };
 
 #endif /* ENSEMBLE_SOURCE_H_ */
