@@ -23,8 +23,15 @@
 void EDIPlayer::DecodeFrame(const uint8_t *edi_frame) {
 	// SYNC
 	uint16_t sync = edi_frame[0] << 8 | edi_frame[1];
-	if(sync != 0x4146) {
-		fprintf(stderr, "EDIPlayer: ignored EDI AF packet with SYNC = 0x%04X\n", sync);
+	switch(sync) {
+	case 0x4146:	// AF
+		// supported
+		break;
+	case 0x5046:	// PF
+		fprintf(stderr, "EDIPlayer: ignored unsupported EDI PF packet\n");
+		return;
+	default:
+		fprintf(stderr, "EDIPlayer: ignored EDI packet with SYNC = 0x%04X\n", sync);
 		return;
 	}
 
