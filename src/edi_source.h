@@ -25,10 +25,14 @@
 // --- EDISource -----------------------------------------------------------------
 class EDISource : public EnsembleSource {
 private:
+	std::string layer;
+
 	bool CheckFrameCompleted(const SYNC_MAGIC& matched_sync_magic);
+	void ProcessCompletedFrame(const SYNC_MAGIC& matched_sync_magic);
 public:
-	EDISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "EDI", 10) {
+	EDISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "EDI", 8) {
 		AddSyncMagic(0, {'A', 'F'}, "AF");
+		AddSyncMagic(0, {'f', 'i', 'o', '_'}, "File IO");
 	}
 	~EDISource() {}
 };

@@ -379,7 +379,11 @@ channel/service by using the stop button next to the channel combobox.
 If desired, decoding can then be resumed using the same button again.
 
 The `stdin` input can also be used for live reception or playback of an
-EDI AF stream/recording (containing ETI) e.g. with Netcat, Wget or cURL:
+EDI AF stream/recording (containing ETI) e.g. with Netcat, Wget or cURL.
+Hereby the AF layer may also be enclosed with a File IO layer (usually
+the case for stored EDI transmissions).
+
+Examples:
 
 ```sh
 nc 10.0.0.128 9201 | dablin_gtk -f edi -I
@@ -498,7 +502,7 @@ DABlin implements (at least partly) the following DAB standards:
 * ETSI TS 103 466 (DAB audio)
 * ETSI TS 102 563 (DAB+ audio)
 * ETSI ETS 300 799 (ETI)
-* ETSI TS 102 693 (EDI)
+* ETSI TS 102 693 (EDI) together with ETSI TS 102 821 (DCP)
 
 ### Data applications
 * ETSI EN 301 234 (MOT)
