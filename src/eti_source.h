@@ -46,8 +46,8 @@ private:
 	bool CheckFrameCompleted(const SYNC_MAGIC& /*matched_sync_magic*/) {return true;}
 public:
 	ETISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "ETI", 6144) {
-		AddSyncMagic(1, {0x07, 0x3A, 0xB6});	// FSYNC0
-		AddSyncMagic(1, {0xF8, 0xC5, 0x49});	// FSYNC1
+		AddSyncMagic(1, {0x07, 0x3A, 0xB6}, "FSYNC0");
+		AddSyncMagic(1, {0xF8, 0xC5, 0x49}, "FSYNC1");
 	}
 	~ETISource() {}
 };

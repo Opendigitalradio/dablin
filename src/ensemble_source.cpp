@@ -211,8 +211,8 @@ int EnsembleSource::Main() {
 	return 0;
 }
 
-void EnsembleSource::AddSyncMagic(size_t offset, std::vector<uint8_t> bytes) {
-	SYNC_MAGIC sm(offset, bytes);
+void EnsembleSource::AddSyncMagic(size_t offset, std::vector<uint8_t> bytes, std::string name) {
+	SYNC_MAGIC sm(offset, bytes, name);
 	sync_magics.push_back(sm);
 	if(sm.len() > sync_magics_max_len)
 		sync_magics_max_len = sm.len();

@@ -28,7 +28,7 @@ private:
 	bool CheckFrameCompleted(const SYNC_MAGIC& matched_sync_magic);
 public:
 	EDISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "EDI", 10) {
-		AddSyncMagic(0, {'A', 'F'});
+		AddSyncMagic(0, {'A', 'F'}, "AF");
 	}
 	~EDISource() {}
 };

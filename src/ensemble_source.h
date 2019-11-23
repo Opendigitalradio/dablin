@@ -42,8 +42,9 @@ struct ENSEMBLE_PROGRESS {
 struct SYNC_MAGIC {
 	size_t offset;
 	std::vector<uint8_t> bytes;
+	std::string name;
 
-	SYNC_MAGIC(size_t offset, std::vector<uint8_t> bytes) : offset(offset), bytes(bytes) {}
+	SYNC_MAGIC(size_t offset, std::vector<uint8_t> bytes, std::string name) : offset(offset), bytes(bytes), name(name) {}
 
 	size_t len() const {return offset + bytes.size();}
 	bool matches(const uint8_t* data) const {return !memcmp(data + offset, &bytes[0], bytes.size());}
@@ -82,7 +83,7 @@ protected:
 	size_t ensemble_bytes_total;
 	unsigned long int ensemble_progress_next_ms;
 
-	void AddSyncMagic(size_t offset, std::vector<uint8_t> bytes);
+	void AddSyncMagic(size_t offset, std::vector<uint8_t> bytes, std::string name);
 	bool OpenFile();
 	bool UpdateTotalBytes();
 	bool UpdateProgress();
