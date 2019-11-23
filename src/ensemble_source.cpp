@@ -29,6 +29,8 @@ EnsembleSource::EnsembleSource(std::string filename, EnsembleSourceObserver *obs
 	this->format_name = format_name;
 	this->initial_frame_size = initial_frame_size;
 
+	sync_magics_max_len = 0;
+
 	input_file = nullptr;
 	ensemble_frame.resize(initial_frame_size);
 	ensemble_frames_count = 0;
@@ -168,8 +170,12 @@ int EnsembleSource::Main() {
 		if(filled < ensemble_frame.size())
 			continue;
 
-		// check for frame sync
-		size_t offset = CheckFrameSync();
+		// check for frame sync i.e. if any sync magic matches
+		size_t offset;
+		for(offset = 0; offset < ensemble_frame.size() - (sync_magics_max_len - 1); offset++) {
+			if(std::any_of(sync_magics.cbegin(), sync_magics.cend(), [&](const SYNC_MAGIC& sm)->bool {return sm.matches(&ensemble_frame[offset]);}))
+				break;
+		}
 
 		if(offset) {	// buffer not (yet) synced
 			// discard buffer start
@@ -201,6 +207,13 @@ int EnsembleSource::Main() {
 	}
 
 	return 0;
+}
+
+void EnsembleSource::AddSyncMagic(size_t offset, std::vector<uint8_t> bytes) {
+	SYNC_MAGIC sm(offset, bytes);
+	sync_magics.push_back(sm);
+	if(sm.len() > sync_magics_max_len)
+		sync_magics_max_len = sm.len();
 }
 
 bool EnsembleSource::UpdateProgress() {

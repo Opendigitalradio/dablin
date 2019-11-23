@@ -19,19 +19,6 @@
 #include "eti_source.h"
 
 
-// --- ETISource -----------------------------------------------------------------
-size_t ETISource::CheckFrameSync() {
-	size_t offset;
-	for(offset = 0; offset < ensemble_frame.size() - 3; offset++) {
-		uint32_t fsync = ensemble_frame[offset+1] << 16 | ensemble_frame[offset+2] << 8 | ensemble_frame[offset+3];
-		if(fsync == 0x073AB6 || fsync == 0xF8C549)
-			break;
-	}
-
-	return offset;
-}
-
-
 // --- DABLiveETISource -----------------------------------------------------------------
 const std::string DABLiveETISource::TYPE_DAB2ETI = "dab2eti";
 const std::string DABLiveETISource::TYPE_ETI_CMDLINE = "eti-cmdline";

@@ -28,6 +28,7 @@
 #include <thread>
 #include <unistd.h>
 #include <fcntl.h>
+#include <algorithm>
 #include <vector>
 
 #include "tools.h"
@@ -37,6 +38,18 @@ struct ENSEMBLE_PROGRESS {
 	double value;
 	std::string text;
 };
+
+struct SYNC_MAGIC {
+	size_t offset;
+	std::vector<uint8_t> bytes;
+
+	SYNC_MAGIC(size_t offset, std::vector<uint8_t> bytes) : offset(offset), bytes(bytes) {}
+
+	size_t len() const {return offset + bytes.size();}
+	bool matches(const uint8_t* data) const {return !memcmp(data + offset, &bytes[0], bytes.size());}
+};
+
+typedef std::vector<SYNC_MAGIC> sync_magics_t;
 
 
 // --- EnsembleSourceObserver -----------------------------------------------------------------
@@ -56,6 +69,8 @@ protected:
 	EnsembleSourceObserver *observer;
 	std::string format_name;
 	size_t initial_frame_size;
+	sync_magics_t sync_magics;
+	size_t sync_magics_max_len;
 
 	std::atomic<bool> do_exit;
 
@@ -67,13 +82,13 @@ protected:
 	size_t ensemble_bytes_total;
 	unsigned long int ensemble_progress_next_ms;
 
+	void AddSyncMagic(size_t offset, std::vector<uint8_t> bytes);
 	bool OpenFile();
 	bool UpdateTotalBytes();
 	bool UpdateProgress();
 	virtual void Init() {}
 	virtual void PrintSource();
 
-	virtual size_t CheckFrameSync() = 0;
 	virtual bool CheckFrameCompleted() = 0;
 public:
 	EnsembleSource(std::string filename, EnsembleSourceObserver *observer, std::string format_name, size_t initial_frame_size);

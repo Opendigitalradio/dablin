@@ -25,10 +25,11 @@
 // --- EDISource -----------------------------------------------------------------
 class EDISource : public EnsembleSource {
 private:
-	size_t CheckFrameSync();
 	bool CheckFrameCompleted();
 public:
-	EDISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "EDI", 10) {}
+	EDISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "EDI", 10) {
+		AddSyncMagic(0, {'A', 'F'});
+	}
 	~EDISource() {}
 };
 

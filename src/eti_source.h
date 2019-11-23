@@ -43,10 +43,12 @@ struct DAB_LIVE_SOURCE_CHANNEL {
 // --- ETISource -----------------------------------------------------------------
 class ETISource : public EnsembleSource {
 private:
-	size_t CheckFrameSync();
 	bool CheckFrameCompleted() {return true;}
 public:
-	ETISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "ETI", 6144) {}
+	ETISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "ETI", 6144) {
+		AddSyncMagic(1, {0x07, 0x3A, 0xB6});	// FSYNC0
+		AddSyncMagic(1, {0xF8, 0xC5, 0x49});	// FSYNC1
+	}
 	~ETISource() {}
 };
 

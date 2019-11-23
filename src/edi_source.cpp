@@ -20,17 +20,6 @@
 
 
 // --- EDISource -----------------------------------------------------------------
-size_t EDISource::CheckFrameSync() {
-	size_t offset;
-	for(offset = 0; offset < ensemble_frame.size() - 2; offset++) {
-		uint16_t sync = ensemble_frame[offset] << 8 | ensemble_frame[offset+1];
-		if(sync == 0x4146)	// "AF"
-			break;
-	}
-
-	return offset;
-}
-
 bool EDISource::CheckFrameCompleted() {
 	if(ensemble_frame.size() == 10) {
 		// 1. AF header only (to retrieve payload len)
