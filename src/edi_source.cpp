@@ -20,7 +20,7 @@
 
 
 // --- EDISource -----------------------------------------------------------------
-bool EDISource::CheckFrameCompleted() {
+bool EDISource::CheckFrameCompleted(const SYNC_MAGIC& /*matched_sync_magic*/) {
 	if(ensemble_frame.size() == 10) {
 		// 1. AF header only (to retrieve payload len)
 		size_t len = ensemble_frame[2] << 24 | ensemble_frame[3] << 16 | ensemble_frame[4] << 8 | ensemble_frame[5];

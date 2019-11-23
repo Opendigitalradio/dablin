@@ -89,7 +89,8 @@ protected:
 	virtual void Init() {}
 	virtual void PrintSource();
 
-	virtual bool CheckFrameCompleted() = 0;
+	virtual bool CheckFrameCompleted(const SYNC_MAGIC& matched_sync_magic) = 0;
+	virtual void ProcessCompletedFrame(const SYNC_MAGIC& /*matched_sync_magic*/) {observer->EnsembleProcessFrame(&ensemble_frame[0]);}
 public:
 	EnsembleSource(std::string filename, EnsembleSourceObserver *observer, std::string format_name, size_t initial_frame_size);
 	virtual ~EnsembleSource();

@@ -43,7 +43,7 @@ struct DAB_LIVE_SOURCE_CHANNEL {
 // --- ETISource -----------------------------------------------------------------
 class ETISource : public EnsembleSource {
 private:
-	bool CheckFrameCompleted() {return true;}
+	bool CheckFrameCompleted(const SYNC_MAGIC& /*matched_sync_magic*/) {return true;}
 public:
 	ETISource(std::string filename, EnsembleSourceObserver *observer) : EnsembleSource(filename, observer, "ETI", 6144) {
 		AddSyncMagic(1, {0x07, 0x3A, 0xB6});	// FSYNC0

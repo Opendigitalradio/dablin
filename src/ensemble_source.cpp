@@ -172,8 +172,10 @@ int EnsembleSource::Main() {
 
 		// check for frame sync i.e. if any sync magic matches
 		size_t offset;
+		sync_magics_t::const_iterator matched_sync_magic = sync_magics.cend();
 		for(offset = 0; offset < ensemble_frame.size() - (sync_magics_max_len - 1); offset++) {
-			if(std::any_of(sync_magics.cbegin(), sync_magics.cend(), [&](const SYNC_MAGIC& sm)->bool {return sm.matches(&ensemble_frame[offset]);}))
+			matched_sync_magic = std::find_if(sync_magics.cbegin(), sync_magics.cend(), [&](const SYNC_MAGIC& sm)->bool {return sm.matches(&ensemble_frame[offset]);});
+			if(matched_sync_magic != sync_magics.cend())
 				break;
 		}
 
@@ -188,7 +190,7 @@ int EnsembleSource::Main() {
 				sync_skipped = 0;
 			}
 
-			if(CheckFrameCompleted()) {
+			if(CheckFrameCompleted(*matched_sync_magic)) {
 				ensemble_frames_count++;
 
 				// if present, update progress every 500ms
@@ -198,7 +200,7 @@ int EnsembleSource::Main() {
 					ensemble_progress_next_ms += 500;
 				}
 
-				observer->EnsembleProcessFrame(&ensemble_frame[0]);
+				ProcessCompletedFrame(*matched_sync_magic);
 
 				ensemble_frame.resize(initial_frame_size);
 				filled = 0;
