@@ -51,7 +51,7 @@ DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
 
 void DABlinGTKSlideshowWindow::TryToShow() {
 	// if already visible or no slide (awaiting), abort
-	if(get_visible() || image.get_storage_type() == Gtk::ImageType::IMAGE_EMPTY)
+	if(get_visible() || IsEmptySlide())
 		return;
 
 	AlignToParent();

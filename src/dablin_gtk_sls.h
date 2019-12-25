@@ -50,6 +50,7 @@ public:
 	void AwaitSlide();
 	void UpdateSlide(const MOT_FILE& slide);
 	void ClearSlide() {image.clear();}
+	bool IsEmptySlide() {return image.get_storage_type() == Gtk::ImageType::IMAGE_EMPTY;}
 };
 
 

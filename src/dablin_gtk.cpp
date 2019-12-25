@@ -528,7 +528,8 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 	}
 
 	// if the audio service changed, reset format/DL/slide + switch
-	if(!ensemble_player->IsSameAudioService(service.audio_service)) {
+	bool audio_service_changed = !ensemble_player->IsSameAudioService(service.audio_service);
+	if(audio_service_changed) {
 		// stop playback of old service
 		if(options.rec_prebuffer_size_s > 0)
 			ensemble_player->RemoveUntouchedStreamConsumer(this);
@@ -565,7 +566,8 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 			ensemble_player->AddUntouchedStreamConsumer(this);
 	}
 
-	if(service.HasSLS()) {
+	// (re)init SLS on new service (having SLS) only once
+	if(service.HasSLS() && (audio_service_changed || slideshow_window.IsEmptySlide())) {
 		slideshow_window.AwaitSlide();
 		if(tglbtn_slideshow.get_active())
 			slideshow_window.TryToShow();
