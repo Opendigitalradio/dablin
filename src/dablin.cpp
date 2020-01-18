@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2020 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ static void usage(const char* exe) {
 					"  -p            Output PCM to stdout instead of using SDL\n"
 					"  -u            Output untouched audio stream to stdout instead of using SDL\n"
 					"  -I            Don't catch up on stream after interruption\n"
-					"  -F            Disable dynamic FIC messages (e.g. dynamic PTY)\n"
+					"  -F            Disable dynamic FIC messages (dynamic PTY, announcements)\n"
 					"  file          Input file to be played (stdin, if not specified)\n",
 					EnsembleSource::FORMAT_ETI.c_str(),
 					EnsembleSource::FORMAT_EDI.c_str(),

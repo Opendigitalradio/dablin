@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2020 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -106,6 +106,12 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 		break;
 	case 17:
 		ProcessFIG0_17(data, len);
+		break;
+	case 18:
+		ProcessFIG0_18(data, len);
+		break;
+	case 19:
+		ProcessFIG0_19(data, len);
 		break;
 //	default:
 //		fprintf(stderr, "FICDecoder: received unsupported FIG 0/%d with %zu field bytes\n", header.extension, len);
@@ -414,6 +420,80 @@ void FICDecoder::ProcessFIG0_17(const uint8_t *data, size_t len) {
 	}
 }
 
+void FICDecoder::ProcessFIG0_18(const uint8_t *data, size_t len) {
+	// FIG 0/18 - Announcement support
+
+	// iterate through all services
+	for(size_t offset = 0; offset < len;) {
+		uint16_t sid = data[offset] << 8 | data[offset + 1];
+		uint16_t asu_flags = data[offset + 2] << 8 | data[offset + 3];
+		size_t number_of_clusters = data[offset + 4] & 0x1F;
+		offset += 5;
+
+		cids_t cids;
+		for(size_t i = 0; i < number_of_clusters; i++)
+			cids.emplace(data[offset++]);
+
+		FIC_SERVICE& service = GetService(sid);
+		uint16_t& current_asu_flags = service.asu_flags;
+		cids_t& current_cids = service.cids;
+		if(current_asu_flags != asu_flags || current_cids != cids) {
+			current_asu_flags = asu_flags;
+			current_cids = cids;
+
+			std::string cids_str;
+			char cid_string[5];
+			for(const cids_t::value_type& cid : cids) {
+				if(!cids_str.empty())
+					cids_str += "/";
+				snprintf(cid_string, sizeof(cid_string), "0x%02X", cid);
+				cids_str += std::string(cid_string);
+			}
+
+			fprintf(stderr, "FICDecoder: SId 0x%04X: ASu flags 0x%04X, cluster(s) %s\n",
+					sid, asu_flags, cids_str.c_str());
+
+			UpdateService(service);
+		}
+	}
+}
+
+void FICDecoder::ProcessFIG0_19(const uint8_t *data, size_t len) {
+	// FIG 0/19 - Announcement switching
+
+	// iterate through all announcement clusters
+	for(size_t offset = 0; offset < len;) {
+		uint8_t cid = data[offset];
+		uint16_t asw_flags = data[offset + 1] << 8 | data[offset + 2];
+		bool region_flag = data[offset + 3] & 0x40;
+		int subchid = data[offset + 3] & 0x3F;
+		offset += region_flag ? 5 : 4;
+
+		FIC_ASW_CLUSTER ac;
+		ac.asw_flags = asw_flags;
+		ac.subchid = subchid;
+
+		FIC_ASW_CLUSTER& current_ac = ensemble.asw_clusters[cid];
+		if(current_ac != ac) {
+			current_ac = ac;
+
+			if(!disable_dyn_msgs) {
+				fprintf(stderr, "FICDecoder: ASw cluster 0x%02X: flags 0x%04X, SubChId %2d\n",
+						cid, asw_flags, subchid);
+			}
+
+			UpdateEnsemble();
+
+			// update services that changes may affect
+			for(const fic_services_t::value_type& service : services) {
+				const FIC_SERVICE& s = service.second;
+				if(s.cids.find(cid) != s.cids.cend())
+					UpdateService(s);
+			}
+		}
+	}
+}
+
 void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 	if(len < 1) {
 		fprintf(stderr, "FICDecoder: received empty FIG 1\n");
@@ -573,6 +653,8 @@ void FICDecoder::UpdateListedService(const FIC_SERVICE& service, int scids, bool
 	ls.label = service.label;
 	ls.pty_static = service.pty_static;
 	ls.pty_dynamic = service.pty_dynamic;
+	ls.asu_flags = service.asu_flags;
+	ls.cids = service.cids;
 	ls.pri_comp_subchid = service.pri_comp_subchid;
 	ls.multi_comps = multi_comps;
 
@@ -715,6 +797,12 @@ const char* FICDecoder::ptys_rbds_0x00_to_0x1D[] = {
 		"(rfu)", "Weather"
 };
 
+const char* FICDecoder::asu_types_0_to_10[] = {
+		"Alarm", "Road Traffic flash", "Transport flash", "Warning/Service",
+		"News flash", "Area weather flash", "Event announcement", "Special event",
+		"Programme Information", "Sport report", "Financial report"
+};
+
 std::string FICDecoder::ConvertLanguageToString(const int value) {
 	if(value >= 0x00 && value <= 0x2B)
 		return languages_0x00_to_0x2B[value];
@@ -745,6 +833,12 @@ std::string FICDecoder::ConvertPTYToString(const int value, const int inter_tabl
 	default:
 		return "(unknown)";
 	}
+}
+
+std::string FICDecoder::ConvertASuTypeToString(const int value) {
+	if(value >= 0 && value <= 10)
+		return asu_types_0_to_10[value];
+	return "unknown (" + std::to_string(value) + ")";
 }
 
 std::string FICDecoder::DeriveShortLabelUTF8(const std::string& long_label, uint16_t short_label_mask) {

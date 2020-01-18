@@ -289,6 +289,18 @@ correct programme type, based on the transmitted international table ID.
 Dynamic FIC messages can be suppressed using `-F` (currently affects
 dynamic PTY only).
 
+### Announcement support/switching
+
+In terms of announcement support/switching the console version shows the
+separate details. The GUI combines the received data and in general
+shows which announcements the current service supports.
+
+During a matching announcement, the corresponding type is highlighted in
+yellow. An announcement that would lead to a (temporary) switch to a
+different subchannel leads to cyan highlighting instead e.g. if traffic
+news of a different channel shall affect also listeners of a different
+service (which does not have its own announcements).
+
 
 ### Hotkeys (GTK GUI version)
 
@@ -537,7 +549,7 @@ This software is licensed under the GNU General Public License Version 3
 *Please note that the included FEC lib by KA9Q has a separate license!*
 
 DABlin - capital DAB experience
-Copyright (C) 2015-2019 Stefan Pöschel
+Copyright (C) 2015-2020 Stefan Pöschel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

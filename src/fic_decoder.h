@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2020 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -91,11 +91,33 @@ struct FIC_SUBCHANNEL {
 	}
 };
 
+struct FIC_ASW_CLUSTER {
+	uint16_t asw_flags;
+	int subchid;
+
+	static const int asw_flags_none = 0x0000;
+
+	static const int subchid_none = -1;
+	bool IsNone() const {return subchid == subchid_none;}
+
+	FIC_ASW_CLUSTER() : asw_flags(asw_flags_none), subchid(subchid_none) {}
+
+	bool operator==(const FIC_ASW_CLUSTER & fic_asw_cluster) const {
+		return asw_flags == fic_asw_cluster.asw_flags && subchid == fic_asw_cluster.subchid;
+	}
+	bool operator!=(const FIC_ASW_CLUSTER & fic_asw_cluster) const {
+		return !(*this == fic_asw_cluster);
+	}
+};
+
+typedef std::map<uint8_t,FIC_ASW_CLUSTER> asw_clusters_t;
+
 struct FIC_ENSEMBLE {
 	int eid;
 	FIC_LABEL label;
 	int ecc;
 	int inter_table_id;
+	asw_clusters_t asw_clusters;
 
 	static const int eid_none = -1;
 	bool IsNone() const {return eid == eid_none;}
@@ -110,7 +132,8 @@ struct FIC_ENSEMBLE {
 				eid == ensemble.eid &&
 				label == ensemble.label &&
 				ecc == ensemble.ecc &&
-				inter_table_id == ensemble.inter_table_id;
+				inter_table_id == ensemble.inter_table_id &&
+				asw_clusters == ensemble.asw_clusters;
 	}
 	bool operator!=(const FIC_ENSEMBLE & ensemble) const {
 		return !(*this == ensemble);
@@ -122,6 +145,7 @@ typedef std::map<int,int> comp_defs_t;
 typedef std::map<int,FIC_LABEL> comp_labels_t;
 typedef std::vector<uint8_t> ua_data_t;
 typedef std::map<int,ua_data_t> comp_sls_uas_t;
+typedef std::set<uint8_t> cids_t;
 
 struct FIC_SERVICE {
 	int sid;
@@ -129,6 +153,8 @@ struct FIC_SERVICE {
 	FIC_LABEL label;
 	int pty_static;
 	int pty_dynamic;
+	uint16_t asu_flags;
+	cids_t cids;
 
 	// components
 	audio_comps_t audio_comps;		// from FIG 0/2 : SubChId -> AUDIO_SERVICE
@@ -144,7 +170,9 @@ struct FIC_SERVICE {
 
 	static const int pty_none = -1;
 
-	FIC_SERVICE() : sid(sid_none), pri_comp_subchid(pri_comp_subchid_none), pty_static(pty_none), pty_dynamic(pty_none) {}
+	static const int asu_flags_none = 0x0000;
+
+	FIC_SERVICE() : sid(sid_none), pri_comp_subchid(pri_comp_subchid_none), pty_static(pty_none), pty_dynamic(pty_none), asu_flags(asu_flags_none) {}
 };
 
 struct LISTED_SERVICE {
@@ -156,6 +184,8 @@ struct LISTED_SERVICE {
 	int pty_static;
 	int pty_dynamic;
 	int sls_app_type;
+	uint16_t asu_flags;
+	cids_t cids;
 
 	int pri_comp_subchid;	// only used for sorting
 	bool multi_comps;
@@ -168,6 +198,8 @@ struct LISTED_SERVICE {
 
 	static const int pty_none = -1;
 
+	static const int asu_flags_none = 0x0000;
+
 	static const int sls_app_type_none = -1;
 	bool HasSLS() const {return sls_app_type != sls_app_type_none;}
 
@@ -177,6 +209,7 @@ struct LISTED_SERVICE {
 		pty_static(pty_none),
 		pty_dynamic(pty_none),
 		sls_app_type(sls_app_type_none),
+		asu_flags(asu_flags_none),
 		pri_comp_subchid(AUDIO_SERVICE::subchid_none),
 		multi_comps(false)
 	{}
@@ -221,6 +254,8 @@ private:
 	void ProcessFIG0_9(const uint8_t *data, size_t len);
 	void ProcessFIG0_13(const uint8_t *data, size_t len);
 	void ProcessFIG0_17(const uint8_t *data, size_t len);
+	void ProcessFIG0_18(const uint8_t *data, size_t len);
+	void ProcessFIG0_19(const uint8_t *data, size_t len);
 
 	void ProcessFIG1(const uint8_t *data, size_t len);
 	void ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label);
@@ -251,6 +286,8 @@ private:
 
 	static const char* ptys_rds_0x00_to_0x1D[];
 	static const char* ptys_rbds_0x00_to_0x1D[];
+
+	static const char* asu_types_0_to_10[];
 public:
 	FICDecoder(FICDecoderObserver *observer, bool disable_dyn_msgs) :
 		observer(observer),
@@ -264,6 +301,7 @@ public:
 	static std::string ConvertLanguageToString(const int value);
 	static std::string ConvertInterTableIDToString(const int value);
 	static std::string ConvertPTYToString(const int value, const int inter_table_id);
+	static std::string ConvertASuTypeToString(const int value);
 	static std::string DeriveShortLabelUTF8(const std::string& long_label, uint16_t short_label_mask);
 };
 

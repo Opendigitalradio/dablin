@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2020 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ static void usage(const char* exe) {
 					"  -I           Don't catch up on stream after interruption\n"
 					"  -S           Initially disable slideshow\n"
 					"  -L           Enable loose behaviour (e.g. PAD conformance)\n"
-					"  -F           Disable dynamic FIC messages (e.g. dynamic PTY)\n"
+					"  -F           Disable dynamic FIC messages (dynamic PTY, announcements)\n"
 					"  file         Input file to be played (stdin, if not specified)\n",
 					EnsembleSource::FORMAT_ETI.c_str(),
 					EnsembleSource::FORMAT_EDI.c_str(),
@@ -410,6 +410,13 @@ void DABlinGTK::InitWidgets() {
 	label_dl.set_valign(Gtk::ALIGN_START);
 	label_dl.set_padding(WIDGET_SPACE, WIDGET_SPACE);
 
+	frame_label_asu.set_label("Announcement support");
+	frame_label_asu.set_sensitive(false);
+	frame_label_asu.set_hexpand(true);
+	frame_label_asu.add(label_asu);
+	label_asu.set_halign(Gtk::ALIGN_START);
+	label_asu.set_padding(WIDGET_SPACE, WIDGET_SPACE);
+
 	progress_position.set_show_text();
 
 
@@ -430,7 +437,8 @@ void DABlinGTK::InitWidgets() {
 	top_grid.attach_next_to(tglbtn_mute, tglbtn_slideshow, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(vlmbtn, tglbtn_mute, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 7, 1);
-	top_grid.attach_next_to(progress_position, frame_label_dl, Gtk::POS_BOTTOM, 7, 1);
+	top_grid.attach_next_to(frame_label_asu, frame_label_dl, Gtk::POS_BOTTOM, 7, 1);
+	top_grid.attach_next_to(progress_position, frame_label_asu, Gtk::POS_BOTTOM, 7, 1);
 
 	show_all_children();
 	progress_position.hide();	// invisible until progress updated
@@ -527,6 +535,8 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		tglbtn_record.set_sensitive(false);
 	}
 
+	UpdateAnnouncementSupport(service);
+
 	// if the audio service changed, reset format/DL/slide + switch
 	bool audio_service_changed = !ensemble_player->IsSameAudioService(service.audio_service);
 	if(audio_service_changed) {
@@ -575,6 +585,69 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 	}
 }
 
+void DABlinGTK::UpdateAnnouncementSupport(const LISTED_SERVICE& service) {
+	// reset, if no service/announcement support
+	if(service.IsNone() || service.asu_flags == LISTED_SERVICE::asu_flags_none) {
+		frame_label_asu.set_sensitive(false);
+		frame_label_asu.set_tooltip_markup("");
+		label_asu.set_label("");
+		return;
+	}
+
+	// assemble text - iterate through all supported announcement types
+	std::string ac_str;
+	for(int type = 0; type < 16; type++) {
+		uint16_t type_flag = 1 << type;
+		if(!(service.asu_flags & type_flag))
+			continue;
+
+		// check all matching announcement clusters for active announcement
+		std::string asw_color;
+		for(const cids_t::value_type& cid : service.cids) {
+			asw_clusters_t::const_iterator it = ensemble.asw_clusters.find(cid);
+			if(it == ensemble.asw_clusters.cend() || !(it->second.asw_flags & type_flag))
+				continue;
+
+			if(it->second.subchid == service.audio_service.subchid) {
+				asw_color = "yellow";
+			} else {
+				if(asw_color.empty())
+					asw_color = "cyan";
+			}
+		}
+
+		if(!ac_str.empty())
+			ac_str += " + ";
+		if(!asw_color.empty())
+			ac_str += "<span bgcolor='" + asw_color + "'>";
+		ac_str += FICDecoder::ConvertASuTypeToString(type);
+		if(!asw_color.empty())
+			ac_str += "</span>";
+	}
+
+	// assemble tooltip - iterate through all matching announcement clusters
+	std::string ac_tooltip;
+	char cid_string[5];
+	for(const cids_t::value_type& cid : service.cids) {
+		asw_clusters_t::const_iterator it = ensemble.asw_clusters.find(cid);
+		bool present = it != ensemble.asw_clusters.cend();
+		bool active = present && (service.asu_flags & it->second.asw_flags);
+
+		ac_tooltip += ac_tooltip.empty() ? "Cluster(s): " : " / ";
+		if(active)
+			ac_tooltip += "<u>";
+		snprintf(cid_string, sizeof(cid_string), "0x%02X", cid);
+		ac_tooltip += std::string(cid_string);
+		if(present)
+			ac_tooltip += " (SubChId " + std::to_string(it->second.subchid) + ")";
+		if(active)
+			ac_tooltip += "</u>";
+	}
+
+	frame_label_asu.set_sensitive(true);
+	frame_label_asu.set_tooltip_markup(ac_tooltip);
+	label_asu.set_markup(ac_str);
+}
 
 void DABlinGTK::on_tglbtn_record() {
 	if(tglbtn_record.get_active()) {

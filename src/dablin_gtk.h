@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2020 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -244,6 +244,9 @@ private:
 	Gtk::Frame frame_label_dl;
 	Gtk::Label label_dl;
 
+	Gtk::Frame frame_label_asu;
+	Gtk::Label label_asu;
+
 	Gtk::ProgressBar progress_position;
 
 
@@ -252,6 +255,7 @@ private:
 	void AddChannel(const dab_channels_t::value_type& dab_channel, int gain);
 
 	void SetService(const LISTED_SERVICE& service);
+	void UpdateAnnouncementSupport(const LISTED_SERVICE& service);
 
 	void on_btn_channels_stop();
 	void on_tglbtn_record();
