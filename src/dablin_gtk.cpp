@@ -491,7 +491,7 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		std::string label = FICDecoder::ConvertLabelToUTF8(service.label, &charset_name);
 
 		set_title(label + " - DABlin");
-		set_icon_name("media-playback-start");
+		set_icon_name(tglbtn_record.get_active() ? "media-record" : "media-playback-start");
 
 		std::string tooltip_text =
 				"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, service.label.short_label_mask) + "\"\n"
