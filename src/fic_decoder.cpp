@@ -311,20 +311,21 @@ void FICDecoder::ProcessFIG0_8(const uint8_t *data, size_t len) {
 
 void FICDecoder::ProcessFIG0_9(const uint8_t *data, size_t len) {
 	// FIG 0/9 - Time and country identifier - Country, LTO and International table
-	// ensemble ECC and international table ID only
+	// ensemble ECC/LTO and international table ID only
 
 	if(len < 3)
 		return;
 
 	FIC_ENSEMBLE new_ensemble = ensemble;
+	new_ensemble.lto = (data[0] & 0x20 ? -1 : 1) * (data[0] & 0x1F);
 	new_ensemble.ecc = data[1];
 	new_ensemble.inter_table_id = data[2];
 
 	if(ensemble != new_ensemble) {
 		ensemble = new_ensemble;
 
-		fprintf(stderr, "FICDecoder: ECC: 0x%02X, international table ID: 0x%02X (%s)\n",
-				ensemble.ecc, ensemble.inter_table_id, ConvertInterTableIDToString(ensemble.inter_table_id).c_str());
+		fprintf(stderr, "FICDecoder: ECC: 0x%02X, LTO: %s, international table ID: 0x%02X (%s)\n",
+				ensemble.ecc, ConvertLTOToString(ensemble.lto).c_str(), ensemble.inter_table_id, ConvertInterTableIDToString(ensemble.inter_table_id).c_str());
 
 		UpdateEnsemble();
 
@@ -811,6 +812,12 @@ std::string FICDecoder::ConvertLanguageToString(const int value) {
 	if(value >= 0x45 && value <= 0x7F)
 		return languages_0x7F_downto_0x45[0x7F - value];
 	return "unknown (" + std::to_string(value) + ")";
+}
+
+std::string FICDecoder::ConvertLTOToString(const int value) {
+	char lto_string[7];
+	snprintf(lto_string, sizeof(lto_string), "%+03d:%02d", value / 2, (value % 2) ? 30 : 0);
+	return lto_string;
 }
 
 std::string FICDecoder::ConvertInterTableIDToString(const int value) {

@@ -1021,6 +1021,8 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 			"EId: " + StringTools::IntToHex(ensemble.eid, 4);
 	if(ensemble.ecc != FIC_ENSEMBLE::ecc_none)
 		tooltip_text += "\n" "ECC: " + StringTools::IntToHex(ensemble.ecc, 2);
+	if(ensemble.lto != FIC_ENSEMBLE::lto_none)
+		tooltip_text += "\n" "LTO: " + FICDecoder::ConvertLTOToString(ensemble.lto);
 	if(ensemble.inter_table_id != FIC_ENSEMBLE::inter_table_id_none)
 		tooltip_text += "\n" "International table ID: " + StringTools::IntToHex(ensemble.inter_table_id, 2) + " (" + FICDecoder::ConvertInterTableIDToString(ensemble.inter_table_id) + ")";
 

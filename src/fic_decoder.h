@@ -116,6 +116,7 @@ struct FIC_ENSEMBLE {
 	int eid;
 	FIC_LABEL label;
 	int ecc;
+	int lto;
 	int inter_table_id;
 	asw_clusters_t asw_clusters;
 
@@ -123,15 +124,22 @@ struct FIC_ENSEMBLE {
 	bool IsNone() const {return eid == eid_none;}
 
 	static const int ecc_none = -1;
+	static const int lto_none = -100;
 	static const int inter_table_id_none = -1;
 
-	FIC_ENSEMBLE() : eid(eid_none), ecc(ecc_none), inter_table_id(inter_table_id_none) {}
+	FIC_ENSEMBLE() :
+		eid(eid_none),
+		ecc(ecc_none),
+		lto(lto_none),
+		inter_table_id(inter_table_id_none)
+	{}
 
 	bool operator==(const FIC_ENSEMBLE & ensemble) const {
 		return
 				eid == ensemble.eid &&
 				label == ensemble.label &&
 				ecc == ensemble.ecc &&
+				lto == ensemble.lto &&
 				inter_table_id == ensemble.inter_table_id &&
 				asw_clusters == ensemble.asw_clusters;
 	}
@@ -299,6 +307,7 @@ public:
 
 	static std::string ConvertLabelToUTF8(const FIC_LABEL& label, std::string* charset_name);
 	static std::string ConvertLanguageToString(const int value);
+	static std::string ConvertLTOToString(const int value);
 	static std::string ConvertInterTableIDToString(const int value);
 	static std::string ConvertPTYToString(const int value, const int inter_table_id);
 	static std::string ConvertASuTypeToString(const int value);
