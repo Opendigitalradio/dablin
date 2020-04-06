@@ -159,7 +159,7 @@ If the gtkmm library is available both the console and GTK GUI executables will
 be built. If the gtkmm library is not available only the console executable will
 be built.
 
-To fetch the DABlin source code, execute the following commmands:
+To fetch the DABlin source code, execute the following commands:
 
 ```sh
 git clone https://github.com/Opendigitalradio/dablin.git
@@ -211,7 +211,7 @@ just execute them without that prefix.
 
 Unfortunately the Cygwin package of FDK-AAC doesn't seem to have been
 compiled with SBR support, so using [FAAD2](http://www.audiocoding.com/faad2.html) for DAB+ services is
-recommended. However FAAD2 has to be compiled and installed by hand, as
+recommended. However, FAAD2 has to be compiled and installed by hand, as
 there is no Cygwin package. This requires the following additional
 packages to be installed:
 - autoconf
@@ -221,7 +221,7 @@ packages to be installed:
 ![Screenshot of the console version on Windows (Cygwin)](https://basicmaster.de/dab/DABlin_console_cygwin.png)
 
 When Cygwin is installed, all the aforementioned packages can be
-pre-selected for installation by calling Cygwin's `setup-<arch>.exe`
+preselected for installation by calling Cygwin's `setup-<arch>.exe`
 with the following parameter:
 
 ```sh
@@ -282,12 +282,12 @@ possible to directly request a specific sub-channel by using `-r` (for
 DAB) or `-R` (for DAB+).
 
 Note that the console output always shows the programme type just using
-RDS PTYs despite the actually used international table ID (which should
+RDS PTys despite the actually used international table ID (which should
 work in nearly all cases). The GTK version in contrast always shows the
 correct programme type, based on the transmitted international table ID.
 
 Dynamic FIC messages can be suppressed using `-F` (currently affects
-dynamic PTY only).
+dynamic PTy only).
 
 ### Announcement support/switching
 
@@ -332,8 +332,8 @@ source that outputs ETI-NI. The respective binary is then called with
 the necessary parameters, including the frequency and an optional gain
 value.
 
-You therefore just have to specify the path to the `dab2eti` binary and
-the desired channel.
+You therefore just have to specify the absolute path to the `dab2eti` 
+binary and the desired channel.
 
 ```sh
 dablin -d ~/bin/dab2eti -c 11D -s 0xd911
@@ -373,6 +373,13 @@ after a colon, e.g. `5C:-54`.
 dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 ```
 
+You also can use an Airspy or Airspy mini, but you have to specify the
+gain in the `-C` parameter as the auto gain does not work right here.
+
+```sh
+dablin_gtk -D eti-cmdline -d ~/bin/eti-cmdline-airspy -c 11D -C 11D:80
+```
+
 It may happen that an ETI live stream is interrupted (e.g. transponder
 lock lost). Later when the stream recovers, DABlin "catches up" on the
 stream and plays all (available) ETI frames until again in sync. This
@@ -381,12 +388,12 @@ audible artifacts.
 
 The `-I` parameter disables the described catch-up behaviour and instead
 resyncs to the stream after an interruption i.e. continues to play the
-later received ETI frames in realtime. However this means that the
+later received ETI frames in realtime. However, this means that the
 playback is delayed by the amount of all previous interruptions i.e. the
 news will start some seconds/minutes later compared to live reception
 because of that.
 
-The GTK GUI version also allows to stop decoding the current
+The GTK GUI version (dablin_gtk) also allows stopping decoding the current
 channel/service by using the stop button next to the channel combobox.
 If desired, decoding can then be resumed using the same button again.
 
@@ -457,7 +464,7 @@ component. That secondary components can initially be selected by using
 `-x` in addition to `-s`.
 
 In the GTK version in the service list such components are shown
-prefixed with `» ` (e.g. `» BBC R5LiveSportX`). Meanwhile the related
+prefixed with `» ` (e.g. `» BBC R5LiveSportX`). Meanwhile, the related
 primary component is suffixed with ` »` (e.g. `BBC Radio 5 Live »`).
 
 
@@ -469,15 +476,15 @@ rather unlikely to occur (enclosed with square brackets).
 
 ### Common
 
-During (re-)synchronisation status messages are shown. Also dropped
-Superframes or AU are mentioned.
+During (re-)synchronisation status messages are shown. Furthermore, dropped
+Superframes or AUs are mentioned.
 
 If the Reed Solomon FEC was used to correct bytes of a Superframe, this
 is mentioned by messages of the format `(3+)` in cyan color. This
-shorter format is used as those messages occure several times with
+shorter format is used as those messages occur several times with
 borderline reception. The digit refers to the number of corrected bytes
 within the Superframe while a plus (if present) indicates that at least
-one byte was incorrectable.
+one byte was uncorrectable.
 
 When a FIB is discarded (due to failed CRC check), this is indicated by a
 `(FIB)` message in yellow color.
@@ -490,7 +497,7 @@ messages like `(AU #2)` in red color, indicating that the CRC check on
 AU No. 2 failed and hence the AU was dismissed.
 
 When the decoding of an AU nevertheless fails, this is indicated by an
-`(AAC)` message in magenta color. However in that case the AAC decoder
+`(AAC)` message in magenta color. However, in that case the AAC decoder
 may output audio samples anyway.
 
 ### Uncommon
@@ -523,7 +530,7 @@ DABlin implements (at least partly) the following DAB standards:
 
 ## TODO
 
-At the moment, DABlin is kind of a rudimentary tool for the playback of
+At the moment, DABlin is a kind of rudimentary tool for the playback of
 DAB/DAB+ services. It is planned to add support for further Program
 Aided Data (PAD) features.
 
