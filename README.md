@@ -155,11 +155,11 @@ Source-based Linux distributions:
 
 ## Compilation
 
-If the gtkmm library is available both the console and GTK GUI executables will
-be built. If the gtkmm library is not available only the console executable will
-be built.
+If the gtkmm library is available both the console and GTK GUI 
+executables will be built, otherwise only the console executable will be
+built.
 
-To fetch the DABlin source code, execute the following commmands:
+To fetch the DABlin source code, execute the following commands:
 
 ```sh
 git clone https://github.com/Opendigitalradio/dablin.git
@@ -171,8 +171,8 @@ current stable version. The development takes place in the `next` branch
 which can instead be cloned by appending `-b next` to the end of the
 above `git clone` command line.
 
-You can use, for example, the following command sequence in order to compile and
-install DABlin:
+You can use, for example, the following command sequence in order to
+compile and install DABlin:
 
 ```sh
 mkdir build
@@ -211,7 +211,7 @@ just execute them without that prefix.
 
 Unfortunately the Cygwin package of FDK-AAC doesn't seem to have been
 compiled with SBR support, so using [FAAD2](http://www.audiocoding.com/faad2.html) for DAB+ services is
-recommended. However FAAD2 has to be compiled and installed by hand, as
+recommended. However, FAAD2 has to be compiled and installed by hand, as
 there is no Cygwin package. This requires the following additional
 packages to be installed:
 - autoconf
@@ -221,7 +221,7 @@ packages to be installed:
 ![Screenshot of the console version on Windows (Cygwin)](https://basicmaster.de/dab/DABlin_console_cygwin.png)
 
 When Cygwin is installed, all the aforementioned packages can be
-pre-selected for installation by calling Cygwin's `setup-<arch>.exe`
+preselected for installation by calling Cygwin's `setup-<arch>.exe`
 with the following parameter:
 
 ```sh
@@ -282,12 +282,12 @@ possible to directly request a specific sub-channel by using `-r` (for
 DAB) or `-R` (for DAB+).
 
 Note that the console output always shows the programme type just using
-RDS PTYs despite the actually used international table ID (which should
+RDS PTys despite the actually used international table ID (which should
 work in nearly all cases). The GTK version in contrast always shows the
 correct programme type, based on the transmitted international table ID.
 
 Dynamic FIC messages can be suppressed using `-F` (currently affects
-dynamic PTY only).
+dynamic PTy only).
 
 
 ### Date/Time
@@ -369,14 +369,14 @@ In addition to specifying the path to the respective binary you also
 have to change the DAB live source type accordingly by using `-D`.
 
 ```sh
-dablin -d ~/bin/eti-cmdline-rtlsdr -D eti-cmdline -c 11D -s 0xd911
+dablin -D eti-cmdline -d ~/bin/eti-cmdline-rtlsdr -c 11D -s 0xd911
 ```
 
 When enclosed in quotes, you can also pass command line parameters to the
 binary, e.g. to set some frequency correction (here: +40 ppm):
 
 ```sh
-dablin -d "~/bin/eti-cmdline-rtlsdr -P 40" -D eti-cmdline -c 11D -s 0xd911
+dablin -D eti-cmdline -d "~/bin/eti-cmdline-rtlsdr -P 40" -c 11D -s 0xd911
 ```
 
 In case of the GTK GUI version the desired channel may not be specified. To
@@ -390,6 +390,26 @@ after a colon, e.g. `5C:-54`.
 dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 ```
 
+You also can use an Airspy or Airspy Mini, but you have to specify the
+`-G` parameter.
+
+```sh
+dablin_gtk -D eti-cmdline -d ~/bin/eti-cmdline-airspy -c 11D -C 11D -G
+```
+
+For a HackRF use it together with the eti-cmdline parameter `-E` (which 
+switches its amplifier on) and with the dablin_gtk parameter `-G`.
+
+```sh
+dablin_gtk -D eti-cmdline -d "~/bin/eti-cmdline-hackrf -E" -c 11D -C 11D -G
+```
+
+For a raw file the syntax is just:
+
+```sh
+~/bin/eti-cmdline-rawfiles -F foo.raw | dablin_gtk
+```
+
 It may happen that an ETI live stream is interrupted (e.g. transponder
 lock lost). Later when the stream recovers, DABlin "catches up" on the
 stream and plays all (available) ETI frames until again in sync. This
@@ -398,12 +418,12 @@ audible artifacts.
 
 The `-I` parameter disables the described catch-up behaviour and instead
 resyncs to the stream after an interruption i.e. continues to play the
-later received ETI frames in realtime. However this means that the
+later received ETI frames in realtime. However, this means that the
 playback is delayed by the amount of all previous interruptions i.e. the
 news will start some seconds/minutes later compared to live reception
 because of that.
 
-The GTK GUI version also allows to stop decoding the current
+The GTK GUI version also allows a user to stop decoding the current
 channel/service by using the stop button next to the channel combobox.
 If desired, decoding can then be resumed using the same button again.
 
@@ -474,7 +494,7 @@ component. That secondary components can initially be selected by using
 `-x` in addition to `-s`.
 
 In the GTK version in the service list such components are shown
-prefixed with `» ` (e.g. `» BBC R5LiveSportX`). Meanwhile the related
+prefixed with `» ` (e.g. `» BBC R5LiveSportX`). Meanwhile, the related
 primary component is suffixed with ` »` (e.g. `BBC Radio 5 Live »`).
 
 
@@ -486,12 +506,12 @@ rather unlikely to occur (enclosed with square brackets).
 
 ### Common
 
-During (re-)synchronisation status messages are shown. Also dropped
-Superframes or AU are mentioned.
+During (re-)synchronisation status messages are shown. Furthermore, dropped
+Superframes or AUs are mentioned.
 
 If the Reed Solomon FEC was used to correct bytes of a Superframe, this
 is mentioned by messages of the format `(3+)` in cyan color. This
-shorter format is used as those messages occure several times with
+shorter format is used as those messages occur several times with
 borderline reception. The digit refers to the number of corrected bytes
 within the Superframe while a plus (if present) indicates that at least
 one byte was incorrectable.
@@ -507,7 +527,7 @@ messages like `(AU #2)` in red color, indicating that the CRC check on
 AU No. 2 failed and hence the AU was dismissed.
 
 When the decoding of an AU nevertheless fails, this is indicated by an
-`(AAC)` message in magenta color. However in that case the AAC decoder
+`(AAC)` message in magenta color. However, in that case the AAC decoder
 may output audio samples anyway.
 
 ### Uncommon
