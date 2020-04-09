@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2020 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,11 +45,14 @@ void DABLiveETISource::PrintSource() {
 }
 
 DABLiveETISource::~DABLiveETISource() {
-	// TODO: replace bad style temporary solution (here possible, because dab2eti allows only one concurrent session)
-	std::string cmd_killall = "killall " + binary_name;
-	int result = system(cmd_killall.c_str());
-	if(result != 0)
-		fprintf(stderr, "DABLiveETISource: error killing %s\n", source_name.c_str());
+	// kill source, if not yet terminated
+	if(!feof(input_file)) {
+		// TODO: replace bad style temporary solution (here possible, because dab2eti allows only one concurrent session)
+		std::string cmd_killall = "killall " + binary_name;
+		int result = system(cmd_killall.c_str());
+		if(result != 0)
+			fprintf(stderr, "DABLiveETISource: error killing %s\n", source_name.c_str());
+	}
 
 	pclose(input_file);
 	input_file = nullptr;
