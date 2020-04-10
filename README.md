@@ -155,8 +155,8 @@ Source-based Linux distributions:
 
 ## Compilation
 
-If the gtkmm library is available both the console and GTK GUI executables will
-be built. If the gtkmm library is not available only the console executable will
+If the gtkmm library is available both the console and GTK GUI 
+executables will be built, otherwise only the console executable will
 be built.
 
 To fetch the DABlin source code, execute the following commands:
@@ -171,8 +171,8 @@ current stable version. The development takes place in the `next` branch
 which can instead be cloned by appending `-b next` to the end of the
 above `git clone` command line.
 
-You can use, for example, the following command sequence in order to compile and
-install DABlin:
+You can use, for example, the following command sequence in order 
+to compile and install DABlin:
 
 ```sh
 mkdir build
@@ -185,8 +185,9 @@ sudo make install
 
 ### Windows (Cygwin)
 
-DABlin can also be compiled on Windows using [Cygwin](https://cygwin.com/). The following
-Cygwin packages are required:
+DABlin can also be compiled on Windows using 
+[Cygwin](https://cygwin.com/). The following Cygwin packages are 
+required:
 
 General:
 - git
@@ -210,7 +211,8 @@ Also note that Cygwin neither needs nor allows to `sudo` commands, so
 just execute them without that prefix.
 
 Unfortunately the Cygwin package of FDK-AAC doesn't seem to have been
-compiled with SBR support, so using [FAAD2](http://www.audiocoding.com/faad2.html) for DAB+ services is
+compiled with SBR support, so using 
+[FAAD2](http://www.audiocoding.com/faad2.html) for DAB+ services is
 recommended. However, FAAD2 has to be compiled and installed by hand, as
 there is no Cygwin package. This requires the following additional
 packages to be installed:
@@ -320,7 +322,8 @@ Hotkey           | Meaning
 
 ### DAB live reception
 
-If you want to play a live station, you can use `dab2eti` from [dabtools](https://github.com/Opendigitalradio/dabtools)
+If you want to play a live station, you can use `dab2eti` from 
+[dabtools](https://github.com/Opendigitalradio/dabtools)
 (ODR maintained fork) and transfer the ETI live stream via pipe, e.g.:
 
 ```sh
@@ -332,8 +335,8 @@ source that outputs ETI-NI. The respective binary is then called with
 the necessary parameters, including the frequency and an optional gain
 value.
 
-You therefore just have to specify the absolute path to the `dab2eti` 
-binary and the desired channel.
+You therefore just have to specify the path to the `dab2eti` binary 
+and the desired channel.
 
 ```sh
 dablin -d ~/bin/dab2eti -c 11D -s 0xd911
@@ -374,10 +377,23 @@ dablin_gtk -d ~/bin/dab2eti -c 11D -C 5C,7B,11A,11C,11D -s 0xd911
 ```
 
 You also can use an Airspy or Airspy mini, but you have to specify the
-gain in the `-C` parameter as the auto gain does not work right here.
+`-G` parameter.
 
 ```sh
-dablin_gtk -D eti-cmdline -d ~/bin/eti-cmdline-airspy -c 11D -C 11D:80
+dablin_gtk -D eti-cmdline -d ~/bin/eti-cmdline-airspy -c 11D -C 11D -G
+
+```
+For a HackRF use it together with the eti-cmdline parameter `-E` (which 
+switches its amplifier on) and with the dablin_gtk parameter `-G`.
+
+```sh
+dablin_gtk -D eti-cmdline -d "~/bin/eti-cmdline-hackrf -E" -c 11D -C 11D -G
+```
+
+For a rawfile the syntax is just
+
+```sh
+~/bin/eti-cmdline-rawfiles -F foo.raw | dablin_gtk
 ```
 
 It may happen that an ETI live stream is interrupted (e.g. transponder
