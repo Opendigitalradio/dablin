@@ -42,6 +42,7 @@ static void usage(const char* exe) {
 					"  -r <subchid>  ID of the sub-channel (DAB) to be played\n"
 					"  -R <subchid>  ID of the sub-channel (DAB+) to be played\n"
 					"  -g <gain>     USB stick gain to pass to DAB live source (auto gain is default)\n"
+					"  -G            Use default gain for DAB live source (instead of auto gain)\n"
 					"  -p            Output PCM to stdout instead of using SDL\n"
 					"  -u            Output untouched audio stream to stdout instead of using SDL\n"
 					"  -I            Don't catch up on stream after interruption\n"
@@ -69,10 +70,11 @@ int main(int argc, char **argv) {
 
 	DABlinTextOptions options;
 	int initial_param_count = 0;
+	int gain_param_count = 0;
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hf:c:l:d:D:g:s:x:1puIFr:R:")) != -1) {
+	while((c = getopt(argc, argv, "hf:c:l:d:D:g:Gs:x:1puIFr:R:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -114,6 +116,11 @@ int main(int argc, char **argv) {
 			break;
 		case 'g':
 			options.gain = strtol(optarg, nullptr, 0);
+			gain_param_count++;
+			break;
+		case 'G':
+			options.gain = DAB_LIVE_SOURCE_CHANNEL::default_gain;
+			gain_param_count++;
 			break;
 		case 'p':
 			options.pcm_output = true;
@@ -189,9 +196,13 @@ int main(int argc, char **argv) {
 	}
 
 
-	// at most one initial param needed!
+	// at most one param needed!
 	if(initial_param_count > 1) {
 		fprintf(stderr, "At most one initial parameter shall be specified!\n");
+		usage(argv[0]);
+	}
+	if(gain_param_count > 1) {
+		fprintf(stderr, "At most one gain parameter shall be specified!\n");
 		usage(argv[0]);
 	}
 

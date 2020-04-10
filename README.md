@@ -341,7 +341,8 @@ dablin -d ~/bin/dab2eti -c 11D -s 0xd911
 
 Using `dab2eti` the E4000 tuner is recommended as auto gain is supported
 with it. If you want/have to use a gain value you can specify it using
-`-g`.
+`-g`. Instead of auto gain, the default gain can be set using `-G` (only
+affects `eti-cmdline` at the moment).
 
 Instead of `dab2eti` the tool `eti-cmdline` by Jan van Katwijk can be
 used, as it has more sensitive reception (however the CPU load is higher
@@ -365,7 +366,7 @@ dablin -d "~/bin/eti-cmdline-rtlsdr -P 40" -D eti-cmdline -c 11D -s 0xd911
 In case of the GTK GUI version the desired channel may not be specified. To
 avoid the huge channel list containing all possible DAB channels, one
 can also state the desired channels (separated by comma) which shall be
-displayed within the channel list. Hereby the specified (default) gain
+displayed within the channel list. Hereby the specified (general) gain
 value can also be overwritten for a channel by adding the desired value
 after a colon, e.g. `5C:-54`.
 

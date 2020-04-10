@@ -44,6 +44,7 @@ static void usage(const char* exe) {
 					"  -s <sid>     ID of the service to be played\n"
 					"  -x <scids>   ID of the service component to be played (requires service ID)\n"
 					"  -g <gain>    USB stick gain to pass to DAB live source (auto gain is default)\n"
+					"  -G           Use default gain for DAB live source (instead of auto gain)\n"
 					"  -r <path>    Path for recordings (default: %s)\n"
 					"  -P <size>    Recording prebuffer size in seconds (default: %zu)\n"
 					"  -p           Output PCM to stdout instead of using SDL\n"
@@ -77,10 +78,11 @@ int main(int argc, char **argv) {
 
 	DABlinGTKOptions options;
 	int initial_param_count = 0;
+	int gain_param_count = 0;
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hf:d:D:C:c:l:g:r:P:s:x:1puISLF")) != -1) {
+	while((c = getopt(argc, argv, "hf:d:D:C:c:l:g:Gr:P:s:x:1puISLF")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -117,6 +119,11 @@ int main(int argc, char **argv) {
 			break;
 		case 'g':
 			options.gain = strtol(optarg, nullptr, 0);
+			gain_param_count++;
+			break;
+		case 'G':
+			options.gain = DAB_LIVE_SOURCE_CHANNEL::default_gain;
+			gain_param_count++;
 			break;
 		case 'r':
 			options.recordings_path = optarg;
@@ -204,9 +211,13 @@ int main(int argc, char **argv) {
 	}
 
 
-	// at most one initial param needed!
+	// at most one param needed!
 	if(initial_param_count > 1) {
 		fprintf(stderr, "At most one initial parameter shall be specified!\n");
+		usage(argv[0]);
+	}
+	if(gain_param_count > 1) {
+		fprintf(stderr, "At most one gain parameter shall be specified!\n");
 		usage(argv[0]);
 	}
 

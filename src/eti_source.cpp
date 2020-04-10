@@ -62,8 +62,14 @@ DABLiveETISource::~DABLiveETISource() {
 // --- DAB2ETIETISource -----------------------------------------------------------------
 std::string DAB2ETIETISource::GetParams() {
 	std::string result = std::to_string(channel.freq * 1000);
-	if(!channel.HasAutoGain())
+	switch(channel.gain) {
+	case DAB_LIVE_SOURCE_CHANNEL::auto_gain:
+	case DAB_LIVE_SOURCE_CHANNEL::default_gain:
+		// here: default = auto
+		break;
+	default:
 		result += " " + std::to_string(channel.gain);
+	}
 	return result;
 }
 
@@ -71,9 +77,15 @@ std::string DAB2ETIETISource::GetParams() {
 // --- EtiCmdlineETISource -----------------------------------------------------------------
 std::string EtiCmdlineETISource::GetParams() {
 	std::string cmdline = "-C " + channel.block + " -S -B " + (channel.freq < 1000000 ? "BAND_III" : "L_BAND");
-	if(channel.HasAutoGain())
+	switch(channel.gain) {
+	case DAB_LIVE_SOURCE_CHANNEL::auto_gain:
 		cmdline += " -Q";
-	else
+		break;
+	case DAB_LIVE_SOURCE_CHANNEL::default_gain:
+		// no parameter
+		break;
+	default:
 		cmdline += " -G " + std::to_string(channel.gain);
+	}
 	return cmdline;
 }

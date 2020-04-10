@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2020 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,8 +28,17 @@ struct DAB_LIVE_SOURCE_CHANNEL {
 	int gain;
 
 	static const int auto_gain = -10000;
-	bool HasAutoGain() const {return gain == auto_gain;}
-	std::string GainToString() {return HasAutoGain() ? "auto" : std::to_string(gain);}
+	static const int default_gain = -10001;
+	std::string GainToString() {
+		switch(gain) {
+		case auto_gain:
+			return "auto";
+		case default_gain:
+			return "default";
+		default:
+			return std::to_string(gain);
+		}
+	}
 
 	DAB_LIVE_SOURCE_CHANNEL() : freq(-1), gain(auto_gain) {}
 	DAB_LIVE_SOURCE_CHANNEL(std::string block, uint32_t freq, int gain) : block(block), freq(freq), gain(gain) {}
