@@ -25,6 +25,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <math.h>
 #include <time.h>
 
 #include "tools.h"
