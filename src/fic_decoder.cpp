@@ -24,6 +24,7 @@ void FICDecoder::Reset() {
 	ensemble = FIC_ENSEMBLE();
 	services.clear();
 	subchannels.clear();
+	utc_dt = FIC_DAB_DT();
 }
 
 void FICDecoder::Process(const uint8_t *data, size_t len) {
@@ -100,6 +101,9 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 		break;
 	case 9:
 		ProcessFIG0_9(data, len);
+		break;
+	case 10:
+		ProcessFIG0_10(data, len);
 		break;
 	case 13:
 		ProcessFIG0_13(data, len);
@@ -335,6 +339,56 @@ void FICDecoder::ProcessFIG0_9(const uint8_t *data, size_t len) {
 			if(s.pty_static != FIC_SERVICE::pty_none || s.pty_dynamic != FIC_SERVICE::pty_none)
 				UpdateService(s);
 		}
+	}
+}
+
+void FICDecoder::ProcessFIG0_10(const uint8_t *data, size_t len) {
+	// FIG 0/10 - Date and time (d&t)
+
+	if(len < 4)
+		return;
+
+	FIC_DAB_DT new_utc_dt;
+
+	// retrieve date
+	int mjd = (data[0] & 0x7F) << 10 | data[1] << 2 | data[2] >> 6;
+
+	int y0 = floor((mjd - 15078.2) / 365.25);
+	int m0 = floor((mjd - 14956.1 - floor(y0 * 365.25)) / 30.6001);
+	int d = mjd - 14956 - floor(y0 * 365.25) - floor(m0 * 30.6001);
+	int k = (m0 == 14 || m0 == 15) ? 1 : 0;
+	int y = y0 + k;
+	int m = m0 - 1 - k * 12;
+
+	new_utc_dt.dt.tm_year = y;		// from 1900
+	new_utc_dt.dt.tm_mon = m - 1;	// 0-based
+	new_utc_dt.dt.tm_mday = d;
+
+	// retrieve time
+	bool utc_flag = data[2] & 0x08;
+	new_utc_dt.dt.tm_hour = (data[2] & 0x07) << 2 | data[3] >> 6;
+	new_utc_dt.dt.tm_min = data[3] & 0x3F;
+	new_utc_dt.dt.tm_isdst = -1;	// ignore DST
+	if(utc_flag) {
+		// long form
+		if(len < 6)
+			return;
+		new_utc_dt.dt.tm_sec = data[4] >> 2;
+		new_utc_dt.ms = (data[4] & 0x03) << 8 | data[5];
+	} else {
+		// short form
+		new_utc_dt.dt.tm_sec = 0;
+		new_utc_dt.ms = FIC_DAB_DT::ms_none;
+	}
+
+	if(utc_dt != new_utc_dt) {
+		// print only once
+		if(utc_dt.IsNone())
+			fprintf(stderr, "FICDecoder: UTC date/time: %s\n", ConvertDateTimeToString(new_utc_dt, 0, true).c_str());
+
+		utc_dt = new_utc_dt;
+
+		observer->FICChangeUTCDateTime(utc_dt);
 	}
 }
 
@@ -829,6 +883,27 @@ std::string FICDecoder::ConvertInterTableIDToString(const int value) {
 	default:
 		return "unknown";
 	}
+}
+
+std::string FICDecoder::ConvertDateTimeToString(FIC_DAB_DT utc_dt, const int lto, bool output_ms) {
+	// if desired, apply LTO + normalize time
+	if(lto) {
+		utc_dt.dt.tm_min += lto * 30;
+		if(mktime(&utc_dt.dt) == (time_t) -1)
+			throw std::runtime_error("FICDecoder: error while normalizing date/time");
+	}
+
+	char dt_string[24];
+	if(!utc_dt.IsMsNone()) {
+		// long form
+		strftime(dt_string, sizeof(dt_string), "%F %T", &utc_dt.dt);
+		if(output_ms)
+			snprintf(dt_string + 19, sizeof(dt_string) - 19, ".%03d", utc_dt.ms);
+	} else {
+		// short form
+		strftime(dt_string, sizeof(dt_string), "%F %R", &utc_dt.dt);
+	}
+	return dt_string;
 }
 
 std::string FICDecoder::ConvertPTYToString(const int value, const int inter_table_id) {

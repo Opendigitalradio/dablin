@@ -25,6 +25,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <time.h>
 
 #include "tools.h"
 
@@ -111,6 +112,35 @@ struct FIC_ASW_CLUSTER {
 };
 
 typedef std::map<uint8_t,FIC_ASW_CLUSTER> asw_clusters_t;
+
+struct FIC_DAB_DT {
+	struct tm dt;
+	int ms;
+
+	static const int none = -1;
+	bool IsNone() const {return dt.tm_year == none;}
+
+	static const int ms_none = -1;
+	bool IsMsNone() const {return ms == ms_none;}
+
+	FIC_DAB_DT() : ms(ms_none) {
+		dt.tm_year = none;
+	}
+
+	bool operator==(const FIC_DAB_DT & fic_dab_dt) const {
+		return
+				ms == fic_dab_dt.ms &&
+				dt.tm_sec == fic_dab_dt.dt.tm_sec &&
+				dt.tm_min == fic_dab_dt.dt.tm_min &&
+				dt.tm_hour == fic_dab_dt.dt.tm_hour &&
+				dt.tm_mday == fic_dab_dt.dt.tm_mday &&
+				dt.tm_mon == fic_dab_dt.dt.tm_mon &&
+				dt.tm_year == fic_dab_dt.dt.tm_year;
+	}
+	bool operator!=(const FIC_DAB_DT & fic_dab_dt) const {
+		return !(*this == fic_dab_dt);
+	}
+};
 
 struct FIC_ENSEMBLE {
 	int eid;
@@ -241,6 +271,7 @@ public:
 
 	virtual void FICChangeEnsemble(const FIC_ENSEMBLE& /*ensemble*/) {}
 	virtual void FICChangeService(const LISTED_SERVICE& /*service*/) {}
+	virtual void FICChangeUTCDateTime(const FIC_DAB_DT& /*utc_dt*/) {}
 
 	virtual void FICDiscardedFIB() {}
 };
@@ -260,6 +291,7 @@ private:
 	void ProcessFIG0_5(const uint8_t *data, size_t len);
 	void ProcessFIG0_8(const uint8_t *data, size_t len);
 	void ProcessFIG0_9(const uint8_t *data, size_t len);
+	void ProcessFIG0_10(const uint8_t *data, size_t len);
 	void ProcessFIG0_13(const uint8_t *data, size_t len);
 	void ProcessFIG0_17(const uint8_t *data, size_t len);
 	void ProcessFIG0_18(const uint8_t *data, size_t len);
@@ -282,6 +314,8 @@ private:
 
 	fic_services_t services;
 	fic_subchannels_t subchannels;	// from FIG 0/1: SubChId -> FIC_SUBCHANNEL
+
+	FIC_DAB_DT utc_dt;
 
 	static const size_t uep_sizes[];
 	static const int uep_pls[];
@@ -309,6 +343,7 @@ public:
 	static std::string ConvertLanguageToString(const int value);
 	static std::string ConvertLTOToString(const int value);
 	static std::string ConvertInterTableIDToString(const int value);
+	static std::string ConvertDateTimeToString(FIC_DAB_DT utc_dt, const int lto, bool output_ms);
 	static std::string ConvertPTYToString(const int value, const int inter_table_id);
 	static std::string ConvertASuTypeToString(const int value);
 	static std::string DeriveShortLabelUTF8(const std::string& long_label, uint16_t short_label_mask);
