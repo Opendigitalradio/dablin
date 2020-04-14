@@ -886,24 +886,37 @@ std::string FICDecoder::ConvertInterTableIDToString(const int value) {
 }
 
 std::string FICDecoder::ConvertDateTimeToString(FIC_DAB_DT utc_dt, const int lto, bool output_ms) {
-	// if desired, apply LTO + normalize time
-	if(lto) {
-		utc_dt.dt.tm_min += lto * 30;
-		if(mktime(&utc_dt.dt) == (time_t) -1)
-			throw std::runtime_error("FICDecoder: error while normalizing date/time");
-	}
+	const char* weekdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
-	char dt_string[24];
+	// if desired, apply LTO
+	if(lto)
+		utc_dt.dt.tm_min += lto * 30;
+
+	// normalize time (apply LTO, set day of week)
+	if(mktime(&utc_dt.dt) == (time_t) -1)
+		throw std::runtime_error("FICDecoder: error while normalizing date/time");
+
+	std::string result;
+	char s[11];
+
+	strftime(s, sizeof(s), "%F", &utc_dt.dt);
+	result += std::string(s) + ", " + weekdays[utc_dt.dt.tm_wday] + " - ";
+
 	if(!utc_dt.IsMsNone()) {
 		// long form
-		strftime(dt_string, sizeof(dt_string), "%F %T", &utc_dt.dt);
-		if(output_ms)
-			snprintf(dt_string + 19, sizeof(dt_string) - 19, ".%03d", utc_dt.ms);
+		strftime(s, sizeof(s), "%T", &utc_dt.dt);
+		result += s;
+		if(output_ms) {
+			snprintf(s, sizeof(s), ".%03d", utc_dt.ms);
+			result += s;
+		}
 	} else {
 		// short form
-		strftime(dt_string, sizeof(dt_string), "%F %R", &utc_dt.dt);
+		strftime(s, sizeof(s), "%R", &utc_dt.dt);
+		result += s;
 	}
-	return dt_string;
+
+	return result;
 }
 
 std::string FICDecoder::ConvertPTYToString(const int value, const int inter_table_id) {
