@@ -127,6 +127,9 @@ int EnsembleSource::Main() {
 	size_t sync_skipped = 0;
 
 	while(!do_exit) {
+		// use loop to do some regular work
+		observer->EnsembleDoRegularWork();
+
 		FD_ZERO(&fds);
 		FD_SET(file_no, &fds);
 

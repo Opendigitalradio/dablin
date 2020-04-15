@@ -60,6 +60,7 @@ public:
 
 	virtual void EnsembleProcessFrame(const uint8_t* /*data*/) {}
 	virtual void EnsembleUpdateProgress(const ENSEMBLE_PROGRESS& /*progress*/) {}
+	virtual void EnsembleDoRegularWork() {}
 };
 
 
