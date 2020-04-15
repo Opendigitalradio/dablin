@@ -182,12 +182,20 @@ private:
 	FICDecoder *fic_decoder;
 	PADDecoder *pad_decoder;
 
+	// recording
 	std::mutex rec_mutex;
 	FILE* rec_file;
 	std::string rec_filename;
 	long int rec_duration_ms;
 	rec_samples_t rec_prebuffer;
 	long int rec_prebuffer_filled_ms;
+
+	// date/time
+	FIC_DAB_DT utc_dt_curr;
+	int dt_lto;
+	std::string dt_str_prev;
+	FIC_DAB_DT utc_dt_next;
+	std::chrono::steady_clock::time_point dt_update;
 
 	Gtk::TreeModel::iterator resume_channel_it;
 	int resume_service_sid;
@@ -198,6 +206,7 @@ private:
 	void EnsembleProcessFrame(const uint8_t *data) {ensemble_player->ProcessFrame(data);}
 	void EnsembleUpdateProgress(const ENSEMBLE_PROGRESS& progress) {ensemble_update_progress.PushAndEmit(progress);}
 	void EnsembleUpdateProgressEmitted();
+	void EnsembleDoRegularWork();
 
 	// ensemble data change
 	GTKDispatcherQueue<AUDIO_SERVICE_FORMAT> ensemble_change_format;
@@ -244,6 +253,9 @@ private:
 	Gtk::Frame frame_label_dl;
 	Gtk::Label label_dl;
 
+	Gtk::Frame frame_label_datetime;
+	Gtk::Label label_datetime;
+
 	Gtk::Frame frame_label_asu;
 	Gtk::Label label_asu;
 
@@ -256,6 +268,7 @@ private:
 
 	void SetService(const LISTED_SERVICE& service);
 	void UpdateAnnouncementSupport(const LISTED_SERVICE& service);
+	void ShowDateTime(bool scheduled);
 
 	void on_btn_channels_stop();
 	void on_tglbtn_record();
@@ -276,15 +289,20 @@ private:
 	void DoRecStatusUpdateEmitted();
 	void UpdateRecStatus(bool decoding);
 
+	GTKDispatcherQueue<std::string> do_datetime_update;
+	void DoDateTimeUpdate(const std::string& dt_str) {do_datetime_update.PushAndEmit(dt_str);}
+	void DoDateTimeUpdateEmitted();
+
 	// FIC data change
 	GTKDispatcherQueue<FIC_ENSEMBLE> fic_change_ensemble;
-	void FICChangeEnsemble(const FIC_ENSEMBLE& ensemble) {fic_change_ensemble.PushAndEmit(ensemble);}
+	void FICChangeEnsemble(const FIC_ENSEMBLE& ensemble);
 	void FICChangeEnsembleEmitted();
 
 	GTKDispatcherQueue<LISTED_SERVICE> fic_change_service;
 	void FICChangeService(const LISTED_SERVICE& service) {fic_change_service.PushAndEmit(service);}
 	void FICChangeServiceEmitted();
 
+	void FICChangeUTCDateTime(const FIC_DAB_DT& utc_dt);
 	void FICDiscardedFIB();
 
 	// PAD data change

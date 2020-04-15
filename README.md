@@ -289,6 +289,18 @@ correct programme type, based on the transmitted international table ID.
 Dynamic FIC messages can be suppressed using `-F` (currently affects
 dynamic PTY only).
 
+
+### Date/Time
+
+The console version shows the related parameters as they are received:
+While the Local Time Offset (LTO) is shown upon any change, the UTC
+date/time is shown once.
+
+The GTK version in contrast starts to display the local date/time as
+soon as both mentioned values have been received. The used clock is then
+resynchronised upon further received UTC date/time.
+
+
 ### Announcement support/switching
 
 In terms of announcement support/switching the console version shows the

@@ -249,6 +249,8 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	rec_duration_ms = 0;
 	rec_prebuffer_filled_ms = 0;
 
+	dt_lto = FIC_ENSEMBLE::lto_none;
+
 	slideshow_window.set_transient_for(*this);
 
 	ensemble_update_progress.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::EnsembleUpdateProgressEmitted));
@@ -258,6 +260,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	pad_change_dynamic_label.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 	pad_change_slide.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
 	do_rec_status_update.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoRecStatusUpdateEmitted));
+	do_datetime_update.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoDateTimeUpdateEmitted));
 
 	if(options.source_format == EnsembleSource::FORMAT_ETI)
 		ensemble_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
@@ -421,6 +424,12 @@ void DABlinGTK::InitWidgets() {
 	label_dl.set_valign(Gtk::ALIGN_START);
 	label_dl.set_padding(WIDGET_SPACE, WIDGET_SPACE);
 
+	frame_label_datetime.set_label("Local date/time");
+	frame_label_datetime.set_sensitive(false);
+	frame_label_datetime.add(label_datetime);
+	label_datetime.set_halign(Gtk::ALIGN_START);
+	label_datetime.set_padding(WIDGET_SPACE, WIDGET_SPACE);
+
 	frame_label_asu.set_label("Announcement support");
 	frame_label_asu.set_sensitive(false);
 	frame_label_asu.set_hexpand(true);
@@ -448,8 +457,9 @@ void DABlinGTK::InitWidgets() {
 	top_grid.attach_next_to(tglbtn_mute, tglbtn_slideshow, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(vlmbtn, tglbtn_mute, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 7, 1);
-	top_grid.attach_next_to(frame_label_asu, frame_label_dl, Gtk::POS_BOTTOM, 7, 1);
-	top_grid.attach_next_to(progress_position, frame_label_asu, Gtk::POS_BOTTOM, 7, 1);
+	top_grid.attach_next_to(frame_label_datetime, frame_label_dl, Gtk::POS_BOTTOM, 2, 1);
+	top_grid.attach_next_to(frame_label_asu, frame_label_datetime, Gtk::POS_RIGHT, 5, 1);
+	top_grid.attach_next_to(progress_position, frame_label_datetime, Gtk::POS_BOTTOM, 7, 1);
 
 	show_all_children();
 	progress_position.hide();	// invisible until progress updated
@@ -1018,6 +1028,17 @@ void DABlinGTK::EnsembleChangeFormatEmitted() {
 	label_format.set_label(ensemble_change_format.Pop().GetSummary());
 }
 
+void DABlinGTK::FICChangeEnsemble(const FIC_ENSEMBLE& ensemble) {
+	fic_change_ensemble.PushAndEmit(ensemble);
+
+	// update LTO for date/time + show
+	if(dt_lto != ensemble.lto) {
+		dt_lto = ensemble.lto;
+//		fprintf(stderr, "### LTO updated\n");
+		ShowDateTime(false);
+	}
+}
+
 void DABlinGTK::FICChangeEnsembleEmitted() {
 //	fprintf(stderr, "### FICChangeEnsembleEmitted\n");
 
@@ -1087,6 +1108,59 @@ void DABlinGTK::FICChangeServiceEmitted() {
 	}
 }
 
+void DABlinGTK::FICChangeUTCDateTime(const FIC_DAB_DT& utc_dt) {
+	// (re)sync to DAB date/time + update/show/reschedule
+	utc_dt_next = utc_dt;
+	dt_update = std::chrono::steady_clock::now();
+//	fprintf(stderr, "### time synced\n");
+	ShowDateTime(true);
+}
+
+void DABlinGTK::ShowDateTime(bool scheduled) {
+	// if scheduled, update
+	if(scheduled)
+		utc_dt_curr = utc_dt_next;
+
+	// if UTC date/time and LTO set, show, if output changed
+	if(!utc_dt_curr.IsNone() && dt_lto != FIC_ENSEMBLE::lto_none) {
+		std::string dt_str = FICDecoder::ConvertDateTimeToString(utc_dt_curr, dt_lto, false);
+//		fprintf(stderr, "### time: %s\n", FICDecoder::ConvertDateTimeToString(utc_dt_curr, dt_lto, true).c_str());
+		if(dt_str_prev != dt_str) {
+			dt_str_prev = dt_str;
+//			fprintf(stderr, "### ----- time displayed: %s\n", dt_str.c_str());
+			DoDateTimeUpdate(dt_str);
+		}
+	}
+
+	// if scheduled, (re)schedule
+	if(scheduled) {
+		if(!utc_dt_next.IsMsNone()) {
+			// long form
+			dt_update += std::chrono::milliseconds(1000 - utc_dt_next.ms);
+			utc_dt_next.dt.tm_sec++;
+			utc_dt_next.ms = 0;
+		} else {
+			// short form
+			dt_update += std::chrono::minutes(1);
+			utc_dt_next.dt.tm_min++;
+		}
+		if(mktime(&utc_dt_next.dt) == (time_t) -1)
+			throw std::runtime_error("DABlinGTK: error while normalizing date/time");
+	}
+}
+
+void DABlinGTK::EnsembleDoRegularWork() {
+	// if UTC date/time set and scheduled time reached, update/show/reschedule
+	if(!utc_dt_curr.IsNone() && std::chrono::steady_clock::now() >= dt_update)
+		ShowDateTime(true);
+}
+
+void DABlinGTK::DoDateTimeUpdateEmitted() {
+	// display received date/time
+	frame_label_datetime.set_sensitive(true);
+	label_datetime.set_label(do_datetime_update.Pop());
+}
+
 void DABlinGTK::FICDiscardedFIB() {
 	fprintf(stderr, "\x1B[33m" "(FIB)" "\x1B[0m" " ");
 }
@@ -1107,6 +1181,13 @@ void DABlinGTK::on_combo_channels() {
 	ensemble_player->StopAudio();
 	label_ensemble.set_label("");
 	frame_label_ensemble.set_tooltip_text("");
+
+	frame_label_datetime.set_sensitive(false);
+	label_datetime.set_label("");
+
+	utc_dt_curr = FIC_DAB_DT();
+	dt_lto = FIC_ENSEMBLE::lto_none;
+	dt_str_prev = "";
 
 	// apply
 	Gtk::TreeModel::iterator row_it = combo_channels.get_active();
