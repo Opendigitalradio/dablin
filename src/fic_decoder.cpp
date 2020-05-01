@@ -869,8 +869,11 @@ std::string FICDecoder::ConvertLanguageToString(const int value) {
 }
 
 std::string FICDecoder::ConvertLTOToString(const int value) {
+	// just to silence recent GCC's truncation warnings
+	int lto_value = value % 0x3F;
+
 	char lto_string[7];
-	snprintf(lto_string, sizeof(lto_string), "%+03d:%02d", value / 2, (value % 2) ? 30 : 0);
+	snprintf(lto_string, sizeof(lto_string), "%+03d:%02d", lto_value / 2, (lto_value % 2) ? 30 : 0);
 	return lto_string;
 }
 
