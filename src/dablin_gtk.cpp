@@ -617,6 +617,7 @@ void DABlinGTK::UpdateAnnouncementSupport(const LISTED_SERVICE& service) {
 
 	// assemble text - iterate through all supported announcement types
 	std::string ac_str;
+	size_t count = 0;
 	for(int type = 0; type < 16; type++) {
 		uint16_t type_flag = 1 << type;
 		if(!(service.asu_flags & type_flag))
@@ -637,8 +638,13 @@ void DABlinGTK::UpdateAnnouncementSupport(const LISTED_SERVICE& service) {
 			}
 		}
 
-		if(!ac_str.empty())
-			ac_str += " + ";
+		// regularly insert line break
+		if(!ac_str.empty()) {
+			ac_str += (count % 6 == 0) ? "\n" : " ";
+			ac_str += "+ ";
+		}
+		count++;
+
 		if(!asw_color.empty())
 			ac_str += "<span bgcolor='" + asw_color + "'>";
 		ac_str += FICDecoder::ConvertASuTypeToString(type);
