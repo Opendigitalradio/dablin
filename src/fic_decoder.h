@@ -317,6 +317,7 @@ private:
 	fic_subchannels_t subchannels;	// from FIG 0/1: SubChId -> FIC_SUBCHANNEL
 
 	FIC_DAB_DT utc_dt;
+	bool utc_dt_long;
 
 	static const size_t uep_sizes[];
 	static const int uep_pls[];
@@ -334,7 +335,8 @@ private:
 public:
 	FICDecoder(FICDecoderObserver *observer, bool disable_dyn_msgs) :
 		observer(observer),
-		disable_dyn_msgs(disable_dyn_msgs)
+		disable_dyn_msgs(disable_dyn_msgs),
+		utc_dt_long(false)
 	{}
 
 	void Process(const uint8_t *data, size_t len);

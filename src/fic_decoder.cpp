@@ -350,6 +350,11 @@ void FICDecoder::ProcessFIG0_10(const uint8_t *data, size_t len) {
 
 	FIC_DAB_DT new_utc_dt;
 
+	// ignore short form, once long form available
+	bool utc_flag = data[2] & 0x08;
+	if(!utc_flag && utc_dt_long)
+		return;
+
 	// retrieve date
 	int mjd = (data[0] & 0x7F) << 10 | data[1] << 2 | data[2] >> 6;
 
@@ -365,7 +370,6 @@ void FICDecoder::ProcessFIG0_10(const uint8_t *data, size_t len) {
 	new_utc_dt.dt.tm_mday = d;
 
 	// retrieve time
-	bool utc_flag = data[2] & 0x08;
 	new_utc_dt.dt.tm_hour = (data[2] & 0x07) << 2 | data[3] >> 6;
 	new_utc_dt.dt.tm_min = data[3] & 0x3F;
 	new_utc_dt.dt.tm_isdst = -1;	// ignore DST
@@ -375,6 +379,7 @@ void FICDecoder::ProcessFIG0_10(const uint8_t *data, size_t len) {
 			return;
 		new_utc_dt.dt.tm_sec = data[4] >> 2;
 		new_utc_dt.ms = (data[4] & 0x03) << 8 | data[5];
+		utc_dt_long = true;
 	} else {
 		// short form
 		new_utc_dt.dt.tm_sec = 0;
@@ -382,8 +387,8 @@ void FICDecoder::ProcessFIG0_10(const uint8_t *data, size_t len) {
 	}
 
 	if(utc_dt != new_utc_dt) {
-		// print only once
-		if(utc_dt.IsNone())
+		// print only once (or once again on precision change)
+		if(utc_dt.IsNone() || utc_dt.IsMsNone() != new_utc_dt.IsMsNone())
 			fprintf(stderr, "FICDecoder: UTC date/time: %s\n", ConvertDateTimeToString(new_utc_dt, 0, true).c_str());
 
 		utc_dt = new_utc_dt;

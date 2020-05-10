@@ -294,11 +294,15 @@ dynamic PTY only).
 
 The console version shows the related parameters as they are received:
 While the Local Time Offset (LTO) is shown upon any change, the UTC
-date/time is shown once.
+date/time is shown once (or once again on precision change).
 
 The GTK version in contrast starts to display the local date/time as
 soon as both mentioned values have been received. The used clock is then
 resynchronised upon further received UTC date/time.
+
+If an ensemble transmits both short (minute precision) and long (millisecond
+precision) form, only the long form will be used, as soon as received for the
+first time.
 
 
 ### Announcement support/switching
