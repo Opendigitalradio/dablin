@@ -289,6 +289,10 @@ private:
 	void DoRecStatusUpdateEmitted();
 	void UpdateRecStatus(bool decoding);
 
+	GTKDispatcherQueue<std::string> do_datetime_sync;
+	void DoDateTimeSync(const std::string& dt_str) {do_datetime_sync.PushAndEmit(dt_str);}
+	void DoDateTimeSyncEmitted();
+
 	GTKDispatcherQueue<std::string> do_datetime_update;
 	void DoDateTimeUpdate(const std::string& dt_str) {do_datetime_update.PushAndEmit(dt_str);}
 	void DoDateTimeUpdateEmitted();

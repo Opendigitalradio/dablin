@@ -260,6 +260,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	pad_change_dynamic_label.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 	pad_change_slide.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
 	do_rec_status_update.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoRecStatusUpdateEmitted));
+	do_datetime_sync.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoDateTimeSyncEmitted));
 	do_datetime_update.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoDateTimeUpdateEmitted));
 
 	if(options.source_format == EnsembleSource::FORMAT_ETI)
@@ -1119,6 +1120,10 @@ void DABlinGTK::FICChangeUTCDateTime(const FIC_DAB_DT& utc_dt) {
 	utc_dt_next = utc_dt;
 	dt_update = std::chrono::steady_clock::now();
 //	fprintf(stderr, "### time synced\n");
+
+	if(dt_lto != FIC_ENSEMBLE::lto_none)
+		DoDateTimeSync(FICDecoder::ConvertDateTimeToString(utc_dt, dt_lto, true));
+
 	ShowDateTime(true);
 }
 
@@ -1162,9 +1167,15 @@ void DABlinGTK::EnsembleDoRegularWork() {
 }
 
 void DABlinGTK::DoDateTimeUpdateEmitted() {
-	// display received date/time
+	// display updated date/time
 	frame_label_datetime.set_sensitive(true);
 	label_datetime.set_label(do_datetime_update.Pop());
+}
+
+void DABlinGTK::DoDateTimeSyncEmitted() {
+	// display synced date/time
+	frame_label_datetime.set_sensitive(true);
+	frame_label_datetime.set_tooltip_text("Last synced date/time: " + do_datetime_sync.Pop());
 }
 
 void DABlinGTK::FICDiscardedFIB() {
@@ -1189,6 +1200,7 @@ void DABlinGTK::on_combo_channels() {
 	frame_label_ensemble.set_tooltip_text("");
 
 	frame_label_datetime.set_sensitive(false);
+	frame_label_datetime.set_tooltip_text("");
 	label_datetime.set_label("");
 
 	utc_dt_curr = FIC_DAB_DT();
