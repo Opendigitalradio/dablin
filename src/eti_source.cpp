@@ -76,7 +76,7 @@ std::string DAB2ETIETISource::GetParams() {
 
 // --- EtiCmdlineETISource -----------------------------------------------------------------
 std::string EtiCmdlineETISource::GetParams() {
-	std::string cmdline = "-C " + channel.block + " -S -B " + (channel.freq < 1000000 ? "BAND_III" : "L_BAND");
+	std::string cmdline = "-C " + channel.block + " -B " + (channel.freq < 1000000 ? "BAND_III" : "L_BAND");
 	switch(channel.gain) {
 	case DAB_LIVE_SOURCE_CHANNEL::auto_gain:
 		cmdline += " -Q";
