@@ -376,7 +376,7 @@ When enclosed in quotes, you can also pass command line parameters to the
 binary, e.g. to set some frequency correction (here: +40 ppm):
 
 ```sh
-dablin -D eti-cmdline -d "~/bin/eti-cmdline-rtlsdr -P 40" -c 11D -s 0xd911
+dablin -D eti-cmdline -d "~/bin/eti-cmdline-rtlsdr -p 40" -c 11D -s 0xd911
 ```
 
 In case of the GTK GUI version the desired channel may not be specified. To
