@@ -134,8 +134,9 @@ distributions (kindly maintained by Gürkan Myczko):
 * [Debian](https://packages.debian.org/dablin)
 * [Ubuntu](https://launchpad.net/ubuntu/+source/dablin)
 
-On Ubuntu 18.04 you can simply install DABlin from the official package
-sources (note that the GitHub version may be newer):
+Starting with Debian 10 and Ubuntu 18.04, you can simply install DABlin
+from the official package sources (note that the GitHub version may be
+newer):
 
 ```sh
 sudo apt-get install dablin
