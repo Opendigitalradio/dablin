@@ -154,6 +154,36 @@ Source-based Linux distributions:
 * [Gentoo](https://github.com/paraenggu/delicious-absurdities-overlay/tree/master/media-sound/dablin) (by Christian Affolter, as part of his [delicious-absurdities-overlay](https://github.com/paraenggu/delicious-absurdities-overlay))
 
 
+## Ubuntu 20.04, FAAD2 and HE-AAC v2 services
+
+Ubuntu 20.04 currently ships a version of the FAAD2 library which can't
+decode HE-AAC v2 services (= SBR and PS) due to a [bug](https://github.com/knik0/faad2/pull/51). This affects
+FAAD2 version 2.9.0 and 2.9.1.
+
+To address this, a more recent version of the library can be compiled:
+
+```sh
+git clone -b 2_9_2 https://github.com/knik0/faad2.git
+cd faad2
+./bootstrap
+./configure
+make
+sudo make install
+sudo ldconfig
+```
+
+Now DABlin (and all other applications) use the newer lib version.
+
+If the newer lib version shall only be used together with DABlin, the
+two last commands must not be executed. Instead DABlin has always to be
+invoked with the following prefix string (assuming the above commands
+were executed in `/home/my_user`):
+
+```sh
+LD_LIBRARY_PATH=/home/my_user/faad2/libfaad/.libs/
+```
+
+
 ## Compilation
 
 If the gtkmm library is available both the console and GTK GUI 
