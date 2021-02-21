@@ -164,6 +164,7 @@ To address this, a more recent version of the library can be compiled:
 
 ```sh
 git clone -b 2_9_2 https://github.com/knik0/faad2.git
+sudo apt-get install libtool
 cd faad2
 ./bootstrap
 ./configure
