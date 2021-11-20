@@ -19,11 +19,13 @@
 #ifndef DABLIN_H_
 #define DABLIN_H_
 
+// eti_player.h, that indirectly includes SDL.h, must be included before <string> or it won't compile on OS X
+#include "eti_player.h"
+
 #include <signal.h>
 #include <string>
 
 #include "eti_source.h"
-#include "eti_player.h"
 #include "edi_source.h"
 #include "edi_player.h"
 #include "fic_decoder.h"

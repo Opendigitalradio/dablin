@@ -19,6 +19,11 @@
 #ifndef ENSEMBLE_PLAYER_H_
 #define ENSEMBLE_PLAYER_H_
 
+// sdl_output.h, that includes SDL.h, must be included before <string> or it won't compile on OS X
+#ifndef DABLIN_DISABLE_SDL
+#include "sdl_output.h"
+#endif
+
 #include <stdio.h>
 #include <stdint.h>
 #include <mutex>
@@ -30,10 +35,6 @@
 #include "dabplus_decoder.h"
 #include "pcm_output.h"
 #include "tools.h"
-
-#ifndef DABLIN_DISABLE_SDL
-#include "sdl_output.h"
-#endif
 
 
 // --- EnsemblePlayerObserver -----------------------------------------------------------------

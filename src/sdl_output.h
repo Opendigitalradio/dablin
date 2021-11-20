@@ -19,14 +19,15 @@
 #ifndef SDL_OUTPUT_H_
 #define SDL_OUTPUT_H_
 
+// SDL.h must be included before <string> or it won't compile on OS X
+#include "SDL.h"
+
 #include <stdexcept>
 #include <stdint.h>
 #include <string>
 #include <mutex>
 #include <vector>
 #include <atomic>
-
-#include "SDL.h"
 
 #include "audio_output.h"
 #include "tools.h"
