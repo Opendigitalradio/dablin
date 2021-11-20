@@ -19,6 +19,9 @@
 #ifndef DABLIN_GTK_H_
 #define DABLIN_GTK_H_
 
+// eti_player.h, that indirectly includes SDL.h, must be included before <string> or it won't compile on OS X
+#include "eti_player.h"
+
 #include <algorithm>
 #include <list>
 #include <mutex>
@@ -32,7 +35,6 @@
 
 #include "dablin_gtk_sls.h"
 #include "eti_source.h"
-#include "eti_player.h"
 #include "edi_source.h"
 #include "edi_player.h"
 #include "fic_decoder.h"
