@@ -160,7 +160,14 @@ Ubuntu 20.04 currently ships a version of the FAAD2 library which can't
 decode HE-AAC v2 services (= SBR and PS) due to a [bug](https://github.com/knik0/faad2/pull/51). This affects
 FAAD2 version 2.9.0 and 2.9.1.
 
-To address this, a more recent version of the library can be compiled:
+To address this, a more recent version of the library can be compiled.
+
+First make sure, you have automake and libtool installed on your system. 
+
+```
+sudo apt-get install automake libtool
+```
+Then continue with
 
 ```sh
 git clone -b 2_9_2 https://github.com/knik0/faad2.git
@@ -172,7 +179,7 @@ sudo make install
 sudo ldconfig
 ```
 
-Now DABlin (and all other applications) use the newer lib version.
+Now DABlin (and all other applications) uses the newer lib version.
 
 If the newer lib version shall only be used together with DABlin, the
 two last commands must not be executed. Instead DABlin has always to be
@@ -203,7 +210,7 @@ which can instead be cloned by appending `-b next` to the end of the
 above `git clone` command line.
 
 You can use, for example, the following command sequence in order to
-compile and install DABlin:
+compile and install DABlin (for Ubuntu 20.04 please also see above):
 
 ```sh
 mkdir build
