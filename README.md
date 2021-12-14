@@ -354,10 +354,10 @@ service (which does not have its own announcements).
 To switch the channel instead of the service, press `Ctrl` in addition.
 
 Hotkey           | Meaning
------------------|---------------------------------------------
+-----------------|--------------------------------------------------------------
 `m`              | Enable/disable audio mute
 `r`              | Start/stop recording
-`Ctrl` + `c`     | Copy DL text or Slideshow slide to clipboard
+`Ctrl` + `c`     | Copy DL text, DL+ object text or Slideshow slide to clipboard
 `-`              | Switch to previous service
 `+`              | Switch to next service
 `1`..`0`         | Switch to 1st..10th service
@@ -585,6 +585,7 @@ DABlin implements (at least partly) the following DAB standards:
 * ETSI TS 102 693 (EDI) together with ETSI TS 102 821 (DCP)
 
 ### Data applications
+* ETSI TS 102 980 (Dynamic Label Plus)
 * ETSI EN 301 234 (MOT)
 * ETSI TS 101 499 (MOT Slideshow)
 
@@ -594,6 +595,21 @@ DABlin implements (at least partly) the following DAB standards:
 At the moment, DABlin is kind of a rudimentary tool for the playback of
 DAB/DAB+ services. It is planned to add support for further Program
 Aided Data (PAD) features.
+
+### Dynamic Label Plus (DL+)
+
+When in the GTK GUI version DL+ is enabled and DL+ objects are received,
+the DL+ window is shown. Some stations only transmit DUMMY objects - in
+this case the DL+ window will be shown but stays empty.
+
+if the running state indicates that the current item is running, all
+objects with an ITEM content type have a content type with light green
+background color.
+
+Depending on the object category, the object text is highlighted in bold
+text or a different text color. Deleted objects have a text with grey
+background color.
+
 
 ### Slideshow
 
@@ -617,7 +633,7 @@ This software is licensed under the GNU General Public License Version 3
 *Please note that the included FEC lib by KA9Q has a separate license!*
 
 DABlin - capital DAB experience
-Copyright (C) 2015-2020 Stefan Pöschel
+Copyright (C) 2015-2021 Stefan Pöschel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

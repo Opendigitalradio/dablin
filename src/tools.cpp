@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2021 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,6 +70,11 @@ size_t StringTools::UTF8CharsLen(const std::string &s, size_t chars) {
 		}
 	}
 	return result;
+}
+
+size_t StringTools::UTF8Len(const std::string &s) {
+	// ignore continuation bytes
+	return std::count_if(s.cbegin(), s.cend(), [](const char c){return (c & 0xC0) != 0x80;});
 }
 
 std::string StringTools::UTF8Substr(const std::string &s, size_t pos, size_t count) {

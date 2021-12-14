@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2021 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ private:
 public:
 	static string_vector_t SplitString(const std::string &s, const char delimiter);
 	static std::string MsToTimecode(long int value);
+	static size_t UTF8Len(const std::string &s);
 	static std::string UTF8Substr(const std::string &s, size_t pos, size_t count);
 	static std::string IntToHex(int value, size_t nibbles);
 };

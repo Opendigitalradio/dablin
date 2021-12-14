@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2020 Stefan Pöschel
+    Copyright (C) 2015-2021 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 #include <gtkmm.h>
 
+#include "dablin_gtk_dl_plus.h"
 #include "dablin_gtk_sls.h"
 #include "eti_source.h"
 #include "edi_source.h"
@@ -90,6 +91,7 @@ struct DABlinGTKOptions {
 	bool untouched_output;
 	bool disable_int_catch_up;
 	int gain;
+	bool initially_disable_dl_plus;
 	bool initially_disable_slideshow;
 	bool loose;
 	bool disable_dyn_fic_msgs;
@@ -106,6 +108,7 @@ DABlinGTKOptions() :
 	untouched_output(false),
 	disable_int_catch_up(false),
 	gain(DAB_LIVE_SOURCE_CHANNEL::auto_gain),
+	initially_disable_dl_plus(false),
 	initially_disable_slideshow(false),
 	loose(false),
 	disable_dyn_fic_msgs(false)
@@ -174,6 +177,7 @@ private:
 	int switch_service_scids;
 	bool switch_service_applied;
 
+	DABlinGTKDLPlusWindow dl_plus_window;
 	DABlinGTKSlideshowWindow slideshow_window;
 
 	EnsembleSource *ensemble_source;
@@ -249,6 +253,7 @@ private:
 	Gtk::Label label_record;
 
 	Gtk::ToggleButton tglbtn_slideshow;
+	Gtk::ToggleButton tglbtn_dl_plus;
 	Gtk::ToggleButton tglbtn_mute;
 	Gtk::VolumeButton vlmbtn;
 
@@ -276,6 +281,7 @@ private:
 	void on_tglbtn_record();
 	void on_tglbtn_mute();
 	void on_vlmbtn(double value);
+	void on_tglbtn_dl_plus();
 	void on_tglbtn_slideshow();
 	void on_combo_channels();
 	void on_combo_services();

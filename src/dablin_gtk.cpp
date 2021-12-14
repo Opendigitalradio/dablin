@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2020 Stefan Pöschel
+    Copyright (C) 2015-2021 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ static void usage(const char* exe) {
 					"  -p           Output PCM to stdout instead of using SDL\n"
 					"  -u           Output untouched audio stream to stdout instead of using SDL\n"
 					"  -I           Don't catch up on stream after interruption\n"
+					"  -Y           Initially disable Dynamic Label Plus (DL+)\n"
 					"  -S           Initially disable slideshow\n"
 					"  -L           Enable loose behaviour (e.g. PAD conformance)\n"
 					"  -F           Disable dynamic FIC messages (dynamic PTY, announcements)\n"
@@ -82,7 +83,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hf:d:D:C:c:l:g:Gr:P:s:x:1puISLF")) != -1) {
+	while((c = getopt(argc, argv, "hf:d:D:C:c:l:g:Gr:P:s:x:1puIYSLF")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -139,6 +140,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'I':
 			options.disable_int_catch_up = true;
+			break;
+		case 'Y':
+			options.initially_disable_dl_plus = true;
 			break;
 		case 'S':
 			options.initially_disable_slideshow = true;
@@ -251,6 +255,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 
 	dt_lto = FIC_ENSEMBLE::lto_none;
 
+	dl_plus_window.set_transient_for(*this);
 	slideshow_window.set_transient_for(*this);
 
 	ensemble_update_progress.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::EnsembleUpdateProgressEmitted));
@@ -407,6 +412,11 @@ void DABlinGTK::InitWidgets() {
 	tglbtn_slideshow.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_slideshow));
 	tglbtn_slideshow.set_tooltip_text("Slideshow (if available)");
 
+	tglbtn_dl_plus.set_label("DL+");
+	tglbtn_dl_plus.set_active(!options.initially_disable_dl_plus);
+	tglbtn_dl_plus.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_dl_plus));
+	tglbtn_dl_plus.set_tooltip_text("Dynamic Label Plus (if available)");
+
 	tglbtn_mute.set_image_from_icon_name("audio-volume-muted");
 	tglbtn_mute.signal_clicked().connect(sigc::mem_fun(*this, &DABlinGTK::on_tglbtn_mute));
 	tglbtn_mute.set_tooltip_text("Mute");
@@ -453,14 +463,15 @@ void DABlinGTK::InitWidgets() {
 	top_grid.attach_next_to(frame_combo_services, frame_label_ensemble, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(frame_label_format, frame_combo_services, Gtk::POS_RIGHT, 1, 2);
 	top_grid.attach_next_to(tglbtn_record, frame_label_format, Gtk::POS_RIGHT, 1, 1);
-	top_grid.attach_next_to(label_record, tglbtn_record, Gtk::POS_RIGHT, 2, 1);
+	top_grid.attach_next_to(label_record, tglbtn_record, Gtk::POS_RIGHT, 3, 1);
 	top_grid.attach_next_to(tglbtn_slideshow, tglbtn_record, Gtk::POS_BOTTOM, 1, 1);
-	top_grid.attach_next_to(tglbtn_mute, tglbtn_slideshow, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach_next_to(tglbtn_dl_plus, tglbtn_slideshow, Gtk::POS_RIGHT, 1, 1);
+	top_grid.attach_next_to(tglbtn_mute, tglbtn_dl_plus, Gtk::POS_RIGHT, 1, 1);
 	top_grid.attach_next_to(vlmbtn, tglbtn_mute, Gtk::POS_RIGHT, 1, 1);
-	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 7, 1);
+	top_grid.attach_next_to(frame_label_dl, frame_combo_channels, Gtk::POS_BOTTOM, 8, 1);
 	top_grid.attach_next_to(frame_label_datetime, frame_label_dl, Gtk::POS_BOTTOM, 2, 1);
-	top_grid.attach_next_to(frame_label_asu, frame_label_datetime, Gtk::POS_RIGHT, 5, 1);
-	top_grid.attach_next_to(progress_position, frame_label_datetime, Gtk::POS_BOTTOM, 7, 1);
+	top_grid.attach_next_to(frame_label_asu, frame_label_datetime, Gtk::POS_RIGHT, 6, 1);
+	top_grid.attach_next_to(progress_position, frame_label_datetime, Gtk::POS_BOTTOM, 8, 1);
 
 	show_all_children();
 	progress_position.hide();	// invisible until progress updated
@@ -574,6 +585,9 @@ void DABlinGTK::SetService(const LISTED_SERVICE& service) {
 		frame_label_dl.set_sensitive(false);
 		label_dl.set_label("");
 		frame_label_dl.set_tooltip_text("");
+
+		dl_plus_window.hide();
+		dl_plus_window.ClearDLPlusInfo();
 
 		if(!service.HasSLS()) {
 			slideshow_window.hide();
@@ -854,6 +868,13 @@ void DABlinGTK::on_vlmbtn(double value) {
 		tglbtn_mute.clicked();
 }
 
+void DABlinGTK::on_tglbtn_dl_plus() {
+	if(tglbtn_dl_plus.get_active())
+		dl_plus_window.TryToShow();
+	else
+		dl_plus_window.hide();
+}
+
 void DABlinGTK::on_tglbtn_slideshow() {
 	if(tglbtn_slideshow.get_active())
 		slideshow_window.TryToShow();
@@ -1012,7 +1033,9 @@ void DABlinGTK::TrySwitch(Gtk::ComboBox& combo, Glib::RefPtr<Gtk::ListStore>& co
 }
 
 bool DABlinGTK::HandleConfigureEvent(GdkEventConfigure* /*configure_event*/) {
-	// move together with slideshow window
+	// move together with children windows
+	if(dl_plus_window.get_visible())
+		dl_plus_window.AlignToParent();
 	if(slideshow_window.get_visible())
 		slideshow_window.AlignToParent();
 	return false;
@@ -1297,6 +1320,13 @@ void DABlinGTK::PADChangeDynamicLabelEmitted() {
 		frame_label_dl.set_sensitive(true);
 		label_dl.set_label("");
 		frame_label_dl.set_tooltip_text("");
+	}
+
+	// if present, forward DL Plus updates
+	if(!dl.dl_plus_objects.empty()) {
+		dl_plus_window.UpdateDLPlusInfo(dl);
+		if(tglbtn_dl_plus.get_active())
+			dl_plus_window.TryToShow();
 	}
 }
 

@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2021 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,9 @@ struct DL_SEG {
 	bool Toggle() const {return prefix[0] & 0x80;}
 	bool First() const {return prefix[0] & 0x40;}
 	bool Last() const {return prefix[0] & 0x20;}
+
+	bool DLPlusLink() const {return prefix[1] & 0x80;}
+
 	int SegNum() const {return First() ? 0 : ((prefix[1] & 0x70) >> 4);}
 };
 
@@ -90,18 +93,43 @@ struct DL_SEG_REASSEMBLER {
 	bool AddSegment(DL_SEG &dl_seg);
 	bool CheckForCompleteLabel();
 	void Reset();
+
+	bool GetToggle(bool& result);
+	bool GetDLPlusLink(bool& result);
 };
 
+
+// --- DL_PLUS_OBJECT -----------------------------------------------------------------
+struct DL_PLUS_OBJECT {
+	int content_type;
+	std::string text;
+
+	DL_PLUS_OBJECT() : content_type(0) {}    // = DUMMY
+	DL_PLUS_OBJECT(int content_type, std::string text) :
+        content_type(content_type),
+        text(text)
+    {}
+};
+
+typedef std::vector<DL_PLUS_OBJECT> dl_plus_objects_t;
 
 // --- DL_STATE -----------------------------------------------------------------
 struct DL_STATE {
 	std::vector<uint8_t> raw;
 	int charset;
 
+	bool dl_plus_it;
+	bool dl_plus_ir;
+	dl_plus_objects_t dl_plus_objects;
+
 	DL_STATE() {Reset();}
 	void Reset() {
 		raw.clear();
 		charset = -1;
+
+		dl_plus_it = false;
+		dl_plus_ir = false;
+		dl_plus_objects.clear();
 	}
 };
 
@@ -110,16 +138,22 @@ struct DL_STATE {
 class DynamicLabelDecoder : public DataGroup {
 private:
 	DL_SEG_REASSEMBLER dl_sr;
+	DL_SEG_REASSEMBLER dl_plus_sr;
 	DL_STATE label;
 
 	size_t GetInitialNeededSize() {return 2 + CalcCRC::CRCLen;}	// at least prefix + CRC
 	bool DecodeDataGroup();
+	void AppendDLPlus();
+
+	static const char* dl_plus_content_types[];
 public:
 	DynamicLabelDecoder() : DataGroup(2 + 16 + CalcCRC::CRCLen) {Reset();}
 
 	void Reset();
 
 	DL_STATE GetLabel() {return label;}
+
+	static std::string ConvertDLPlusContentTypeToString(const int value);
 };
 
 

@@ -25,6 +25,7 @@ set(dablin_gtk_sources
     mot_manager.cpp
     pad_decoder.cpp
     dablin_gtk.cpp
+    dablin_gtk_dl_plus.cpp
     dablin_gtk_sls.cpp
     )
 
