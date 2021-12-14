@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2018-2019 Stefan Pöschel
+    Copyright (C) 2018-2021 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #ifndef DABLIN_GTK_SLS_H_
 #define DABLIN_GTK_SLS_H_
 
-#include <atomic>
 #include <string>
 
 #include <gtkmm.h>
@@ -36,11 +35,10 @@ private:
 	Gtk::LinkButton link_button;
 
 	Glib::RefPtr<Gdk::Pixbuf> pixbuf_waiting;
-	std::atomic<int> offset_x;
-	std::atomic<int> offset_y;
+	int prev_parent_x;
+	int prev_parent_y;
 
 	bool HandleKeyPressEvent(GdkEventKey* key_event);
-	bool HandleConfigureEvent(GdkEventConfigure* configure_event);
 public:
 	DABlinGTKSlideshowWindow();
 

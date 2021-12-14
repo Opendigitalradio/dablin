@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2018-2019 Stefan Pöschel
+    Copyright (C) 2018-2021 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,9 +25,8 @@ DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
 	pixbuf_waiting = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB, false, 8, 320, 240);	// default slide size
 	pixbuf_waiting->fill(0x003000FF);
 
-	// align to the right of parent
-	offset_x = 20;	// add some horizontal padding for WM decoration
-	offset_y = 0;
+	prev_parent_x = -1;
+	prev_parent_y = -1;
 
 	set_type_hint(Gdk::WINDOW_TYPE_HINT_UTILITY);
 	set_resizable(false);
@@ -43,10 +42,6 @@ DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
 	// add window key press event handler
 	signal_key_press_event().connect(sigc::mem_fun(*this, &DABlinGTKSlideshowWindow::HandleKeyPressEvent));
 	add_events(Gdk::KEY_PRESS_MASK);
-
-	// add window config event handler (before default handler)
-	signal_configure_event().connect(sigc::mem_fun(*this, &DABlinGTKSlideshowWindow::HandleConfigureEvent), false);
-	add_events(Gdk::STRUCTURE_MASK);
 }
 
 void DABlinGTKSlideshowWindow::TryToShow() {
@@ -59,12 +54,25 @@ void DABlinGTKSlideshowWindow::TryToShow() {
 }
 
 void DABlinGTKSlideshowWindow::AlignToParent() {
-	int x, y, w, h;
+	int x, y, w, h, this_x, this_y;
 	get_transient_for()->get_position(x, y);
 	get_transient_for()->get_size(w, h);
+	get_position(this_x, this_y);	// event position doesn't work!
+
+	int curr_parent_x = x + w;
+	int curr_parent_y = y;
 
 	// TODO: fix multi head issue
-	move(x + w + offset_x, y + offset_y);
+	if(prev_parent_x == -1 && prev_parent_y == -1) {
+		// first: align to the right of parent
+		move(curr_parent_x + 20, curr_parent_y);	// add some horizontal padding for WM decoration
+	} else {
+		// later: follow parent
+		move(curr_parent_x + (this_x - prev_parent_x), curr_parent_y + (this_y - prev_parent_y));
+	}
+
+	prev_parent_x = curr_parent_x;
+	prev_parent_y = curr_parent_y;
 }
 
 bool DABlinGTKSlideshowWindow::HandleKeyPressEvent(GdkEventKey* key_event) {
@@ -79,20 +87,6 @@ bool DABlinGTKSlideshowWindow::HandleKeyPressEvent(GdkEventKey* key_event) {
 				Gtk::Clipboard::get()->set_image(pb);
 			return true;
 		}
-	}
-	return false;
-}
-
-bool DABlinGTKSlideshowWindow::HandleConfigureEvent(GdkEventConfigure* /*configure_event*/) {
-	// update window offset, if visible
-	if(get_visible()) {
-		int x, y, w, h, sls_x, sls_y;
-		get_transient_for()->get_position(x, y);
-		get_transient_for()->get_size(w, h);
-		get_position(sls_x, sls_y);	// event position doesn't work!
-
-		offset_x = sls_x - w - x;
-		offset_y = sls_y - y;
 	}
 	return false;
 }
