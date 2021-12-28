@@ -165,7 +165,7 @@ To address this, a more recent version of the library can be compiled.
 First make sure, you have autotools, automake and libtool installed on your system. 
 
 ```
-sudo apt-get install autotools-dev automake libtool
+sudo apt-get install automake libtool
 ```
 Then continue with
 
@@ -210,7 +210,7 @@ which can instead be cloned by appending `-b next` to the end of the
 above `git clone` command line.
 
 You can use, for example, the following command sequence in order to
-compile and install DABlin (for Ubuntu 20.04 please see above):
+compile and install DABlin (for Ubuntu 20.04 please also see above):
 
 ```sh
 mkdir build
