@@ -162,7 +162,7 @@ FAAD2 version 2.9.0 and 2.9.1.
 
 To address this, a more recent version of the library can be compiled.
 
-First make sure, you have autotools, automake and libtool installed on your system. 
+First make sure, you have automake and libtool installed on your system. 
 
 ```
 sudo apt-get install automake libtool
