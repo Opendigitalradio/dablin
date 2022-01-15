@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2021 Stefan Pöschel
+    Copyright (C) 2021-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -170,7 +170,7 @@ void DABlinGTKDLPlusWindow::UpdateDLPlusInfo(const DL_STATE& dl) {
 	}
 
 	// forward item running flag to all existing objects
-	for(const Gtk::TreeRow row : children)
+	for(const Gtk::TreeRow& row : children)
 		row[list_dl_plus_cols.col_item_running] = dl.dl_plus_ir;
 
 	set_tooltip_text(
