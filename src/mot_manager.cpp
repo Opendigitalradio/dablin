@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2016-2018 Stefan Pöschel
+    Copyright (C) 2016-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -210,10 +210,6 @@ bool MOTObject::IsToBeShown() {
 
 
 // --- MOTManager -----------------------------------------------------------------
-MOTManager::MOTManager() {
-	Reset();
-}
-
 void MOTManager::Reset() {
 	object = MOTObject();
 	current_transport_id = -1;
@@ -284,7 +280,7 @@ bool MOTManager::ParseCheckSegmentationHeader(const std::vector<uint8_t>& dg, si
 	return true;
 }
 
-bool MOTManager::HandleMOTDataGroup(const std::vector<uint8_t>& dg) {
+void MOTManager::HandleMOTDataGroup(const std::vector<uint8_t>& dg) {
 	size_t offset = 0;
 
 	// parse/check headers
@@ -295,11 +291,11 @@ bool MOTManager::HandleMOTDataGroup(const std::vector<uint8_t>& dg) {
 	size_t seg_size;
 
 	if(!ParseCheckDataGroupHeader(dg, offset, dg_type))
-		return false;
+		return;
 	if(!ParseCheckSessionHeader(dg, offset, last_seg, seg_number, transport_id))
-		return false;
+		return;
 	if(!ParseCheckSegmentationHeader(dg, offset, seg_size))
-		return false;
+		return;
 
 
 	// add segment to MOT object (reset if necessary)
@@ -314,6 +310,7 @@ bool MOTManager::HandleMOTDataGroup(const std::vector<uint8_t>& dg) {
 //	fprintf(stderr, "dg_type: %d, seg_number: %2d%s, transport_id: %5d, size: %4zu; display: %s\n",
 //			dg_type, seg_number, last_seg ? " (LAST)" : "", transport_id, seg_size, display ? "true" : "false");
 
-	// if object shall be shown, update it
-	return display;
+	// if object shall be shown, forward it
+	if(display)
+		observer->MOTFileCompleted(object.GetFile());
 }

@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2021 Stefan Pöschel
+    Copyright (C) 2015-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,6 +24,18 @@ const size_t XPAD_CI::lens[] = {4, 6, 8, 12, 16, 24, 32, 48};
 
 
 // --- PADDecoder -----------------------------------------------------------------
+PADDecoder::PADDecoder(PADDecoderObserver *observer, bool loose) {
+	this->observer = observer;
+	this->loose = loose;
+	mot_app_type = -1;
+
+	mot_manager = new MOTManager(this);
+}
+
+PADDecoder::~PADDecoder() {
+	delete mot_manager;
+}
+
 void PADDecoder::Reset() {
 	mot_app_type = -1;
 
@@ -32,7 +44,7 @@ void PADDecoder::Reset() {
 	dl_decoder.Reset();
 	dgli_decoder.Reset();
 	mot_decoder.Reset();
-	mot_manager.Reset();
+	mot_manager->Reset();
 }
 
 void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data) {
@@ -163,27 +175,8 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 					mot_decoder.SetLen(dgli_len);
 
 				// if new Data Group available, append it
-				if(mot_decoder.ProcessDataSubfield(start, xpad + xpad_offset, xpad_ci.len)) {
-					// if new slide available, show it
-					if(mot_manager.HandleMOTDataGroup(mot_decoder.GetMOTDataGroup())) {
-						const MOT_FILE new_slide = mot_manager.GetFile();
-
-						// check file type
-						bool show_slide = true;
-						if(new_slide.content_type != MOT_FILE::CONTENT_TYPE_IMAGE)
-							show_slide = false;
-						switch(new_slide.content_sub_type) {
-						case MOT_FILE::CONTENT_SUB_TYPE_JFIF:
-						case MOT_FILE::CONTENT_SUB_TYPE_PNG:
-							break;
-						default:
-							show_slide = false;
-						}
-
-						if(show_slide)
-							observer->PADChangeSlide(new_slide);
-					}
-				}
+				if(mot_decoder.ProcessDataSubfield(start, xpad + xpad_offset, xpad_ci.len))
+					mot_manager->HandleMOTDataGroup(mot_decoder.GetMOTDataGroup());
 
 				xpad_ci_type_continued = mot_app_type + 1;
 			}
@@ -198,6 +191,23 @@ void PADDecoder::Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_x
 	// set last CI
 	last_xpad_ci.len = xpad_offset;
 	last_xpad_ci.type = xpad_ci_type_continued;
+}
+
+void PADDecoder::MOTFileCompleted(const MOT_FILE& file) {
+	// check file type
+	bool show_slide = true;
+	if(file.content_type != MOT_FILE::CONTENT_TYPE_IMAGE)
+		show_slide = false;
+	switch(file.content_sub_type) {
+	case MOT_FILE::CONTENT_SUB_TYPE_JFIF:
+	case MOT_FILE::CONTENT_SUB_TYPE_PNG:
+		break;
+	default:
+		show_slide = false;
+	}
+
+	if(show_slide)
+		observer->PADChangeSlide(file);
 }
 
 

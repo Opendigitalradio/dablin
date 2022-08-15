@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2016-2018 Stefan Pöschel
+    Copyright (C) 2016-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -104,9 +104,20 @@ public:
 };
 
 
+// --- MOTManagerObserver -----------------------------------------------------------------
+class MOTManagerObserver {
+public:
+	virtual ~MOTManagerObserver() {}
+
+	virtual void MOTFileCompleted(const MOT_FILE& /*file*/) {}
+};
+
+
 // --- MOTManager -----------------------------------------------------------------
 class MOTManager {
 private:
+	MOTManagerObserver *observer;
+
 	MOTObject object;
 	int current_transport_id;
 
@@ -114,11 +125,10 @@ private:
 	bool ParseCheckSessionHeader(const std::vector<uint8_t>& dg, size_t& offset, bool& last_seg, int& seg_number, int& transport_id);
 	bool ParseCheckSegmentationHeader(const std::vector<uint8_t>& dg, size_t& offset, size_t& seg_size);
 public:
-	MOTManager();
+	MOTManager(MOTManagerObserver *observer) : observer(observer) {Reset();}
 
 	void Reset();
-	bool HandleMOTDataGroup(const std::vector<uint8_t>& dg);
-	MOT_FILE GetFile() {return object.GetFile();}
+	void HandleMOTDataGroup(const std::vector<uint8_t>& dg);
 };
 
 #endif /* MOT_MANAGER_H_ */

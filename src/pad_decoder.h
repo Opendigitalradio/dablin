@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2021 Stefan Pöschel
+    Copyright (C) 2015-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -211,7 +211,7 @@ public:
 
 
 // --- PADDecoder -----------------------------------------------------------------
-class PADDecoder {
+class PADDecoder : public MOTManagerObserver {
 private:
 	PADDecoderObserver *observer;
 	bool loose;
@@ -223,9 +223,12 @@ private:
 	DynamicLabelDecoder dl_decoder;
 	DGLIDecoder dgli_decoder;
 	MOTDecoder mot_decoder;
-	MOTManager mot_manager;
+	MOTManager *mot_manager;
+
+	void MOTFileCompleted(const MOT_FILE& file);
 public:
-	PADDecoder(PADDecoderObserver *observer, bool loose) : observer(observer), loose(loose), mot_app_type(-1) {}
+	PADDecoder(PADDecoderObserver *observer, bool loose);
+	~PADDecoder();
 
 	void SetMOTAppType(int mot_app_type) {this-> mot_app_type = mot_app_type;}
 	void Process(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data);
