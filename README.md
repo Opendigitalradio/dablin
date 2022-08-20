@@ -625,6 +625,13 @@ and the current service signals to transmit a Slideshow, the Slideshow
 window is displayed. It shows a slide after it has been received
 completely and without errors.
 
+While the next slide is being received, a progress bar at the bottom of
+the Slideshow window shows the fraction that has successfully been
+received so far. It is always updated after a new segment has arrived
+free from error. The first segments of the initial slide usually are
+received before the corresponding header comes by. In this case a
+pulsing bar is shown until the header is available.
+
 Currently the following limitations apply:
 
 * slideshows in a separate sub-channel are not supported (just X-PAD);
@@ -640,7 +647,7 @@ This software is licensed under the GNU General Public License Version 3
 *Please note that the included FEC lib by KA9Q has a separate license!*
 
 DABlin - capital DAB experience
-Copyright (C) 2015-2021 Stefan Pöschel
+Copyright (C) 2015-2022 Stefan Pöschel
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

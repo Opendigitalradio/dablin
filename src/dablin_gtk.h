@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2021 Stefan Pöschel
+    Copyright (C) 2015-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -325,6 +325,10 @@ private:
 	GTKDispatcherQueue<MOT_FILE> pad_change_slide;
 	void PADChangeSlide(const MOT_FILE& slide) {pad_change_slide.PushAndEmit(slide);}
 	void PADChangeSlideEmitted();
+
+	GTKDispatcherQueue<double> pad_file_progress;
+	void PADFileProgress(const double fraction) {pad_file_progress.PushAndEmit(fraction);}
+	void PADFileProgressEmitted();
 
 	void PADLengthError(size_t announced_xpad_len, size_t xpad_len);
 public:

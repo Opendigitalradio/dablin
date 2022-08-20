@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2018-2021 Stefan Pöschel
+    Copyright (C) 2018-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ DABlinGTKSlideshowWindow::DABlinGTKSlideshowWindow() {
 
 	top_grid.attach(image, 0, 0, 1, 1);
 	top_grid.attach_next_to(link_button, image, Gtk::POS_BOTTOM, 1, 1);
+	top_grid.attach_next_to(progress_file, link_button, Gtk::POS_BOTTOM, 1, 1);
 
 	show_all_children();
 
@@ -98,6 +99,7 @@ void DABlinGTKSlideshowWindow::AwaitSlide() {
 	image.set_tooltip_text("Waiting for slide...");
 
 	link_button.hide();
+	progress_file.hide();
 }
 
 void DABlinGTKSlideshowWindow::UpdateSlide(const MOT_FILE& slide) {
@@ -153,4 +155,16 @@ void DABlinGTKSlideshowWindow::UpdateSlide(const MOT_FILE& slide) {
 	} else {
 		link_button.hide();
 	}
+
+	// hide file progress
+	progress_file.hide();
+}
+
+void DABlinGTKSlideshowWindow::UpdateFileProgress(const double fraction) {
+	// update/show file progress
+	if(fraction == -1)
+		progress_file.pulse();	// unknown progress
+	else
+		progress_file.set_fraction(fraction);
+	progress_file.show();
 }

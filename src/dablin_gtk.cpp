@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2021 Stefan Pöschel
+    Copyright (C) 2015-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -264,6 +264,7 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	fic_change_service.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::FICChangeServiceEmitted));
 	pad_change_dynamic_label.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeDynamicLabelEmitted));
 	pad_change_slide.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADChangeSlideEmitted));
+	pad_file_progress.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::PADFileProgressEmitted));
 	do_rec_status_update.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoRecStatusUpdateEmitted));
 	do_datetime_sync.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoDateTimeSyncEmitted));
 	do_datetime_update.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoDateTimeUpdateEmitted));
@@ -1336,6 +1337,12 @@ void DABlinGTK::PADChangeSlideEmitted() {
 	slideshow_window.UpdateSlide(pad_change_slide.Pop());
 	if(tglbtn_slideshow.get_active())
 		slideshow_window.TryToShow();
+}
+
+void DABlinGTK::PADFileProgressEmitted() {
+//	fprintf(stderr, "### PADFileProgressEmitted\n");
+
+	slideshow_window.UpdateFileProgress(pad_file_progress.Pop());
 }
 
 void DABlinGTK::PADLengthError(size_t /*announced_xpad_len*/, size_t /*xpad_len*/) {

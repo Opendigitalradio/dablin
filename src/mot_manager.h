@@ -52,7 +52,7 @@ struct MOT_FILE {
 	static const int CONTENT_SUB_TYPE_HEADER_UPDATE	= 0x000;
 
 	MOT_FILE() :
-		body_size(-1),
+		body_size(0),
 		content_type(-1),
 		content_sub_type(-1),
 		trigger_time_now(false)
@@ -101,6 +101,9 @@ public:
 	void AddSeg(bool dg_type_header, int seg_number, bool last_seg, const uint8_t* data, size_t len);
 	bool IsToBeShown();
 	MOT_FILE GetFile() {return result_file;}
+
+	size_t GetCurrentBodySize() {return body.GetSize();}
+	size_t GetTotalBodySize() {return result_file.body_size;}
 };
 
 
@@ -110,6 +113,7 @@ public:
 	virtual ~MOTManagerObserver() {}
 
 	virtual void MOTFileCompleted(const MOT_FILE& /*file*/) {}
+	virtual void MOTFileProgress(const double /*fraction*/) {}
 };
 
 

@@ -205,6 +205,7 @@ public:
 
 	virtual void PADChangeDynamicLabel(const DL_STATE& /*dl*/) {}
 	virtual void PADChangeSlide(const MOT_FILE& /*slide*/) {}
+	virtual void PADFileProgress(const double /*fraction*/) {}
 
 	virtual void PADLengthError(size_t /*announced_xpad_len*/, size_t /*xpad_len*/) {}
 };
@@ -226,6 +227,7 @@ private:
 	MOTManager *mot_manager;
 
 	void MOTFileCompleted(const MOT_FILE& file);
+	void MOTFileProgress(const double fraction) {observer->PADFileProgress(fraction);}
 public:
 	PADDecoder(PADDecoderObserver *observer, bool loose);
 	~PADDecoder();

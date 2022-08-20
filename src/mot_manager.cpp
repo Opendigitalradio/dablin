@@ -196,7 +196,7 @@ bool MOTObject::IsToBeShown() {
 	// abort, if incomplete/not yet triggered
 	if(!header_received)
 		return false;
-	if(!body.IsFinished() || result_file.body_size != body.GetSize())
+	if(!body.IsFinished() || GetCurrentBodySize() != GetTotalBodySize())
 		return false;
 	if(!result_file.trigger_time_now)
 		return false;
@@ -298,7 +298,7 @@ void MOTManager::HandleMOTDataGroup(const std::vector<uint8_t>& dg) {
 		return;
 
 
-	// add segment to MOT object (reset if necessary)
+	// add completed segment to MOT object (reset if necessary)
 	if(current_transport_id != transport_id) {
 		current_transport_id = transport_id;
 		object = MOTObject();
@@ -307,8 +307,19 @@ void MOTManager::HandleMOTDataGroup(const std::vector<uint8_t>& dg) {
 
 	// check if object shall be shown
 	bool display = object.IsToBeShown();
-//	fprintf(stderr, "dg_type: %d, seg_number: %2d%s, transport_id: %5d, size: %4zu; display: %s\n",
-//			dg_type, seg_number, last_seg ? " (LAST)" : "", transport_id, seg_size, display ? "true" : "false");
+
+	// derive progress fraction (-1 = unknown, as header not yet received - but body segments)
+	double fraction = object.GetTotalBodySize() ? (double) object.GetCurrentBodySize() / (double) object.GetTotalBodySize() : -1;
+
+//	fprintf(stderr, "dg_type: %d, seg_number: %2d%s, transport_id: %5d, seg_size: %4zu; display: %s, curr/total body size: %5zu/%5zu, fraction: %f\n",
+//			dg_type, seg_number, last_seg ? " (LAST)" : "", transport_id, seg_size, display ? "true" : "false", object.GetCurrentBodySize(), object.GetTotalBodySize(), fraction);
+
+	/* update progress
+	 * - if unknown, update invoked for each segment for visible pulse()!
+	 * - if complete, only update when shown
+	 */
+	if(!(fraction == 1 && !display))
+		observer->MOTFileProgress(fraction);
 
 	// if object shall be shown, forward it
 	if(display)

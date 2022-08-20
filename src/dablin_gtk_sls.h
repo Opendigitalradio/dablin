@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2018-2021 Stefan Pöschel
+    Copyright (C) 2018-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ private:
 	Gtk::Grid top_grid;
 	Gtk::Image image;
 	Gtk::LinkButton link_button;
+	Gtk::ProgressBar progress_file;
 
 	Glib::RefPtr<Gdk::Pixbuf> pixbuf_waiting;
 	int prev_parent_x;
@@ -47,6 +48,7 @@ public:
 
 	void AwaitSlide();
 	void UpdateSlide(const MOT_FILE& slide);
+	void UpdateFileProgress(const double fraction);
 	void ClearSlide() {image.clear();}
 	bool IsEmptySlide() {return image.get_storage_type() == Gtk::ImageType::IMAGE_EMPTY;}
 };
