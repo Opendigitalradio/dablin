@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2020 Stefan Pöschel
+    Copyright (C) 2015-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,6 +87,9 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 
 	// handle extension
 	switch(header.extension) {
+	case 0:
+		ProcessFIG0_0(data, len);
+		break;
 	case 1:
 		ProcessFIG0_1(data, len);
 		break;
@@ -119,6 +122,27 @@ void FICDecoder::ProcessFIG0(const uint8_t *data, size_t len) {
 		break;
 //	default:
 //		fprintf(stderr, "FICDecoder: received unsupported FIG 0/%d with %zu field bytes\n", header.extension, len);
+	}
+}
+
+void FICDecoder::ProcessFIG0_0(const uint8_t *data, size_t len) {
+	// FIG 0/0 - Ensemble information
+	// EId and alarm flag only
+
+	if(len < 4)
+		return;
+
+	FIC_ENSEMBLE new_ensemble = ensemble;
+	new_ensemble.eid = data[0] << 8 | data[1];
+	new_ensemble.al_flag = data[2] & 0x20;
+
+	if(ensemble != new_ensemble) {
+		ensemble = new_ensemble;
+
+		fprintf(stderr, "FICDecoder: EId 0x%04X: alarm flag: %s\n",
+				ensemble.eid, ensemble.al_flag ? "true" : "false");
+
+		UpdateEnsemble();
 	}
 }
 
@@ -620,8 +644,7 @@ void FICDecoder::ProcessFIG1(const uint8_t *data, size_t len) {
 }
 
 void FICDecoder::ProcessFIG1_0(uint16_t eid, const FIC_LABEL& label) {
-	if(ensemble.eid != eid || ensemble.label != label) {
-		ensemble.eid = eid;
+	if(ensemble.label != label) {
 		ensemble.label = label;
 
 		std::string label_str = ConvertLabelToUTF8(label, nullptr);
@@ -777,8 +800,8 @@ int FICDecoder::GetSLSAppType(const ua_data_t& ua_data) {
 }
 
 void FICDecoder::UpdateEnsemble() {
-	// abort update, if label not yet present
-	if(ensemble.label.IsNone())
+	// abort update, if EId or label not yet present
+	if(ensemble.IsNone() || ensemble.label.IsNone())
 		return;
 
 	// forward to observer

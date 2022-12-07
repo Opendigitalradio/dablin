@@ -1076,12 +1076,13 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 	ensemble = fic_change_ensemble.Pop();
 
 	std::string charset_name;
-	std::string label = FICDecoder::ConvertLabelToUTF8(ensemble.label, &charset_name);
+	std::string label = Glib::Markup::escape_text(FICDecoder::ConvertLabelToUTF8(ensemble.label, &charset_name));
 
 	std::string tooltip_text =
 			"Short label: \"" + FICDecoder::DeriveShortLabelUTF8(label, ensemble.label.short_label_mask) + "\"\n"
 			"Label charset: " + charset_name + "\n"
-			"EId: " + StringTools::IntToHex(ensemble.eid, 4);
+			"EId: " + StringTools::IntToHex(ensemble.eid, 4) + "\n"
+			"Alarm flag: " + (ensemble.al_flag ? "true" : "false");
 	if(ensemble.ecc != FIC_ENSEMBLE::ecc_none)
 		tooltip_text += "\n" "ECC: " + StringTools::IntToHex(ensemble.ecc, 2);
 	if(ensemble.lto != FIC_ENSEMBLE::lto_none)
@@ -1089,7 +1090,16 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 	if(ensemble.inter_table_id != FIC_ENSEMBLE::inter_table_id_none)
 		tooltip_text += "\n" "International table ID: " + StringTools::IntToHex(ensemble.inter_table_id, 2) + " (" + FICDecoder::ConvertInterTableIDToString(ensemble.inter_table_id) + ")";
 
-	label_ensemble.set_label(label);
+	// indicate active alarm announcement
+	if(ensemble.al_flag) {
+		asw_clusters_t::const_iterator cl_it = ensemble.asw_clusters.find(0xFF);
+		if(cl_it != ensemble.asw_clusters.end() && (cl_it->second.asw_flags & 0x01)) {
+			label += " <span color='white' bgcolor='red'><b> Alarm </b></span>";
+			tooltip_text += "\n" "Alarm SubChId: " + std::to_string(cl_it->second.subchid);
+		}
+	}
+
+	label_ensemble.set_markup(label);
 	frame_label_ensemble.set_tooltip_text(tooltip_text);
 }
 

@@ -355,6 +355,9 @@ different subchannel leads to cyan highlighting instead e.g. if traffic
 news of a different channel shall affect also listeners of a different
 service (which does not have its own announcements).
 
+The GTK version indicates an active alarm announcement on ensemble level
+by the suffix "Alarm" after the ensemble label, highlighted in red.
+
 
 ### Hotkeys (GTK GUI version)
 

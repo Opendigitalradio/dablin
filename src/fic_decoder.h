@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2020 Stefan Pöschel
+    Copyright (C) 2015-2022 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -145,6 +145,7 @@ struct FIC_DAB_DT {
 
 struct FIC_ENSEMBLE {
 	int eid;
+	bool al_flag;
 	FIC_LABEL label;
 	int ecc;
 	int lto;
@@ -160,6 +161,7 @@ struct FIC_ENSEMBLE {
 
 	FIC_ENSEMBLE() :
 		eid(eid_none),
+		al_flag(false),
 		ecc(ecc_none),
 		lto(lto_none),
 		inter_table_id(inter_table_id_none)
@@ -168,6 +170,7 @@ struct FIC_ENSEMBLE {
 	bool operator==(const FIC_ENSEMBLE & ensemble) const {
 		return
 				eid == ensemble.eid &&
+				al_flag == ensemble.al_flag &&
 				label == ensemble.label &&
 				ecc == ensemble.ecc &&
 				lto == ensemble.lto &&
@@ -287,6 +290,7 @@ private:
 	void ProcessFIB(const uint8_t *data);
 
 	void ProcessFIG0(const uint8_t *data, size_t len);
+	void ProcessFIG0_0(const uint8_t *data, size_t len);
 	void ProcessFIG0_1(const uint8_t *data, size_t len);
 	void ProcessFIG0_2(const uint8_t *data, size_t len);
 	void ProcessFIG0_5(const uint8_t *data, size_t len);
