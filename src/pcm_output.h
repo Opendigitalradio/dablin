@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@ private:
 	bool float32;
 
 	std::atomic<bool> audio_mute;
+protected:
+	virtual void ChangeFormat(int samplerate, int channels, bool float32);
 public:
 	PCMOutput();
 	~PCMOutput() {}

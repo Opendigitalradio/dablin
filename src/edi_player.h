@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2019 Stefan Pöschel
+    Copyright (C) 2019-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@ class EDIPlayer : public EnsemblePlayer {
 private:
 	void DecodeFrame(const uint8_t *edi_frame);
 public:
-	EDIPlayer(bool pcm_output, bool untouched_output, bool disable_int_catch_up, EnsemblePlayerObserver *observer)
-		: EnsemblePlayer(pcm_output, untouched_output, disable_int_catch_up, observer) {}
+	EDIPlayer(AudioOutputType audio_output_type, bool disable_int_catch_up, EnsemblePlayerObserver *observer)
+		: EnsemblePlayer(audio_output_type, disable_int_catch_up, observer) {}
 	~EDIPlayer() {}
 };
 

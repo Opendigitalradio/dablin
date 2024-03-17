@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,21 +20,27 @@
 
 
 // --- EnsemblePlayer -----------------------------------------------------------------
-EnsemblePlayer::EnsemblePlayer(bool pcm_output, bool untouched_output, bool disable_int_catch_up, EnsemblePlayerObserver *observer) {
-	this->untouched_output = untouched_output;
+EnsemblePlayer::EnsemblePlayer(AudioOutputType audio_output_type, bool disable_int_catch_up, EnsemblePlayerObserver *observer) {
+	this->audio_output_type = audio_output_type;
 	this->disable_int_catch_up = disable_int_catch_up;
 	this->observer = observer;
 
 	dec = nullptr;
 	out = nullptr;
 
-	if(!untouched_output) {
+	switch(audio_output_type) {
 #ifndef DABLIN_DISABLE_SDL
-		if(!pcm_output)
-			out = new SDLOutput;
-		else
+	case AudioOutputType::SDL:
+		out = new SDLOutput;
+		break;
 #endif
-			out = new PCMOutput;
+	case AudioOutputType::PCM:
+		out = new PCMOutput;
+		break;
+	case AudioOutputType::Untouched:
+		break;
+	default:
+		throw std::runtime_error("Unsupported audio output type!");
 	}
 }
 
@@ -71,10 +77,10 @@ void EnsemblePlayer::SetAudioService(const AUDIO_SERVICE& audio_service) {
 	// append - use more precise float32 output (if supported by decoder)
 	if(!audio_service.IsNone()) {
 		if(audio_service.dab_plus)
-			dec = new SuperframeFilter(this, !untouched_output, true);
+			dec = new SuperframeFilter(this, audio_output_type != AudioOutputType::Untouched, true);
 		else
 			dec = new MP2Decoder(this, true);
-		if(untouched_output)
+		if(audio_output_type == AudioOutputType::Untouched)
 			dec->AddUntouchedStreamConsumer(this);
 	}
 
@@ -119,7 +125,7 @@ void EnsemblePlayer::ProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool 
 }
 
 void EnsemblePlayer::ProcessUntouchedStream(const uint8_t* data, size_t len, size_t /*duration_ms*/) {
-	if(untouched_output) {
+	if(audio_output_type == AudioOutputType::Untouched) {
 		if(fwrite(data, len, 1, stdout) != 1)
 			perror("EnsemblePlayer: error while writing untouched stream to stdout");
 	}

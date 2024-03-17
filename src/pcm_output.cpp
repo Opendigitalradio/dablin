@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2016 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,12 +36,15 @@ void PCMOutput::StartAudio(int samplerate, int channels, bool float32) {
 	this->channels = channels;
 	this->float32 = float32;
 
+	ChangeFormat(samplerate, channels, float32);
+}
+
+void PCMOutput::ChangeFormat(int samplerate, int channels, bool float32) {
 	fprintf(stderr, "PCMOutput: format set; samplerate: %d, channels: %d, output: %s\n",
 			samplerate,
 			channels,
 			float32 ? "32bit float" : "16bit integer");
 }
-
 
 void PCMOutput::PutAudio(const uint8_t *data, size_t len) {
 	if(!audio_mute)

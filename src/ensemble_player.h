@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,10 @@
 #include "tools.h"
 
 
+// --- AudioOutputType -----------------------------------------------------------------
+enum class AudioOutputType { SDL, PCM, Untouched };
+
+
 // --- EnsemblePlayerObserver -----------------------------------------------------------------
 class EnsemblePlayerObserver {
 public:
@@ -51,7 +55,7 @@ public:
 // --- EnsemblePlayer -----------------------------------------------------------------
 class EnsemblePlayer : SubchannelSinkObserver, UntouchedStreamConsumer {
 protected:
-	bool untouched_output;
+	AudioOutputType audio_output_type;
 	bool disable_int_catch_up;
 	EnsemblePlayerObserver *observer;
 
@@ -77,7 +81,7 @@ protected:
 	void AudioWarning(const std::string& hint);
 	void FECInfo(int total_corr_count, bool uncorr_errors);
 public:
-	EnsemblePlayer(bool pcm_output, bool untouched_output, bool disable_int_catch_up, EnsemblePlayerObserver *observer);
+	EnsemblePlayer(AudioOutputType audio_output_type, bool disable_int_catch_up, EnsemblePlayerObserver *observer);
 	~EnsemblePlayer();
 
 	void ProcessFrame(const uint8_t *data);

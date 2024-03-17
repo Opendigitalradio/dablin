@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2022 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -209,7 +209,7 @@ int main(int argc, char **argv) {
 	}
 #endif
 
-	if(options.pcm_output && options.untouched_output) {
+	if(options.pcm_output + options.untouched_output > 1) {
 		fprintf(stderr, "No more than one output option can be specified!\n");
 		usage(argv[0]);
 	}
@@ -269,10 +269,18 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	do_datetime_sync.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoDateTimeSyncEmitted));
 	do_datetime_update.GetDispatcher().connect(sigc::mem_fun(*this, &DABlinGTK::DoDateTimeUpdateEmitted));
 
+	AudioOutputType audio_output_type = AudioOutputType::SDL;
+#ifndef DABLIN_DISABLE_SDL
+	if(options.pcm_output)
+#endif
+		audio_output_type = AudioOutputType::PCM;
+	if(options.untouched_output)
+		audio_output_type = AudioOutputType::Untouched;
+
 	if(options.source_format == EnsembleSource::FORMAT_ETI)
-		ensemble_player = new ETIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
+		ensemble_player = new ETIPlayer(audio_output_type, options.disable_int_catch_up, this);
 	else
-		ensemble_player = new EDIPlayer(options.pcm_output, options.untouched_output, options.disable_int_catch_up, this);
+		ensemble_player = new EDIPlayer(audio_output_type, options.disable_int_catch_up, this);
 
 	if(options.source_format == EnsembleSource::FORMAT_ETI) {
 		if(!options.dab_live_source_binary.empty()) {

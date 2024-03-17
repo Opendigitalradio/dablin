@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@ private:
 
 	void DecodeFrame(const uint8_t *eti_frame);
 public:
-	ETIPlayer(bool pcm_output, bool untouched_output, bool disable_int_catch_up, EnsemblePlayerObserver *observer)
-		: EnsemblePlayer(pcm_output, untouched_output, disable_int_catch_up, observer), prev_fsync(0) {}
+	ETIPlayer(AudioOutputType audio_output_type, bool disable_int_catch_up, EnsemblePlayerObserver *observer)
+		: EnsemblePlayer(audio_output_type, disable_int_catch_up, observer), prev_fsync(0) {}
 	~ETIPlayer() {}
 };
 
