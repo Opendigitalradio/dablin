@@ -70,7 +70,7 @@ protected:
 	virtual void DecodeFrame(const uint8_t *ensemble_frame) = 0;
 
 	void FormatChange(const AUDIO_SERVICE_FORMAT& format);
-	void StartAudio(int samplerate, int channels, bool float32) {if(out) out->StartAudio(samplerate, channels, float32);}
+	void StartAudio(int samplerate, int channels) {if(out) out->StartAudio(samplerate, channels);}
 	void PutAudio(const uint8_t *data, size_t len) {if(out) out->PutAudio(data, len);}
 
 	void ProcessFIC(const uint8_t *data, size_t len);

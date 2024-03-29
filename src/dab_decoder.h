@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,7 +39,6 @@
 // --- MP2Decoder -----------------------------------------------------------------
 class MP2Decoder : public SubchannelSink {
 private:
-	bool float32;
 	mpg123_handle *handle;
 
 	int scf_crc_len;
@@ -57,7 +56,7 @@ private:
 	static const int* tables_nbal[];
 	static const int sblimits[];
 public:
-	MP2Decoder(SubchannelSinkObserver* observer, bool float32);
+	MP2Decoder(SubchannelSinkObserver* observer);
 	~MP2Decoder();
 
 	void Feed(const uint8_t *data, size_t len);

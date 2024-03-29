@@ -74,12 +74,12 @@ void EnsemblePlayer::SetAudioService(const AUDIO_SERVICE& audio_service) {
 	else
 		fprintf(stderr, "EnsemblePlayer: playing sub-channel %d (%s)\n", audio_service.subchid, audio_service.dab_plus ? "DAB+" : "DAB");
 
-	// append - use more precise float32 output (if supported by decoder)
+	// apply
 	if(!audio_service.IsNone()) {
 		if(audio_service.dab_plus)
-			dec = new SuperframeFilter(this, audio_output_type != AudioOutputType::Untouched, true);
+			dec = new SuperframeFilter(this, audio_output_type != AudioOutputType::Untouched);
 		else
-			dec = new MP2Decoder(this, true);
+			dec = new MP2Decoder(this);
 		if(audio_output_type == AudioOutputType::Untouched)
 			dec->AddUntouchedStreamConsumer(this);
 	}

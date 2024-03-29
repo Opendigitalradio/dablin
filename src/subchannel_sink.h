@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2019 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ public:
 	virtual ~SubchannelSinkObserver() {}
 
 	virtual void FormatChange(const AUDIO_SERVICE_FORMAT& /*format*/) {}
-	virtual void StartAudio(int /*samplerate*/, int /*channels*/, bool /*float32*/) {}
+	virtual void StartAudio(int /*samplerate*/, int /*channels*/) {}
 	virtual void PutAudio(const uint8_t* /*data*/, size_t /*len*/) {}
 	virtual void ProcessPAD(const uint8_t* /*xpad_data*/, size_t /*xpad_len*/, bool /*exact_xpad_len*/, const uint8_t* /*fpad_data*/) {}
 

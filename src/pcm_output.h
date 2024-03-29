@@ -31,16 +31,15 @@ class PCMOutput : public AudioOutput {
 private:
 	int samplerate;
 	int channels;
-	bool float32;
 
 	std::atomic<bool> audio_mute;
 protected:
-	virtual void ChangeFormat(int samplerate, int channels, bool float32);
+	virtual void ChangeFormat(int samplerate, int channels);
 public:
 	PCMOutput();
 	~PCMOutput() {}
 
-	void StartAudio(int samplerate, int channels, bool float32);
+	void StartAudio(int samplerate, int channels);
 	void StopAudio() {}
 	void PutAudio(const uint8_t *data, size_t len);
 	void SetAudioMute(bool audio_mute) {this->audio_mute = audio_mute;}

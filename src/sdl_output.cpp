@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@ SDLOutput::SDLOutput() : AudioOutput() {
 
 	samplerate = 0;
 	channels = 0;
-	float32 = false;
 
 	audio_buffer = nullptr;
 	audio_start_buffer_size = 0;
@@ -64,9 +63,9 @@ void SDLOutput::StopAudio() {
 	}
 }
 
-void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
+void SDLOutput::StartAudio(int samplerate, int channels) {
 	// if no change, do quick restart
-	if(audio_device && this->samplerate == samplerate && this->channels == channels && this->float32 == float32) {
+	if(audio_device && this->samplerate == samplerate && this->channels == channels) {
 		std::lock_guard<std::mutex> lock(audio_buffer_mutex);
 		audio_buffer->Clear();
 		SetAudioStartBufferSize();
@@ -74,7 +73,6 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 	}
 	this->samplerate = samplerate;
 	this->channels = channels;
-	this->float32 = float32;
 
 	StopAudio();
 
@@ -86,7 +84,7 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 			delete audio_buffer;
 
 		// use 500ms buffer
-		size_t buffersize = samplerate / 2 * channels * (float32 ? 4 : 2);
+		size_t buffersize = samplerate / 2 * channels * 2;
 		fprintf(stderr, "SDLOutput: using audio buffer of %zu bytes\n", buffersize);
 		audio_buffer = new CircularBuffer(buffersize);
 		SetAudioStartBufferSize();
@@ -96,7 +94,7 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 	SDL_AudioSpec desired;
 	SDL_AudioSpec obtained;
 	desired.freq = samplerate;
-	desired.format = float32 ? AUDIO_F32SYS : AUDIO_S16SYS;
+	desired.format = AUDIO_S16SYS;
 	desired.channels = channels;
 	desired.samples = samplerate * 0.024 * channels;	// DAB frame
 	desired.callback = sdl_audio_callback;
@@ -105,14 +103,13 @@ void SDLOutput::StartAudio(int samplerate, int channels, bool float32) {
 	audio_device = SDL_OpenAudioDevice(nullptr, 0, &desired, &obtained, 0);
 	if(!audio_device)
 		throw std::runtime_error("SDLOutput: error while SDL_OpenAudioDevice: " + std::string(SDL_GetError()));
-	fprintf(stderr, "SDLOutput: audio opened; driver name: %s, freq: %d, channels: %d, size: %d, samples: %d, silence: 0x%02X, output: %s\n",
+	fprintf(stderr, "SDLOutput: audio opened; driver name: %s, freq: %d, channels: %d, size: %d, samples: %d, silence: 0x%02X\n",
 			SDL_GetCurrentAudioDriver(),
 			obtained.freq,
 			obtained.channels,
 			obtained.size,
 			obtained.samples,
-			obtained.silence,
-			float32 ? "32bit float" : "16bit integer");
+			obtained.silence);
 
 	audio_spec = obtained;
 

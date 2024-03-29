@@ -23,27 +23,22 @@
 PCMOutput::PCMOutput() : AudioOutput() {
 	samplerate = 0;
 	channels = 0;
-	float32 = false;
 
 	audio_mute = false;
 }
 
-void PCMOutput::StartAudio(int samplerate, int channels, bool float32) {
+void PCMOutput::StartAudio(int samplerate, int channels) {
 	// if no change, return
-	if(this->samplerate == samplerate && this->channels == channels && this->float32 == float32)
+	if(this->samplerate == samplerate && this->channels == channels)
 		return;
 	this->samplerate = samplerate;
 	this->channels = channels;
-	this->float32 = float32;
 
-	ChangeFormat(samplerate, channels, float32);
+	ChangeFormat(samplerate, channels);
 }
 
-void PCMOutput::ChangeFormat(int samplerate, int channels, bool float32) {
-	fprintf(stderr, "PCMOutput: format set; samplerate: %d, channels: %d, output: %s\n",
-			samplerate,
-			channels,
-			float32 ? "32bit float" : "16bit integer");
+void PCMOutput::ChangeFormat(int samplerate, int channels) {
+	fprintf(stderr, "PCMOutput: format set; samplerate: %d, channels: %d\n", samplerate, channels);
 }
 
 void PCMOutput::PutAudio(const uint8_t *data, size_t len) {

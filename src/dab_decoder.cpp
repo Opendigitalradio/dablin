@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2018 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,9 +48,7 @@ const int MP2Decoder::sblimits[] = {
 };
 
 
-MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer, bool float32) : SubchannelSink(observer, "mp2") {
-	this->float32 = float32;
-
+MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer) : SubchannelSink(observer, "mp2") {
 	scf_crc_len = -1;
 	lsf = false;
 
@@ -80,11 +78,11 @@ MP2Decoder::MP2Decoder(SubchannelSinkObserver* observer, bool float32) : Subchan
 	if(mpg_result != MPG123_OK)
 		throw std::runtime_error("MP2Decoder: error while mpg123_format_none: " + std::string(mpg123_plain_strerror(mpg_result)));
 
-	mpg_result = mpg123_format(handle, 48000, MPG123_MONO | MPG123_STEREO, float32 ? MPG123_ENC_FLOAT_32 : MPG123_ENC_SIGNED_16);
+	mpg_result = mpg123_format(handle, 48000, MPG123_MONO | MPG123_STEREO, MPG123_ENC_SIGNED_16);
 	if(mpg_result != MPG123_OK)
 		throw std::runtime_error("MP2Decoder: error while mpg123_format #1: " + std::string(mpg123_plain_strerror(mpg_result)));
 
-	mpg_result = mpg123_format(handle, 24000, MPG123_MONO | MPG123_STEREO, float32 ? MPG123_ENC_FLOAT_32 : MPG123_ENC_SIGNED_16);
+	mpg_result = mpg123_format(handle, 24000, MPG123_MONO | MPG123_STEREO, MPG123_ENC_SIGNED_16);
 	if(mpg_result != MPG123_OK)
 		throw std::runtime_error("MP2Decoder: error while mpg123_format #2: " + std::string(mpg123_plain_strerror(mpg_result)));
 
@@ -308,5 +306,5 @@ void MP2Decoder::ProcessFormat() {
 	format.bitrate_kbps = info.bitrate;
 	observer->FormatChange(format);
 
-	observer->StartAudio(info.rate, info.mode != MPG123_M_MONO ? 2 : 1, float32);
+	observer->StartAudio(info.rate, info.mode != MPG123_M_MONO ? 2 : 1);
 }
