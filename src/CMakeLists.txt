@@ -15,6 +15,7 @@ list(APPEND dablin_sources
     pcm_output.cpp
     tools.cpp
     version.cpp
+    wav_output.cpp
     )
 
 set(dablin_cli_sources

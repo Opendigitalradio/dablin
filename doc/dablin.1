@@ -1,4 +1,4 @@
-.TH DABLIN 1 "2020-04-22"
+.TH DABLIN 1 "2024-03-30"
 .\"------------------------------------------------------------------------
 .SH NAME
 dablin \- CLI DAB/DAB+ receiver for Linux
@@ -56,7 +56,10 @@ USB stick gain to pass to DAB live source (auto gain is default)
 Use default gain for DAB live source (instead of auto gain)
 .TP
 .B \-p
-Output PCM to stdout instead of using SDL
+Output raw PCM to stdout instead of using SDL
+.TP
+.B \-w
+Output RIFF WAVE with PCM to stdout instead of using SDL (useful only on Little Endian)
 .TP
 .B \-u
 Output untouched audio stream to stdout instead of using SDL

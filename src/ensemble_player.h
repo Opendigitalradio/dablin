@@ -34,11 +34,12 @@
 #include "dab_decoder.h"
 #include "dabplus_decoder.h"
 #include "pcm_output.h"
+#include "wav_output.h"
 #include "tools.h"
 
 
 // --- AudioOutputType -----------------------------------------------------------------
-enum class AudioOutputType { SDL, PCM, Untouched };
+enum class AudioOutputType { SDL, PCM, WAV, Untouched };
 
 
 // --- EnsemblePlayerObserver -----------------------------------------------------------------

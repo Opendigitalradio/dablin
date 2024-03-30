@@ -47,7 +47,8 @@ static void usage(const char* exe) {
 					"  -G           Use default gain for DAB live source (instead of auto gain)\n"
 					"  -r <path>    Path for recordings (default: %s)\n"
 					"  -P <size>    Recording prebuffer size in seconds (default: %zu)\n"
-					"  -p           Output PCM to stdout instead of using SDL\n"
+					"  -p           Output raw PCM to stdout instead of using SDL\n"
+					"  -w           Output RIFF WAVE with PCM to stdout instead of using SDL (useful only on Little Endian)\n"
 					"  -u           Output untouched audio stream to stdout instead of using SDL\n"
 					"  -I           Don't catch up on stream after interruption\n"
 					"  -Y           Initially disable Dynamic Label Plus (DL+)\n"
@@ -83,7 +84,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hf:d:D:C:c:l:g:Gr:P:s:x:1puIYSLF")) != -1) {
+	while((c = getopt(argc, argv, "hf:d:D:C:c:l:g:Gr:P:s:x:1pwuIYSLF")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -134,6 +135,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'p':
 			options.pcm_output = true;
+			break;
+		case 'w':
+			options.wav_output = true;
 			break;
 		case 'u':
 			options.untouched_output = true;
@@ -209,7 +213,7 @@ int main(int argc, char **argv) {
 	}
 #endif
 
-	if(options.pcm_output + options.untouched_output > 1) {
+	if(options.pcm_output + options.wav_output + options.untouched_output > 1) {
 		fprintf(stderr, "No more than one output option can be specified!\n");
 		usage(argv[0]);
 	}
@@ -274,6 +278,8 @@ DABlinGTK::DABlinGTK(DABlinGTKOptions options) {
 	if(options.pcm_output)
 #endif
 		audio_output_type = AudioOutputType::PCM;
+	if(options.wav_output)
+		audio_output_type = AudioOutputType::WAV;
 	if(options.untouched_output)
 		audio_output_type = AudioOutputType::Untouched;
 

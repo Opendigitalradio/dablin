@@ -37,6 +37,9 @@ EnsemblePlayer::EnsemblePlayer(AudioOutputType audio_output_type, bool disable_i
 	case AudioOutputType::PCM:
 		out = new PCMOutput;
 		break;
+	case AudioOutputType::WAV:
+		out = new WAVOutput;
+		break;
 	case AudioOutputType::Untouched:
 		break;
 	default:

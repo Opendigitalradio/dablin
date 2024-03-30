@@ -1,4 +1,4 @@
-.TH DABLIN_GTK 1 "2021-12-14"
+.TH DABLIN_GTK 1 "2024-03-30"
 .\"------------------------------------------------------------------------
 .SH NAME
 dablin_gtk \- GTK DAB/DAB+ receiver for Linux
@@ -62,7 +62,10 @@ Path for recordings (default: /tmp)
 Recording prebuffer size in seconds (default: 0)
 .TP
 .B \-p
-Output PCM to stdout instead of using SDL
+Output raw PCM to stdout instead of using SDL
+.TP
+.B \-w
+Output RIFF WAVE with PCM to stdout instead of using SDL (useful only on Little Endian)
 .TP
 .B \-u
 Output untouched audio stream to stdout instead of using SDL

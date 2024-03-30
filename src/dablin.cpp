@@ -43,7 +43,8 @@ static void usage(const char* exe) {
 					"  -R <subchid>  ID of the sub-channel (DAB+) to be played\n"
 					"  -g <gain>     USB stick gain to pass to DAB live source (auto gain is default)\n"
 					"  -G            Use default gain for DAB live source (instead of auto gain)\n"
-					"  -p            Output PCM to stdout instead of using SDL\n"
+					"  -p            Output raw PCM to stdout instead of using SDL\n"
+					"  -w            Output RIFF WAVE with PCM to stdout instead of using SDL (useful only on Little Endian)\n"
 					"  -u            Output untouched audio stream to stdout instead of using SDL\n"
 					"  -I            Don't catch up on stream after interruption\n"
 					"  -F            Disable dynamic FIC messages (dynamic PTY, announcements)\n"
@@ -74,7 +75,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hf:c:l:d:D:g:Gs:x:1puIFr:R:")) != -1) {
+	while((c = getopt(argc, argv, "hf:c:l:d:D:g:Gs:x:1pwuIFr:R:")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -124,6 +125,9 @@ int main(int argc, char **argv) {
 			break;
 		case 'p':
 			options.pcm_output = true;
+			break;
+		case 'w':
+			options.wav_output = true;
 			break;
 		case 'u':
 			options.untouched_output = true;
@@ -190,7 +194,7 @@ int main(int argc, char **argv) {
 	}
 #endif
 
-	if(options.pcm_output + options.untouched_output > 1) {
+	if(options.pcm_output + options.wav_output + options.untouched_output > 1) {
 		fprintf(stderr, "No more than one output option can be specified!\n");
 		usage(argv[0]);
 	}
@@ -230,6 +234,8 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	if(options.pcm_output)
 #endif
 		audio_output_type = AudioOutputType::PCM;
+	if(options.wav_output)
+		audio_output_type = AudioOutputType::WAV;
 	if(options.untouched_output)
 		audio_output_type = AudioOutputType::Untouched;
 

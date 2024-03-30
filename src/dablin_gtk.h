@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2022 Stefan Pöschel
+    Copyright (C) 2015-2024 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -88,6 +88,7 @@ struct DABlinGTKOptions {
 	std::string recordings_path;
 	size_t rec_prebuffer_size_s;
 	bool pcm_output;
+	bool wav_output;
 	bool untouched_output;
 	bool disable_int_catch_up;
 	int gain;
@@ -105,6 +106,7 @@ DABlinGTKOptions() :
 	recordings_path("/tmp"),
 	rec_prebuffer_size_s(0),
 	pcm_output(false),
+	wav_output(false),
 	untouched_output(false),
 	disable_int_catch_up(false),
 	gain(DAB_LIVE_SOURCE_CHANNEL::auto_gain),
