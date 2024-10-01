@@ -115,7 +115,13 @@ void EDIPlayer::DecodeFrame(const uint8_t *edi_frame) {
 			bool rfudf = tag_value[0] & 0x20;
 
 			// STAT
-			if(tag_value[2] != 0xFF) {
+			// 0xFF Error level 0: LIDATA contains no detectable errors (which shall be the default state, set at the origin of LIDATA).
+			// 0xF0 Error level 1: LIDATA contains errors which can be ignored by the processing equipment.
+			// 0x0F Error level 2: LIDATA contains errors which should not be ignored by the processing
+			//                     equipment but which may be mitigated by additional processing within that
+			//                     equipment, for example by using header information from previous frames.
+			// 0x00 Error level 3: LIDATA is not valid and the processing equipment should mute.
+			if(!(tag_value[2] == 0xFF || tag_value[2] == 0xF0)) {
 				fprintf(stderr, "EDIPlayer: EDI AF packet with STAT = 0x%02X\n", tag_value[2]);
 				continue;
 			}
