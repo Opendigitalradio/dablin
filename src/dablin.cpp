@@ -331,11 +331,11 @@ void DABlinText::PADChangeDynamicLabel(const DL_STATE& dl) {
 	if(dl.charset != -1) {
 		std::string charset_name;
 		std::string label = CharsetTools::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset, false, &charset_name);
-		fprintf(stderr,"PADChangeDynamicLabel SId 0x%04X Label:\"%s\"\n", sid, label.c_str());
+		fprintf(stderr,"PADChangeDynamicLabel SId 0x%04X Label:\'%s\'\n", sid, label.c_str());
 	}
 	for(const DL_PLUS_OBJECT& obj : dl.dl_plus_objects) {
 		if(obj.content_type == 0)
 			continue;
-		fprintf(stderr,"PADChangeDynamicLabel SId 0x%04X DLPlusType:%d DLPlusText:\"%s\"\n", sid, obj.content_type, obj.text.c_str());
+		fprintf(stderr,"PADChangeDynamicLabel SId 0x%04X DLPlusType:%d DLPlusText:\'%s\'\n", sid, obj.content_type, obj.text.c_str());
 	}
 }
