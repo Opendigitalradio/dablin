@@ -274,6 +274,7 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	}
 
 	fic_decoder = new FICDecoder(this, options.disable_dyn_fic_msgs);
+	pad_decoder = new PADDecoder(this, true);
 }
 
 DABlinText::~DABlinText() {
@@ -317,4 +318,24 @@ void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 
 void DABlinText::FICDiscardedFIB() {
 	fprintf(stderr, "\x1B[33m" "(FIB)" "\x1B[0m" " ");
+}
+
+void DABlinText::PADChangeDynamicLabel(const DL_STATE& dl) {
+	// fprintf(stderr, "### PADChangeDynamicLabel\n");
+	std::string channel = "";
+	int sid = 0;
+	if(!options.initial_channel.empty()) {
+		channel = options.initial_channel;
+		sid = options.initial_sid;
+	}
+	if(dl.charset != -1) {
+		std::string charset_name;
+		std::string label = CharsetTools::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset, false, &charset_name);
+		fprintf(stderr,"PADChangeDynamicLabel SId 0x%04X Label:\"%s\"\n", sid, label.c_str());
+	}
+	for(const DL_PLUS_OBJECT& obj : dl.dl_plus_objects) {
+		if(obj.content_type == 0)
+			continue;
+		fprintf(stderr,"PADChangeDynamicLabel SId 0x%04X DLPlusType:%d DLPlusText:\"%s\"\n", sid, obj.content_type, obj.text.c_str());
+	}
 }

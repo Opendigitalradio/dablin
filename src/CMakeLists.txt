@@ -19,6 +19,8 @@ list(APPEND dablin_sources
     )
 
 set(dablin_cli_sources
+    mot_manager.cpp
+    pad_decoder.cpp
     dablin.cpp
     )
 

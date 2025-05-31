@@ -29,6 +29,7 @@
 #include "edi_source.h"
 #include "edi_player.h"
 #include "fic_decoder.h"
+#include "pad_decoder.h"
 #include "tools.h"
 #include "version.h"
 
@@ -71,18 +72,21 @@ DABlinTextOptions() :
 
 
 // --- DABlinText -----------------------------------------------------------------
-class DABlinText : EnsembleSourceObserver, EnsemblePlayerObserver, FICDecoderObserver {
+class DABlinText : EnsembleSourceObserver, EnsemblePlayerObserver, FICDecoderObserver, PADDecoderObserver {
 private:
 	DABlinTextOptions options;
 
 	EnsembleSource *ensemble_source;
 	EnsemblePlayer *ensemble_player;
 	FICDecoder *fic_decoder;
+	PADDecoder *pad_decoder;
 
 	void EnsembleProcessFrame(const uint8_t *data) {ensemble_player->ProcessFrame(data);}
 	void EnsembleUpdateProgress(const ENSEMBLE_PROGRESS& progress);
 
 	void EnsembleProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
+        void EnsembleProcessPAD(const uint8_t *xpad_data, size_t xpad_len, bool exact_xpad_len, const uint8_t* fpad_data) {pad_decoder->Process(xpad_data, xpad_len, exact_xpad_len, fpad_data);}
+	void PADChangeDynamicLabel(const DL_STATE& dl);
 
 	void FICChangeService(const LISTED_SERVICE& service);
 	void FICDiscardedFIB();
