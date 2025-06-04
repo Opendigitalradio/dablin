@@ -7,7 +7,7 @@ and DAB+ (AAC-LC, HE-AAC, HE-AAC v2) services are supported.
 The GTK GUI version in addition supports the data applications Dynamic
 Label and MOT Slideshow (if used by the selected service).
 
-## Forked Version
+## Dump PAD messages
 Now with added PAD Dynamic Label outputs. Here's an example from Magic Radio 
 in the UK:
 
@@ -15,10 +15,6 @@ in the UK:
 PADChangeDynamicLabel SId 0xC0C6 Label:"Discover more at magic.co.uk"
 PADChangeDynamicLabel SId 0xC0C6 Label:"Magic Radio Afternoons with Emma B"
 ```
-
-May update it to push FICDecover and PADChangeDynamicLabel messages into 
-MQTT so other services can consume this data. Currently I'm just parsing 
-the stderr output.
 
 ## Screenshots
 
