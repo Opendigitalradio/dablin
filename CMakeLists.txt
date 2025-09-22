@@ -2,7 +2,7 @@
 # Project setup
 ########################################################################
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 project(dablin C CXX)
 
 # Select the release build type by default to get optimization flags
