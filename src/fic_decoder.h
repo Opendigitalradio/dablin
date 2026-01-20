@@ -138,7 +138,7 @@ struct FIC_DAB_DT {
 				dt.tm_year == fic_dab_dt.dt.tm_year;
 	}
 	bool operator==(const FIC_DAB_DT & fic_dab_dt) const {
-		return ms == fic_dab_dt.ms && equalExceptMs(*this);
+		return ms == fic_dab_dt.ms && equalExceptMs(fic_dab_dt);
 	}
 	bool operator!=(const FIC_DAB_DT & fic_dab_dt) const {
 		return !(*this == fic_dab_dt);
