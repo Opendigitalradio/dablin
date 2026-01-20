@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2024 Stefan Pöschel
+    Copyright (C) 2015-2026 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -199,6 +199,7 @@ private:
 	long int rec_prebuffer_filled_ms;
 
 	// date/time
+	FIC_DAB_DT utc_dt_last_sync;
 	FIC_DAB_DT utc_dt_curr;
 	int dt_lto;
 	std::string dt_str_prev;

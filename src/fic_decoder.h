@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2022 Stefan Pöschel
+    Copyright (C) 2015-2026 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -128,15 +128,17 @@ struct FIC_DAB_DT {
 		dt.tm_year = none;
 	}
 
-	bool operator==(const FIC_DAB_DT & fic_dab_dt) const {
+	bool equalExceptMs(const FIC_DAB_DT & fic_dab_dt) const {
 		return
-				ms == fic_dab_dt.ms &&
 				dt.tm_sec == fic_dab_dt.dt.tm_sec &&
 				dt.tm_min == fic_dab_dt.dt.tm_min &&
 				dt.tm_hour == fic_dab_dt.dt.tm_hour &&
 				dt.tm_mday == fic_dab_dt.dt.tm_mday &&
 				dt.tm_mon == fic_dab_dt.dt.tm_mon &&
 				dt.tm_year == fic_dab_dt.dt.tm_year;
+	}
+	bool operator==(const FIC_DAB_DT & fic_dab_dt) const {
+		return ms == fic_dab_dt.ms && equalExceptMs(*this);
 	}
 	bool operator!=(const FIC_DAB_DT & fic_dab_dt) const {
 		return !(*this == fic_dab_dt);

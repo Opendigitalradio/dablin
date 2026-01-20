@@ -1,6 +1,6 @@
 /*
     DABlin - capital DAB experience
-    Copyright (C) 2015-2024 Stefan Pöschel
+    Copyright (C) 2015-2026 Stefan Pöschel
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1169,8 +1169,13 @@ void DABlinGTK::FICChangeUTCDateTime(const FIC_DAB_DT& utc_dt) {
 	dt_update = std::chrono::steady_clock::now();
 //	fprintf(stderr, "### time synced\n");
 
-	if(dt_lto != FIC_ENSEMBLE::lto_none)
-		DoDateTimeSync(FICDecoder::ConvertDateTimeToString(utc_dt, dt_lto, true));
+	if(dt_lto != FIC_ENSEMBLE::lto_none) {
+		// update sync timestamp only every second
+		if(!utc_dt_last_sync.equalExceptMs(utc_dt)) {
+			utc_dt_last_sync = utc_dt;
+			DoDateTimeSync(FICDecoder::ConvertDateTimeToString(utc_dt, dt_lto, false));
+		}
+	}
 
 	ShowDateTime(true);
 }
