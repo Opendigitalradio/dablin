@@ -277,6 +277,15 @@ private:
 
 	void SetService(const LISTED_SERVICE& service);
 	void UpdateAnnouncementSupport(const LISTED_SERVICE& service);
+
+	// --- announcement following: behave like a real receiver ---
+	void UpdateAnnouncementFollowing();
+	bool ann_following = false;			// currently following an announcement?
+	bool ann_is_alarm = false;			// is the followed announcement an alarm (locked)?
+	int ann_target_subchid = -1;		// SubChId of the announcement currently followed
+	bool ann_internal = false;			// true while WE move the combo selection (not the user)
+	LISTED_SERVICE ann_home_service;	// the user-selected service to anchor/return to
+
 	void ShowDateTime(bool scheduled);
 
 	void on_btn_channels_stop();
