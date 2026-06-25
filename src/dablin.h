@@ -85,7 +85,15 @@ private:
 	void EnsembleProcessFIC(const uint8_t *data, size_t len) {fic_decoder->Process(data, len);}
 
 	void FICChangeService(const LISTED_SERVICE& service);
+	void FICChangeEnsemble(const FIC_ENSEMBLE& ensemble);	// announcement following
 	void FICDiscardedFIB();
+
+	// --- announcement following state ---
+	AUDIO_SERVICE tuned_audio_service;				// the user-selected ("tuned") service
+	cids_t tuned_cids;								// its FIG0/18 cluster memberships
+	uint16_t tuned_asu_flags = 0;					// its FIG0/18 supported announcement types
+	std::map<int,AUDIO_SERVICE> subchid_to_audio;	// SubChId -> AUDIO_SERVICE (announcement target lookup)
+	bool following = false;							// currently following an announcement?
 public:
 	DABlinText(DABlinTextOptions options);
 	~DABlinText();

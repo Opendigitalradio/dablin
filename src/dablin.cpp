@@ -294,6 +294,10 @@ void DABlinText::EnsembleUpdateProgress(const ENSEMBLE_PROGRESS& progress) {
 void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 //	fprintf(stderr, "### FICChangeService\n");
 
+	// remember SubChId -> AUDIO_SERVICE for announcement target lookup (all services)
+	if(!service.audio_service.IsNone())
+		subchid_to_audio[service.audio_service.subchid] = service.audio_service;
+
 	std::string label = FICDecoder::ConvertLabelToUTF8(service.label, nullptr);
 
 	// if first found service requested, adopt service params (for possible later changes)
@@ -307,12 +311,60 @@ void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 	if(!(label == options.initial_label || (service.sid == options.initial_sid && service.scids == options.initial_scids)))
 		return;
 
-	// if the audio service changed, switch
-	if(!ensemble_player->IsSameAudioService(service.audio_service))
+	// remember the tuned service so we can return to it after an announcement
+	tuned_audio_service = service.audio_service;
+	tuned_cids = service.cids;
+	tuned_asu_flags = service.asu_flags;
+
+	// if the audio service changed, switch -- but NOT while following an announcement
+	if(!following && !ensemble_player->IsSameAudioService(service.audio_service))
 		ensemble_player->SetAudioService(service.audio_service);
 
 	// set XTerm window title to service name
 	fprintf(stderr, "\x1B]0;" "%s - DABlin" "\a", label.c_str());
+}
+
+void DABlinText::FICChangeEnsemble(const FIC_ENSEMBLE& ensemble) {
+	// announcement following -- act like a real receiver / car.
+	// On an active announcement (FIG0/19) for a cluster the tuned service belongs to
+	// (or an ensemble-wide alarm), move audio to the target sub-channel; revert when it ends.
+	if(tuned_audio_service.IsNone())
+		return;	// no tuned service selected yet
+
+	int target_subchid = AUDIO_SERVICE::subchid_none;
+	const char* reason = nullptr;
+	for(asw_clusters_t::const_iterator it = ensemble.asw_clusters.begin(); it != ensemble.asw_clusters.end(); ++it) {
+		uint8_t cluster = it->first;
+		const FIC_ASW_CLUSTER& asw = it->second;
+		if(asw.asw_flags == FIC_ASW_CLUSTER::asw_flags_none)
+			continue;	// this cluster is not currently active
+		if(cluster == 0xFF && ensemble.al_flag) {		// alarm: ensemble-wide, no FIG0/18 membership needed
+			target_subchid = asw.subchid;
+			reason = "ALARM (FIG0/0 AL flag + cluster 0xFF)";
+			break;
+		}
+		if(tuned_cids.count(cluster) && (asw.asw_flags & tuned_asu_flags)) {	// normal: member AND supports the active announcement type
+			target_subchid = asw.subchid;
+			reason = "tuned service is a member of the active cluster";
+			break;
+		}
+	}
+
+	if(target_subchid != AUDIO_SERVICE::subchid_none) {
+		// follow -> move audio to the announcement target sub-channel
+		std::map<int,AUDIO_SERVICE>::const_iterator fit = subchid_to_audio.find(target_subchid);
+		AUDIO_SERVICE target = (fit != subchid_to_audio.end()) ? fit->second : AUDIO_SERVICE(target_subchid, true);
+		if(!ensemble_player->IsSameAudioService(target)) {
+			fprintf(stderr, "\n" "\x1B[32m" "*** ANNOUNCEMENT FOLLOW -> SubChId %d (%s) ***" "\x1B[0m" "\n", target_subchid, reason);
+			ensemble_player->SetAudioService(target);
+		}
+		following = true;
+	} else if(following) {
+		// announcement ended -> return to the tuned service
+		fprintf(stderr, "\n" "\x1B[33m" "*** ANNOUNCEMENT END -> back to tuned service ***" "\x1B[0m" "\n");
+		ensemble_player->SetAudioService(tuned_audio_service);
+		following = false;
+	}
 }
 
 void DABlinText::FICDiscardedFIB() {

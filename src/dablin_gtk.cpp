@@ -1115,6 +1115,71 @@ void DABlinGTK::FICChangeEnsembleEmitted() {
 
 	label_ensemble.set_markup(label);
 	frame_label_ensemble.set_tooltip_text(tooltip_text);
+
+	UpdateAnnouncementFollowing();	// follow announcements like a real receiver
+}
+
+void DABlinGTK::UpdateAnnouncementFollowing() {
+	// act like a real receiver. When an announcement (FIG0/19) is active for a cluster the
+	// home service belongs to (FIG0/18, matching a supported type), or for an ensemble-wide alarm
+	// (FIG0/0 AL flag + cluster 0xFF), move to the announcement target sub-channel -- audio AND the
+	// combo selection -- and return to the home service when it ends. An Alarm-type announcement
+	// locks the user in (a manual escape re-throws, see on_combo_services); other types can be left.
+	if(ann_home_service.IsNone())
+		return;	// no service selected yet
+
+	int target_subchid = AUDIO_SERVICE::subchid_none;
+	bool is_alarm = false;
+	for(asw_clusters_t::const_iterator c = ensemble.asw_clusters.begin(); c != ensemble.asw_clusters.end(); ++c) {
+		if(c->second.asw_flags == FIC_ASW_CLUSTER::asw_flags_none)
+			continue;	// this cluster is not currently active
+		bool applies = false;
+		if(c->first == 0xFF && ensemble.al_flag)
+			applies = true;	// alarm: ensemble-wide, no membership needed
+		else if(ann_home_service.cids.count(c->first) && (c->second.asw_flags & ann_home_service.asu_flags))
+			applies = true;	// normal: member AND supports the active announcement type
+		if(applies) {
+			target_subchid = c->second.subchid;
+			is_alarm = (c->second.asw_flags & 0x0001) != 0;	// Alarm announcement type bit (b0)
+			break;
+		}
+	}
+
+	Gtk::ListStore::Children children = combo_services_liststore->children();
+
+	if(target_subchid != AUDIO_SERVICE::subchid_none) {
+		if(!ann_following) {
+			// follow -> move the combo (hence audio + displayed name) to the announcement target
+			Gtk::ListStore::iterator it = std::find_if(children.begin(), children.end(),
+					[&](const Gtk::TreeModel::Row& row)->bool {
+						const LISTED_SERVICE& ls = (LISTED_SERVICE) row[combo_services_cols.col_service];
+						return ls.audio_service.subchid == target_subchid;
+					});
+			if(it != children.end()) {
+				fprintf(stderr, "*** ANNOUNCEMENT FOLLOW -> SubChId %d%s ***\n", target_subchid, is_alarm ? " (ALARM, locked)" : "");
+				ann_following = true;
+				ann_is_alarm = is_alarm;
+				ann_target_subchid = target_subchid;
+				ann_internal = true;
+				combo_services.set_active(it);
+				ann_internal = false;
+			}
+		}
+	} else if(ann_following) {
+		// announcement ended -> return to the home service
+		fprintf(stderr, "*** ANNOUNCEMENT END -> back to home service ***\n");
+		ann_following = false;
+		Gtk::ListStore::iterator it = std::find_if(children.begin(), children.end(),
+				[&](const Gtk::TreeModel::Row& row)->bool {
+					const LISTED_SERVICE& ls = (LISTED_SERVICE) row[combo_services_cols.col_service];
+					return ls.sid == ann_home_service.sid && ls.scids == ann_home_service.scids;
+				});
+		if(it != children.end()) {
+			ann_internal = true;
+			combo_services.set_active(it);
+			ann_internal = false;
+		}
+	}
 }
 
 void DABlinGTK::FICChangeServiceEmitted() {
@@ -1322,6 +1387,31 @@ void DABlinGTK::on_combo_services() {
 		Gtk::TreeModel::Row row = *row_it;
 		service = row[combo_services_cols.col_service];
 	}
+	// our own combo move for announcement following -> just play it, keep state
+	if(ann_internal) {
+		SetService(service);
+		return;
+	}
+
+	// genuine user selection. An active ALARM locks the user in -> re-throw to it.
+	if(ann_following && ann_is_alarm && !service.IsNone()) {
+		Gtk::ListStore::Children children = combo_services_liststore->children();
+		Gtk::ListStore::iterator it = std::find_if(children.begin(), children.end(),
+				[&](const Gtk::TreeModel::Row& row)->bool {
+					const LISTED_SERVICE& ls = (LISTED_SERVICE) row[combo_services_cols.col_service];
+					return ls.audio_service.subchid == ann_target_subchid;
+				});
+		if(it != children.end()) {
+			ann_internal = true;
+			combo_services.set_active(it);	// snap back to the announcement service
+			ann_internal = false;
+			return;
+		}
+	}
+
+	// otherwise honour the user's choice: it becomes the new home, and stop following
+	ann_home_service = service;
+	ann_following = false;
 	SetService(service);
 }
 
