@@ -47,7 +47,9 @@ static void usage(const char* exe) {
 					"  -w            Output RIFF WAVE with PCM to stdout instead of using SDL (useful only on Little Endian)\n"
 					"  -u            Output untouched audio stream to stdout instead of using SDL\n"
 					"  -I            Don't catch up on stream after interruption\n"
+					"  -L            Enable loose behaviour (e.g. PAD conformance)\n"
 					"  -F            Disable dynamic FIC messages (dynamic PTY, announcements)\n"
+					"  -Y            Disable PAD and Dynamic Label Plus (DL+) messages\n"
 					"  file          Input file to be played (stdin, if not specified)\n",
 					EnsembleSource::FORMAT_ETI.c_str(),
 					EnsembleSource::FORMAT_EDI.c_str(),
@@ -75,7 +77,7 @@ int main(int argc, char **argv) {
 
 	// option args
 	int c;
-	while((c = getopt(argc, argv, "hf:c:l:d:D:g:Gs:x:1pwuIFr:R:")) != -1) {
+	while((c = getopt(argc, argv, "hf:c:l:d:D:g:Gs:x:1pwuIFr:R:LY")) != -1) {
 		switch(c) {
 		case 'h':
 			usage(argv[0]);
@@ -137,6 +139,12 @@ int main(int argc, char **argv) {
 			break;
 		case 'F':
 			options.disable_dyn_fic_msgs = true;
+			break;
+		case 'L':
+			options.loose = true;
+			break;
+		case 'Y':
+			options.initially_disable_dl_plus = true;
 			break;
 		case '?':
 		default:
@@ -274,6 +282,7 @@ DABlinText::DABlinText(DABlinTextOptions options) {
 	}
 
 	fic_decoder = new FICDecoder(this, options.disable_dyn_fic_msgs);
+	pad_decoder = new PADDecoder(this, options.loose);
 }
 
 DABlinText::~DABlinText() {
@@ -317,4 +326,32 @@ void DABlinText::FICChangeService(const LISTED_SERVICE& service) {
 
 void DABlinText::FICDiscardedFIB() {
 	fprintf(stderr, "\x1B[33m" "(FIB)" "\x1B[0m" " ");
+}
+
+void DABlinText::PADChangeDynamicLabel(const DL_STATE& dl) {
+	std::string channel = "";
+	const char fmt_cyan[] = "\x1B[36m";
+	const char fmt_rst[]  = "\x1B[0m";
+	if(options.initially_disable_dl_plus) {
+		return;
+	}
+	if(!options.initial_channel.empty()) {
+		channel = options.initial_channel;
+	}
+	if (dl.dl_plus_objects.size() > 0) {
+		for(const DL_PLUS_OBJECT& obj : dl.dl_plus_objects) {
+			if(obj.content_type == 0)
+				continue;
+			//fprintf(stderr,"DABlinText: PADChangeDynamicLabel DLPlusType:%d DLPlusText:\'%s%s%s\'\n", obj.content_type, fmt_cyan, obj.text.c_str(), fmt_rst);
+			fprintf(stderr,"DABlinText: PADChangeDynamicLabel DLPlusType: %s DLPlusText: \'%s%s%s\'\n", 
+					DynamicLabelDecoder::ConvertDLPlusContentTypeToString(obj.content_type).c_str(), 
+					fmt_cyan, obj.text.c_str(), fmt_rst);
+		}
+	} else {
+		if(dl.charset != -1) {
+			std::string charset_name;
+			std::string label = CharsetTools::ConvertTextToUTF8(&dl.raw[0], dl.raw.size(), dl.charset, false, &charset_name);
+			fprintf(stderr,"DABlinText: PADChangeDynamicLabel Label: \'%s%s%s\'\n", fmt_cyan, label.c_str(), fmt_rst);
+		}
+	}
 }

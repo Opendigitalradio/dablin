@@ -627,6 +627,17 @@ Depending on the object category, the object text is highlighted in bold
 text or a different text color. Deleted objects have a text with grey
 background color.
 
+The console verson will now output PAD Dynamic Label and DL+ tags,
+highlighted in cyan. For example these messages are from Magic Radio in
+the UK:
+
+```
+DABlinText: PADChangeDynamicLabel Label: 'Playing... Man I Feel Like A Woman -- Shania Twain'
+DABlinText: PADChangeDynamicLabel Label: 'Magic Radio -- The Best Variety from the 80s to Now'
+DABlinText: PADChangeDynamicLabel Label: 'Playing... Bad Habits -- Ed Sheeran'
+```
+
+Where both are available only DL+ tags are output.
 
 ### Slideshow
 
